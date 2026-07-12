@@ -21,11 +21,11 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import depensesService, { BilanDepenses, Depense } from '../src/services/depensesService';
-import { Avatar, CandyButton, CandyCard, CandyInput, EmptyState, Segmented } from '../components/ui';
+import { Avatar, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DepensesScreen() {
-  const { maisonActive, membres } = useMaison();
+  const { maisonActive, membres, isVisiteur } = useMaison();
   const { user } = useAuth();
   const { colors } = useTheme();
   const { t, lang } = useT();
@@ -141,9 +141,13 @@ export default function DepensesScreen() {
             <ArrowLeft size={22} color={colors.text.dark} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text.dark }]}>💰 {t('depenses.titre')}</Text>
-          <Pressable onPress={openModal} hitSlop={10}>
-            <Plus size={22} color={colors.primary.main} />
-          </Pressable>
+          {!isVisiteur ? (
+            <Pressable onPress={openModal} hitSlop={10}>
+              <Plus size={22} color={colors.primary.main} />
+            </Pressable>
+          ) : (
+            <View style={{ width: 22 }} />
+          )}
         </View>
 
         <View style={styles.segmentedWrap}>
@@ -161,6 +165,8 @@ export default function DepensesScreen() {
           contentContainerStyle={styles.container}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary.main} />}
         >
+          {isVisiteur ? <VisitorBanner /> : null}
+
           {loading ? (
             <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
           ) : tab === 'depenses' ? (

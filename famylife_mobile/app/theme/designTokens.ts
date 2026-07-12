@@ -45,6 +45,9 @@ export const colors = {
   },
   background: candy.cream,
   card: candy.white,
+  // Surface secondaire (chips, inputs, segmented, steppers, sections légères).
+  // Claire en mode clair — remplacée par un ton foncé en mode sombre.
+  surface: candy.cream,
   border: 'rgba(58,42,91,0.08)',
   overlay: 'rgba(58,42,91,0.45)',
   statut: {
@@ -98,6 +101,9 @@ export const darkColors = {
   },
   background: '#1B1330',
   card: '#2A2049',
+  // Surface secondaire foncée (équivalent sombre de `candy.cream`) : plus claire
+  // que la carte pour rester lisible en tant que chip/input en mode sombre.
+  surface: '#3A2E62',
   border: 'rgba(255,255,255,0.1)',
   overlay: 'rgba(0,0,0,0.6)',
   statut: {

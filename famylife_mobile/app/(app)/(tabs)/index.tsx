@@ -162,7 +162,7 @@ export default function DashboardScreen() {
             <View style={{ flex: 1 }}>
               <View style={styles.maisonNomRow}>
                 <Text style={[styles.maisonNom, { color: colors.text.dark }]}>{maisonActive.nom}</Text>
-                <View style={[styles.logementChip, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+                <View style={[styles.logementChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <Text style={styles.logementChipIcon}>{logementIcon(maisonActive.type_logement)}</Text>
                   <Text style={[styles.logementChipText, { color: colors.text.body }]}>
                     {logementLabel(t, maisonActive.type_logement)}

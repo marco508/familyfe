@@ -324,7 +324,11 @@ export default function MaisonScreen() {
     setRoleModalMembre(m);
     setRoleModalRole(m.role === 'chef' ? 'membre' : (m.role as any));
     setRoleModalLien(m.lien_famille ?? null);
-    setRoleModalExpireLe(m.role_expire_le || m.visite_expire_le || '');
+    // L'API renvoie un datetime ISO complet ("2026-08-01T00:00:00") mais le champ
+    // n'accepte/valide que la date ("AAAA-MM-JJ") : on tronque, sinon la validation
+    // (regex date-only) rejette à tort une valeur déjà enregistrée non modifiée.
+    const expire = m.role_expire_le || m.visite_expire_le || '';
+    setRoleModalExpireLe(expire ? expire.slice(0, 10) : '');
     setRoleModalError('');
   };
 
@@ -534,7 +538,7 @@ export default function MaisonScreen() {
           <View style={{ flex: 1 }}>
             <View style={styles.maisonNomRow}>
               <Text style={[styles.maisonNom, { color: colors.text.dark }]}>{maisonActive.nom}</Text>
-              <View style={[styles.logementChip, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+              <View style={[styles.logementChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={styles.logementChipIcon}>{logementIcon(maisonActive.type_logement)}</Text>
                 <Text style={[styles.logementChipText, { color: colors.text.body }]}>
                   {logementLabel(t, maisonActive.type_logement)}
@@ -547,7 +551,7 @@ export default function MaisonScreen() {
           </View>
         </View>
 
-        <Pressable onPress={handleShareCode} style={[styles.codeRow, { backgroundColor: colors.candy.cream }]}>
+        <Pressable onPress={handleShareCode} style={[styles.codeRow, { backgroundColor: colors.surface }]}>
           <View>
             <Text style={[styles.codeLabel, { color: colors.text.muted }]}>{t('maison.codeInvitation')}</Text>
             <Text style={[styles.codeValue, { color: colors.text.dark }]}>{maisonActive.code_invitation}</Text>

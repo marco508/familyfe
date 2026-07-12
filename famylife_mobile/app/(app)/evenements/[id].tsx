@@ -174,7 +174,7 @@ export default function EvenementDetailScreen() {
                     disabled={reponding}
                     style={[
                       styles.rsvpButton,
-                      { borderColor: colors.border, backgroundColor: colors.candy.cream },
+                      { borderColor: colors.border, backgroundColor: colors.surface },
                       active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
                     ]}
                   >

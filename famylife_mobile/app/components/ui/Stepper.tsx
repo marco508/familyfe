@@ -27,7 +27,7 @@ export default function Stepper({ value, onValueChange, min = 0, max = 999, step
       <View style={styles.row}>
         <Pressable
           onPress={dec}
-          style={[styles.button, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
           hitSlop={8}
         >
           <Minus size={16} color={colors.text.dark} />
@@ -38,7 +38,7 @@ export default function Stepper({ value, onValueChange, min = 0, max = 999, step
         </Text>
         <Pressable
           onPress={inc}
-          style={[styles.button, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
           hitSlop={8}
         >
           <Plus size={16} color={colors.text.dark} />

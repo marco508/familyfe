@@ -499,7 +499,7 @@ export default function TachesScreen() {
                 </View>
               )}
 
-              <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream }]}>
+              <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
                 <View style={styles.toggleRow}>
                   <View style={styles.sectionCardTitleRow}>
                     <Gift size={16} color={colors.candy.orangeDark} />

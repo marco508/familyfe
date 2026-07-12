@@ -422,7 +422,7 @@ export default function ActivitesScreen() {
                 </View>
               ) : null}
 
-              <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream, marginTop: spacing.lg }]}>
+              <View style={[styles.sectionCard, { backgroundColor: colors.surface, marginTop: spacing.lg }]}>
                 <View style={styles.toggleRow}>
                   <View style={styles.sectionCardTitleRow}>
                     <Gift size={16} color={colors.candy.orangeDark} />
@@ -452,7 +452,7 @@ export default function ActivitesScreen() {
                 ) : null}
               </View>
 
-              <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream }]}>
+              <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
                 <View style={styles.toggleRow}>
                   <View style={styles.sectionCardTitleRow}>
                     <Repeat size={16} color={colors.secondary.main} />

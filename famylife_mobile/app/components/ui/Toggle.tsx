@@ -31,7 +31,7 @@ export default function Toggle({ value, onValueChange, disabled }: Props) {
       <Animated.View
         style={[
           styles.track,
-          { backgroundColor: value ? colors.primary.main : colors.candy.cream },
+          { backgroundColor: value ? colors.primary.main : colors.surface },
           !value && [styles.trackBorder, { borderColor: colors.border }],
           disabled && styles.disabled,
         ]}

@@ -210,13 +210,13 @@ export default function AgendaScreen() {
 
         <CandyCard style={styles.calendarCard}>
           <View style={styles.monthHeader}>
-            <Pressable onPress={goPrevMonth} hitSlop={10} style={[styles.monthNavButton, { backgroundColor: colors.candy.cream }]}>
+            <Pressable onPress={goPrevMonth} hitSlop={10} style={[styles.monthNavButton, { backgroundColor: colors.surface }]}>
               <ChevronLeft size={20} color={colors.text.dark} />
             </Pressable>
             <Text style={[styles.monthLabel, { color: colors.text.dark }]}>
               {MOIS_LABEL[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </Text>
-            <Pressable onPress={goNextMonth} hitSlop={10} style={[styles.monthNavButton, { backgroundColor: colors.candy.cream }]}>
+            <Pressable onPress={goNextMonth} hitSlop={10} style={[styles.monthNavButton, { backgroundColor: colors.surface }]}>
               <ChevronRight size={20} color={colors.text.dark} />
             </Pressable>
           </View>

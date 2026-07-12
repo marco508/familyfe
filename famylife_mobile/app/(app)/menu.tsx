@@ -221,7 +221,7 @@ export default function MenuScreen() {
                           </Pressable>
                         ) : (
                           items.map((r) => (
-                            <View key={r.id} style={[styles.mealChip, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+                            <View key={r.id} style={[styles.mealChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                               <Text style={[styles.mealTitle, { color: colors.text.dark }]} numberOfLines={1}>
                                 {r.titre}
                               </Text>

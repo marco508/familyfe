@@ -59,7 +59,7 @@ export default function Avatar({ name, image, size = 40, ringColor }: Props) {
         style={[
           styles.imageWrap,
           dimensionStyle,
-          { backgroundColor: colors.candy.cream },
+          { backgroundColor: colors.surface },
           ringColor ? { borderColor: ringColor, borderWidth: 2 } : null,
         ]}
       >
@@ -70,7 +70,7 @@ export default function Avatar({ name, image, size = 40, ringColor }: Props) {
 
   if (isEmojiOnly) {
     return (
-      <View style={[styles.emojiWrap, dimensionStyle, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+      <View style={[styles.emojiWrap, dimensionStyle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={{ fontSize: size * 0.55 }}>{image}</Text>
       </View>
     );

@@ -129,7 +129,7 @@ export default function VoteDetailScreen() {
                     </Text>
                     <Text style={[styles.optionPct, { color: colors.text.muted }]}>{pct}% · {opt.nb_voix} {t('votes.voix')}</Text>
                   </View>
-                  <View style={[styles.barTrack, { backgroundColor: colors.candy.cream }]}>
+                  <View style={[styles.barTrack, { backgroundColor: colors.surface }]}>
                     <LinearGradient
                       colors={isMine ? gradients.candyGreen : gradients.candyPurple}
                       start={{ x: 0, y: 0 }}

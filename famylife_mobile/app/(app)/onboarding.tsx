@@ -121,7 +121,7 @@ export default function OnboardingScreen() {
                   onPress={() => setEmoji(e)}
                   style={[
                     styles.emojiChip,
-                    { backgroundColor: colors.candy.cream },
+                    { backgroundColor: colors.surface },
                     emoji === e && { borderColor: colors.primary.main },
                   ]}
                 >

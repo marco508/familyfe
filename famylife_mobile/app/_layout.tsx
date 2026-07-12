@@ -26,7 +26,7 @@ export default function RootLayout() {
               <MaisonProvider>
                 <NotificationProvider>
                   <RootStatusBar />
-                  <Stack screenOptions={{ headerShown: false }}>
+                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
                     <Stack.Screen name="index" />
                     <Stack.Screen name="(auth)" />
                     <Stack.Screen name="(app)" />

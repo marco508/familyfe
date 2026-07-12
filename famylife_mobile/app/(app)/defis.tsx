@@ -23,11 +23,11 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import defisService, { Defi } from '../src/services/defisService';
-import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Stepper } from '../components/ui';
+import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Stepper, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DefisScreen() {
-  const { maisonActive, isGestion } = useMaison();
+  const { maisonActive, isGestion, isVisiteur } = useMaison();
   const { user } = useAuth();
   const { colors } = useTheme();
   const { t } = useT();
@@ -163,7 +163,7 @@ export default function DefisScreen() {
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🏆 {t('defis.titre')}</Text>
-        {isGestion ? (
+        {!isVisiteur ? (
           <Pressable onPress={openCreate} hitSlop={10}>
             <Plus size={22} color={colors.primary.main} />
           </Pressable>
@@ -176,6 +176,8 @@ export default function DefisScreen() {
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary.main} />}
       >
+        {isVisiteur ? <VisitorBanner /> : null}
+
         {loading ? (
           <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
         ) : defis.length === 0 ? (
@@ -210,7 +212,7 @@ export default function DefisScreen() {
                 </View>
               ) : null}
 
-              {d.statut === 'ouvert' ? (
+              {d.statut === 'ouvert' && !isVisiteur ? (
                 <View style={styles.actionsRow}>
                   {!d.je_participe ? (
                     <CandyButton label={t('defis.rejoindre')} onPress={() => handleRejoindre(d)} loading={busyId === d.id} variant="blue" size="sm" style={{ flex: 1 }} />
@@ -219,6 +221,10 @@ export default function DefisScreen() {
                   ) : (
                     <Badge label={t('defis.fait')} variant="green" />
                   )}
+                </View>
+              ) : d.statut === 'ouvert' && d.je_participe && d.mon_termine ? (
+                <View style={styles.actionsRow}>
+                  <Badge label={t('defis.fait')} variant="green" />
                 </View>
               ) : null}
 

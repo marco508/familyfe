@@ -24,7 +24,7 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import boutiqueService, { Echange, Recompense } from '../src/services/boutiqueService';
-import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, Stepper, Toggle } from '../components/ui';
+import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, Stepper, Toggle, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 type Tab = 'boutique' | 'echanges' | 'gestion';
@@ -36,7 +36,7 @@ const STATUT_VARIANT: Record<string, 'orange' | 'green' | 'neutral'> = {
 };
 
 export default function BoutiqueScreen() {
-  const { maisonActive, membres, isGestion } = useMaison();
+  const { maisonActive, membres, isGestion, isVisiteur } = useMaison();
   const { user } = useAuth();
   const { colors } = useTheme();
   const { t, lang } = useT();
@@ -197,7 +197,7 @@ export default function BoutiqueScreen() {
             <Pencil size={14} color={colors.primary.main} />
             <Text style={[styles.editText, { color: colors.primary.main }]}>{t('common.modifier')}</Text>
           </Pressable>
-        ) : (
+        ) : !isVisiteur ? (
           <CandyButton
             label={disabled && mesPoints < r.cout_points ? t('boutique.pointsInsuffisants') : t('boutique.echanger')}
             onPress={() => handleEchanger(r)}
@@ -208,7 +208,7 @@ export default function BoutiqueScreen() {
             icon={<Gift size={16} color={colors.candy.white} />}
             style={{ marginTop: spacing.sm }}
           />
-        )}
+        ) : null}
       </CandyCard>
     );
   };
@@ -237,6 +237,8 @@ export default function BoutiqueScreen() {
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary.main} />}
       >
+        {isVisiteur ? <VisitorBanner /> : null}
+
         {loading ? (
           <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
         ) : tab === 'boutique' ? (

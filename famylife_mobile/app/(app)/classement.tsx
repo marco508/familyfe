@@ -123,7 +123,7 @@ export default function ClassementScreen() {
                 ) : (
                   <View style={styles.badgeChipsRow}>
                     {mb.badges.map((b) => (
-                      <View key={b.code} style={[styles.badgeChip, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+                      <View key={b.code} style={[styles.badgeChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                         <Text style={[styles.badgeChipText, { color: colors.text.dark }]}>{b.titre}</Text>
                       </View>
                     ))}

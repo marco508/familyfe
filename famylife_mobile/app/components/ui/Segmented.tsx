@@ -28,7 +28,7 @@ export default function Segmented<T extends string = string>({ options, value, o
   };
 
   return (
-    <View style={[styles.wrap, { backgroundColor: colors.candy.cream, borderColor: colors.border }]}>
+    <View style={[styles.wrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (

@@ -89,7 +89,8 @@ export default function TabsLayout() {
     <ScreenBackground>
       <Tabs
         tabBar={(props) => <CandyTabBar {...props} />}
-        screenOptions={{ headerShown: false }}
+        sceneContainerStyle={{ backgroundColor: 'transparent' }}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: 'transparent' } }}
       >
         <Tabs.Screen name="index" options={{ title: t('nav.accueil') }} />
         <Tabs.Screen name="activites" options={{ title: t('nav.activites') }} />

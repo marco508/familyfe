@@ -8,6 +8,7 @@ from app.database.database import database, membres_maison, regles, vote_bulleti
 from app.dependencies import get_current_user, require_gestion, require_membre, require_membre_row
 from app.models.schemas import RegleCreateInput, RegleUpdateInput
 from app.services.notifications import notifier_maison
+from app.utils.formatting import mini_user
 
 router = APIRouter(tags=["regles"])
 
@@ -21,12 +22,27 @@ async def _get_regle_or_404(regle_id: int) -> dict:
     return dict(row)
 
 
-async def _vote_resultats(vote_id: Optional[int]) -> Optional[dict]:
+async def _createur_for(user_id: int) -> Optional[dict]:
+    row = await database.fetch_one(
+        "SELECT id, nom, image FROM utilisateurs WHERE id = :uid", values={"uid": user_id}
+    )
+    return mini_user(row) if row else None
+
+
+async def _serialize(row: dict, current_user_id: int) -> dict:
+    """Aplati les résultats de vote directement sur la règle (mêmes clés que
+    `votes.py::_serialize_vote` : `options`, `total_voix`, `mon_vote_option_id`)
+    car l'UI mobile les lit à plat (`r.options`, pas `r.vote.options`)."""
+    data = dict(row)
+    data["createur"] = await _createur_for(row["createur_id"])
+
+    vote_id = row.get("vote_id")
     if not vote_id:
-        return None
-    vote_row = await database.fetch_one(votes.select().where(votes.c.id == vote_id))
-    if not vote_row:
-        return None
+        data["options"] = None
+        data["total_voix"] = None
+        data["mon_vote_option_id"] = None
+        return data
+
     option_rows = await database.fetch_all(
         """
         SELECT vo.id, vo.texte,
@@ -38,17 +54,16 @@ async def _vote_resultats(vote_id: Optional[int]) -> Optional[dict]:
         values={"vid": vote_id},
     )
     options = [dict(r) for r in option_rows]
-    return {
-        "id": vote_row["id"],
-        "statut": vote_row["statut"],
-        "options": options,
-        "total_voix": sum(o["nb_voix"] for o in options),
-    }
+    data["options"] = options
+    data["total_voix"] = sum(o["nb_voix"] for o in options)
 
-
-async def _serialize(row: dict) -> dict:
-    data = dict(row)
-    data["vote"] = await _vote_resultats(row.get("vote_id"))
+    mon_bulletin = await database.fetch_one(
+        vote_bulletins.select().where(
+            (vote_bulletins.c.vote_id == vote_id)
+            & (vote_bulletins.c.utilisateur_id == current_user_id)
+        )
+    )
+    data["mon_vote_option_id"] = mon_bulletin["option_id"] if mon_bulletin else None
     return data
 
 
@@ -58,7 +73,7 @@ async def list_regles(maison_id: int, current_user: dict = Depends(get_current_u
     rows = await database.fetch_all(
         regles.select().where(regles.c.maison_id == maison_id).order_by(regles.c.ordre.asc(), regles.c.id.asc())
     )
-    return [await _serialize(dict(r)) for r in rows]
+    return [await _serialize(dict(r), current_user["id"]) for r in rows]
 
 
 @router.post("/maisons/{maison_id}/regles", status_code=status.HTTP_201_CREATED)
@@ -121,7 +136,7 @@ async def create_regle(
             exclure=current_user["id"],
         )
 
-    return await _serialize(await _get_regle_or_404(regle_id))
+    return await _serialize(await _get_regle_or_404(regle_id), current_user["id"])
 
 
 @router.put("/regles/{regle_id}")
@@ -142,7 +157,7 @@ async def update_regle(
     if values:
         await database.execute(regles.update().where(regles.c.id == regle_id).values(**values))
 
-    return await _serialize(await _get_regle_or_404(regle_id))
+    return await _serialize(await _get_regle_or_404(regle_id), current_user["id"])
 
 
 @router.delete("/regles/{regle_id}")
@@ -166,7 +181,7 @@ async def adopter_regle(regle_id: int, current_user: dict = Depends(get_current_
         message=f"« {row['titre']} » a été adoptée.",
         lien="regles",
     )
-    return await _serialize(await _get_regle_or_404(regle_id))
+    return await _serialize(await _get_regle_or_404(regle_id), current_user["id"])
 
 
 @router.post("/regles/{regle_id}/rejeter")
@@ -175,7 +190,7 @@ async def rejeter_regle(regle_id: int, current_user: dict = Depends(get_current_
     await require_gestion(row["maison_id"], current_user["id"])
 
     await database.execute(regles.update().where(regles.c.id == regle_id).values(statut="rejetee"))
-    return await _serialize(await _get_regle_or_404(regle_id))
+    return await _serialize(await _get_regle_or_404(regle_id), current_user["id"])
 
 
 # ==================== Rappel des règles ====================

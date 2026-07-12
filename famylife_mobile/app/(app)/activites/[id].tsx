@@ -42,7 +42,7 @@ const RECURRENCES: { value: Recurrence; labelKey: string }[] = [
 export default function ActiviteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const activiteId = Number(id);
-  const { membres, isChef } = useMaison();
+  const { membres, isChef, isGestion, isVisiteur } = useMaison();
   const { user } = useAuth();
   const { t } = useT();
   const { colors } = useTheme();
@@ -151,9 +151,12 @@ export default function ActiviteDetailScreen() {
     setParticipants((prev) => (prev.includes(mid) ? prev.filter((x) => x !== mid) : [...prev, mid]));
   };
 
-  const peutGererGage = !!activite && !!user && (isChef || activite.createur_id === user.id);
+  // Backend (`activites.py::resoudre_gage` / `rotation_suivant`) autorise chef, co-chef
+  // ou créateur — `isGestion` (chef/co-chef/chef temporaire) est la valeur la plus proche
+  // exposée côté client (couvre aussi le co-chef, oublié par une vérification `isChef` seule).
+  const peutGererGage = !!activite && !!user && (isGestion || activite.createur_id === user.id);
   const peutAvancerRotation =
-    !!activite && !!user && (isChef || activite.createur_id === user.id || activite.rotation_titulaire?.id === user.id);
+    !!activite && !!user && (isGestion || activite.createur_id === user.id || activite.rotation_titulaire?.id === user.id);
 
   const handleSave = async () => {
     if (!titre.trim()) {
@@ -462,7 +465,7 @@ export default function ActiviteDetailScreen() {
                     onPress={() => toggleAssigne(m.id)}
                     style={[
                       styles.membreChip,
-                      { backgroundColor: colors.candy.cream, borderColor: colors.border },
+                      { backgroundColor: colors.surface, borderColor: colors.border },
                       active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
                     ]}
                   >
@@ -498,7 +501,7 @@ export default function ActiviteDetailScreen() {
                       onPress={() => toggleParticipant(m.id)}
                       style={[
                         styles.membreChip,
-                        { backgroundColor: colors.candy.cream, borderColor: colors.border },
+                        { backgroundColor: colors.surface, borderColor: colors.border },
                         active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
                       ]}
                     >
@@ -515,7 +518,7 @@ export default function ActiviteDetailScreen() {
               </View>
             ) : null}
 
-            <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream, marginTop: spacing.lg }]}>
+            <View style={[styles.sectionCard, { backgroundColor: colors.surface, marginTop: spacing.lg }]}>
               <View style={styles.toggleRow}>
                 <View style={styles.sectionCardTitleRow}>
                   <Gift size={16} color={colors.candy.orangeDark} />
@@ -535,7 +538,7 @@ export default function ActiviteDetailScreen() {
               ) : null}
             </View>
 
-            <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream }]}>
+            <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
               <View style={styles.toggleRow}>
                 <View style={styles.sectionCardTitleRow}>
                   <Repeat size={16} color={colors.secondary.main} />
@@ -556,7 +559,7 @@ export default function ActiviteDetailScreen() {
                           onPress={() => toggleRotationMembre(m.id)}
                           style={[
                             styles.membreChip,
-                            { backgroundColor: colors.candy.cream, borderColor: colors.border },
+                            { backgroundColor: colors.surface, borderColor: colors.border },
                             active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
                           ]}
                         >
@@ -582,7 +585,7 @@ export default function ActiviteDetailScreen() {
             </View>
 
             {/* ANNEXE V3 — récurrence */}
-            <View style={[styles.sectionCard, { backgroundColor: colors.candy.cream }]}>
+            <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
               <View style={styles.sectionCardTitleRow}>
                 <Repeat size={16} color={colors.candy.blueDark} />
                 <Text style={[styles.sectionCardTitle, { color: colors.text.dark }]}>{t('activite.recurrence')}</Text>
@@ -598,7 +601,11 @@ export default function ActiviteDetailScreen() {
 
             {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
 
-            <CandyButton label={t('common.enregistrer')} onPress={handleSave} loading={saving} variant="pink" />
+            {/* `update_activite` refuse les visiteurs (require_not_visiteur) : pas de bouton
+                Enregistrer pour un compte en lecture seule. */}
+            {!isVisiteur ? (
+              <CandyButton label={t('common.enregistrer')} onPress={handleSave} loading={saving} variant="pink" />
+            ) : null}
           </CandyCard>
 
           {/* ANNEXE V3 — sous-tâches (checklist) */}
