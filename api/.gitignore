@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Base de données SQLite (dev)
+*.db
+*.sqlite3
+
+# Fichiers téléversés (avatars, preuves…)
+uploads/
+
+# Env
+.env

@@ -1,0 +1,342 @@
+// app/(app)/depenses.tsx — Dépenses partagées + bilan (ANNEXE V3)
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { ArrowLeft, Plus, X, Trash2, ArrowRight } from 'lucide-react-native';
+import ScreenBackground from '../components/ScreenBackground';
+import { useMaison } from '../src/contexts/MaisonContext';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useTheme } from '../src/contexts/ThemeContext';
+import { useT } from '../src/i18n';
+import depensesService, { BilanDepenses, Depense } from '../src/services/depensesService';
+import { Avatar, CandyButton, CandyCard, CandyInput, EmptyState, Segmented } from '../components/ui';
+import { typography, spacing, borderRadius } from '../theme/designTokens';
+
+export default function DepensesScreen() {
+  const { maisonActive, membres } = useMaison();
+  const { user } = useAuth();
+  const { colors } = useTheme();
+  const { t, lang } = useT();
+
+  const [tab, setTab] = useState<'depenses' | 'bilan'>('depenses');
+  const [depenses, setDepenses] = useState<Depense[]>([]);
+  const [bilan, setBilan] = useState<BilanDepenses | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [titre, setTitre] = useState('');
+  const [montant, setMontant] = useState('');
+  const [payePar, setPayePar] = useState<number | null>(null);
+  const [participants, setParticipants] = useState<number[]>([]);
+  const [categorie, setCategorie] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const nomFor = (uid: number) => membres.find((m) => m.id === uid)?.nom ?? `#${uid}`;
+  const imageFor = (uid: number) => membres.find((m) => m.id === uid)?.image ?? null;
+
+  const load = useCallback(async () => {
+    if (!maisonActive) {
+      setDepenses([]);
+      setBilan(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const [depRes, bilanRes] = await Promise.all([
+        depensesService.list(maisonActive.id),
+        depensesService.bilan(maisonActive.id),
+      ]);
+      setDepenses(depRes.data ?? []);
+      setBilan(bilanRes.data ?? null);
+    } finally {
+      setLoading(false);
+    }
+  }, [maisonActive]);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+
+  const openModal = () => {
+    setTitre('');
+    setMontant('');
+    setPayePar(user?.id ?? null);
+    setParticipants(membres.map((m) => m.id));
+    setCategorie('');
+    setError('');
+    setModalVisible(true);
+  };
+
+  const toggleParticipant = (id: number) => {
+    setParticipants((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleCreate = async () => {
+    if (!maisonActive) return;
+    const montantNum = parseFloat(montant.replace(',', '.'));
+    if (!titre.trim() || isNaN(montantNum) || montantNum <= 0) {
+      setError(t('depenses.titreMontantRequis'));
+      return;
+    }
+    setSaving(true);
+    setError('');
+    const res = await depensesService.create(maisonActive.id, {
+      titre: titre.trim(),
+      montant: montantNum,
+      paye_par: payePar ?? undefined,
+      categorie: categorie.trim() || undefined,
+      participants: participants.length ? participants : undefined,
+    });
+    setSaving(false);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    setModalVisible(false);
+    load();
+  };
+
+  const handleDelete = (d: Depense) => {
+    Alert.alert(t('common.supprimer') + ' ?', d.titre, [
+      { text: t('common.annuler'), style: 'cancel' },
+      {
+        text: t('common.supprimer'),
+        style: 'destructive',
+        onPress: async () => {
+          await depensesService.remove(d.id);
+          load();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.flex}>
+      <ScreenBackground>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={10}>
+            <ArrowLeft size={22} color={colors.text.dark} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: colors.text.dark }]}>💰 {t('depenses.titre')}</Text>
+          <Pressable onPress={openModal} hitSlop={10}>
+            <Plus size={22} color={colors.primary.main} />
+          </Pressable>
+        </View>
+
+        <View style={styles.segmentedWrap}>
+          <Segmented
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: 'depenses', label: t('depenses.titre') },
+              { value: 'bilan', label: t('depenses.bilan') },
+            ]}
+          />
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary.main} />}
+        >
+          {loading ? (
+            <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
+          ) : tab === 'depenses' ? (
+            depenses.length === 0 ? (
+              <EmptyState emoji="💸" title={t('depenses.vide')} />
+            ) : (
+              depenses.map((d) => (
+                <CandyCard key={d.id} style={styles.card}>
+                  <View style={styles.cardTopRow}>
+                    <Text style={[styles.cardTitle, { color: colors.text.dark }]} numberOfLines={1}>
+                      {d.titre}
+                    </Text>
+                    <Text style={[styles.cardMontant, { color: colors.candy.greenDark }]}>{d.montant.toFixed(2)} €</Text>
+                  </View>
+                  <View style={styles.cardMetaRow}>
+                    <Avatar name={nomFor(d.paye_par)} image={imageFor(d.paye_par)} size={22} />
+                    <Text style={[styles.cardMeta, { color: colors.text.body }]}>
+                      {t('depenses.payePar')} {nomFor(d.paye_par)} · {new Date(d.date).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
+                    </Text>
+                  </View>
+                  <View style={styles.cardFooterRow}>
+                    <Text style={[styles.cardMeta, { color: colors.text.muted }]} numberOfLines={1}>
+                      {d.parts.length} {d.parts.length > 1 ? t('depenses.participants2') : t('depenses.participant')}
+                      {d.categorie ? ` · ${d.categorie}` : ''}
+                    </Text>
+                    {d.paye_par === user?.id ? (
+                      <Pressable onPress={() => handleDelete(d)} hitSlop={8}>
+                        <Trash2 size={16} color={colors.candy.red} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </CandyCard>
+              ))
+            )
+          ) : bilan && bilan.reglements.length === 0 ? (
+            <EmptyState emoji="🎉" title={t('depenses.aucuneDette')} />
+          ) : (
+            <>
+              <Text style={[styles.sectionLabel, { color: colors.text.dark }]}>{t('depenses.quiDoitQui')}</Text>
+              {(bilan?.reglements ?? []).map((r, idx) => (
+                <CandyCard key={idx} style={styles.reglementCard}>
+                  <View style={styles.reglementRow}>
+                    <Text style={[styles.reglementNom, { color: colors.text.dark }]}>{r.de_nom}</Text>
+                    <ArrowRight size={16} color={colors.text.muted} />
+                    <Text style={[styles.reglementNom, { color: colors.text.dark }]}>{r.vers_nom}</Text>
+                    <Text style={[styles.reglementMontant, { color: colors.candy.pinkDark }]}>{r.montant.toFixed(2)} €</Text>
+                  </View>
+                </CandyCard>
+              ))}
+
+              <Text style={[styles.sectionLabel, { color: colors.text.dark, marginTop: spacing.lg }]}>{t('depenses.soldes')}</Text>
+              {(bilan?.soldes ?? []).map((s) => (
+                <CandyCard key={s.utilisateur_id} style={styles.reglementCard}>
+                  <View style={styles.soldeRow}>
+                    <Avatar name={s.nom} image={imageFor(s.utilisateur_id)} size={28} />
+                    <Text style={[styles.reglementNom, { color: colors.text.dark, flex: 1 }]} numberOfLines={1}>
+                      {s.nom}
+                    </Text>
+                    <Text style={[styles.reglementMontant, { color: s.solde >= 0 ? colors.candy.greenDark : colors.candy.red }]}>
+                      {s.solde >= 0 ? '+' : ''}
+                      {s.solde.toFixed(2)} €
+                    </Text>
+                  </View>
+                </CandyCard>
+              ))}
+            </>
+          )}
+        </ScrollView>
+      </ScreenBackground>
+
+      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
+        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('depenses.nouvelle')} 💰</Text>
+                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
+                  <X size={22} color={colors.text.dark} />
+                </Pressable>
+              </View>
+
+              <CandyInput label={t('common.titre')} placeholder={t('depenses.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+              <CandyInput
+                label={t('depenses.montant')}
+                placeholder="45.90"
+                value={montant}
+                onChangeText={setMontant}
+                keyboardType="decimal-pad"
+              />
+              <CandyInput label={t('courses.categorie')} placeholder={t('depenses.categoriePlaceholder')} value={categorie} onChangeText={setCategorie} />
+
+              <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.payePar')}</Text>
+              <View style={styles.chipsRow}>
+                {membres.map((m) => (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => setPayePar(m.id)}
+                    style={[styles.membreChip, { borderColor: colors.border }, payePar === m.id && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
+                  >
+                    <Avatar name={m.nom} image={m.image} size={22} />
+                    <Text style={[styles.membreChipText, { color: payePar === m.id ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
+                      {m.nom}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.participants')}</Text>
+              <View style={styles.chipsRow}>
+                {membres.map((m) => (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => toggleParticipant(m.id)}
+                    style={[styles.membreChip, { borderColor: colors.border }, participants.includes(m.id) && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
+                  >
+                    <Avatar name={m.nom} image={m.image} size={22} />
+                    <Text style={[styles.membreChipText, { color: participants.includes(m.id) ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
+                      {m.nom}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+
+              <CandyButton label={t('common.creer')} onPress={handleCreate} loading={saving} variant="green" style={{ marginTop: spacing.md }} />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing['2xl'],
+    paddingBottom: spacing.md,
+  },
+  headerTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
+  segmentedWrap: { paddingHorizontal: spacing.xl, marginBottom: spacing.md },
+  container: { padding: spacing.xl, paddingTop: 0, paddingBottom: spacing['4xl'] },
+  card: { marginBottom: spacing.sm },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  cardMontant: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+  cardMeta: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium },
+  cardFooterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
+  sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
+  reglementCard: { marginBottom: spacing.sm },
+  reglementRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  soldeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reglementNom: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
+  reglementMontant: { marginLeft: 'auto', fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
+  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
+  label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+  membreChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: borderRadius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderWidth: 1.5,
+    maxWidth: 150,
+  },
+  membreChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
+  error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },
+});
