@@ -9,6 +9,17 @@ export type FrequenceTache = 'ponctuel' | 'quotidien' | 'hebdo' | 'mensuel';
 export type AssignationTache = 'fixe' | 'rotation';
 export type StatutTache = 'a_faire' | 'fait';
 
+// Effet de gage paramétrable, appliqué automatiquement à l'oubli / à la réussite.
+export type GageEffetType = 'points' | 'tache' | 'amende' | 'note';
+export interface GageEffet {
+  type: GageEffetType;
+  valeur?: number; // points (négatif = pénalité)
+  titre?: string; // tache : intitulé de la corvée
+  jours?: number; // tache : échéance dans N jours
+  montant?: number; // amende : € dus à la cagnotte
+  texte?: string; // note : message
+}
+
 export interface Tache {
   id: number;
   maison_id: number;
@@ -26,8 +37,16 @@ export interface Tache {
   recompense: string | null;
   points_penalite: number;
   points_recompense: number;
+  // Gage « corvée » cumulatif (ANNEXE V5) : sur oubli en rotation, la tâche reste
+  // au retardataire ; gage_semaines_restantes suit le nombre de semaines dues.
+  gage_semaines: number;
+  gage_semaines_restantes: number;
+  gage_effets_echec: GageEffet[];
+  gage_effets_reussite: GageEffet[];
   echeance_date: string | null; // AAAA-MM-JJ
   echeance_heure: string | null; // HH:MM
+  // Seuil par jour de semaine (0=lundi … 6=dimanche), alternative à une date fixe.
+  echeance_jour_semaine: number | null;
   statut: StatutTache;
   prochaine_echeance: string | null;
   createur_id: number;
@@ -35,12 +54,15 @@ export interface Tache {
   // Titulaire courant = assigne_id (fixe) ou rotation_ordre[rotation_index] (rotation).
   titulaire: MiniUser | null;
   fait_aujourdhui: boolean;
+  // Pièces couvertes par la tâche (relation multi-pièces).
+  pieces: { id: number; nom: string; type: string }[];
 }
 
 export interface TacheCreateInput {
   titre: string;
   description?: string;
   piece_id?: number | null;
+  piece_ids?: number[]; // une tâche peut couvrir plusieurs pièces
   frequence?: FrequenceTache;
   assignation?: AssignationTache;
   assigne_id?: number | null;
@@ -51,8 +73,12 @@ export interface TacheCreateInput {
   recompense?: string;
   points_penalite?: number;
   points_recompense?: number;
+  gage_semaines?: number; // gage initial (semaines) imposé au 1er oubli
+  gage_effets_echec?: GageEffet[];
+  gage_effets_reussite?: GageEffet[];
   echeance_date?: string;
   echeance_heure?: string;
+  echeance_jour_semaine?: number | null; // 0=lundi … 6=dimanche
 }
 
 export interface TacheUpdateInput extends Partial<TacheCreateInput> {}

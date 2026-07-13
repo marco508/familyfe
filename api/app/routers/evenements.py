@@ -61,6 +61,8 @@ async def list_evenements(
     maison_id: int,
     debut: Optional[str] = Query(None),
     fin: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user),
 ):
     await require_membre(maison_id, current_user["id"])
@@ -70,7 +72,7 @@ async def list_evenements(
         query = query.where(evenements.c.date_debut >= debut)
     if fin:
         query = query.where(evenements.c.date_debut <= fin)
-    query = query.order_by(evenements.c.date_debut.asc())
+    query = query.order_by(evenements.c.date_debut.asc()).limit(limit).offset(offset)
 
     rows = await database.fetch_all(query)
     return [await _serialize(dict(r), current_user["id"]) for r in rows]
@@ -152,10 +154,12 @@ async def delete_evenement(evenement_id: int, current_user: dict = Depends(get_c
             detail="Seul le gestionnaire ou le créateur peut supprimer cet événement",
         )
 
-    await database.execute(
-        evenement_reponses.delete().where(evenement_reponses.c.evenement_id == evenement_id)
-    )
-    await database.execute(evenements.delete().where(evenements.c.id == evenement_id))
+    # Suppression en cascade atomique : réponses (RSVP) + événement.
+    async with database.transaction():
+        await database.execute(
+            evenement_reponses.delete().where(evenement_reponses.c.evenement_id == evenement_id)
+        )
+        await database.execute(evenements.delete().where(evenements.c.id == evenement_id))
     return {"message": "Événement supprimé"}
 
 

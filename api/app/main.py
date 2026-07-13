@@ -7,9 +7,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from sqlalchemy import inspect, text
 
 from app.config import settings
+from app.utils.ratelimit import limiter
 from app.database.database import database, engine, metadata
 from app.routers import (
     activites,
@@ -43,6 +47,8 @@ _COLUMN_MIGRATIONS = {
     "utilisateurs": [
         ("date_naissance", "DATE"),
         ("push_token", "VARCHAR"),
+        # ANNEXE V5 — invalidation des JWT
+        ("token_version", "INTEGER NOT NULL DEFAULT 0"),
     ],
     "membres_maison": [
         ("points", "INTEGER NOT NULL DEFAULT 0"),
@@ -71,6 +77,19 @@ _COLUMN_MIGRATIONS = {
         ("preuve_url", "VARCHAR"),
         # ANNEXE V4
         ("visibilite", "VARCHAR NOT NULL DEFAULT 'maison'"),
+        # ANNEXE V5 — seuil par jour de semaine + effets de gage paramétrables
+        ("echeance_jour_semaine", "INTEGER"),
+        ("gage_effets_echec", "TEXT"),
+        ("gage_effets_reussite", "TEXT"),
+    ],
+    "taches": [
+        # ANNEXE V5 — gage « corvée » cumulatif + seuil par jour de semaine
+        ("gage_semaines", "INTEGER NOT NULL DEFAULT 2"),
+        ("gage_semaines_restantes", "INTEGER NOT NULL DEFAULT 0"),
+        ("echeance_jour_semaine", "INTEGER"),
+        # ANNEXE V5 — effets de gage paramétrables (JSON)
+        ("gage_effets_echec", "TEXT"),
+        ("gage_effets_reussite", "TEXT"),
     ],
     "evenements": [
         ("recurrence", "VARCHAR NOT NULL DEFAULT 'aucune'"),
@@ -94,17 +113,27 @@ _COLUMN_MIGRATIONS = {
 
 
 def _ensure_columns() -> None:
-    """Ajoute les colonnes manquantes (migration légère, idempotente)."""
+    """Ajoute les colonnes manquantes (migration légère, idempotente).
+
+    Tolère les races entre plusieurs workers qui démarrent en parallèle : si un
+    autre worker a déjà ajouté la colonne entre le check et l'ALTER, l'erreur
+    « duplicate column » est absorbée. Reste un filet de dev — pour de vraies
+    évolutions de schéma, utiliser Alembic (voir README).
+    """
     insp = inspect(engine)
-    with engine.begin() as conn:
-        for table, cols in _COLUMN_MIGRATIONS.items():
-            if not insp.has_table(table):
+    for table, cols in _COLUMN_MIGRATIONS.items():
+        if not insp.has_table(table):
+            continue
+        existing = {c["name"] for c in insp.get_columns(table)}
+        for name, ddl in cols:
+            if name in existing:
                 continue
-            existing = {c["name"] for c in insp.get_columns(table)}
-            for name, ddl in cols:
-                if name not in existing:
+            try:
+                with engine.begin() as conn:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
-                    logger.info("Colonne ajoutée: %s.%s", table, name)
+                logger.info("Colonne ajoutée: %s.%s", table, name)
+            except Exception as exc:  # noqa: BLE001 — race entre workers tolérée
+                logger.info("ALTER ignoré (%s.%s déjà présent ?): %s", table, name, exc)
 
 
 @asynccontextmanager
@@ -124,9 +153,26 @@ async def lifespan(app: FastAPI):
     logger.info("Application démarrée en mode %s", settings.ENVIRONMENT)
     logger.info("Base de données connectée (%s)", settings.DATABASE_URL)
 
+    # Effets de bord (rotations, gages, anniversaires) : désormais planifiés en
+    # arrière-plan plutôt que déclenchés à la lecture. On les applique une fois
+    # au démarrage puis on lance le scheduler pour les rejeux périodiques.
+    from app.services.scheduler import (
+        appliquer_effets_toutes_maisons,
+        generer_anniversaires_toutes_maisons,
+        start_scheduler,
+        stop_scheduler,
+    )
+    try:
+        await appliquer_effets_toutes_maisons()
+        await generer_anniversaires_toutes_maisons()
+    except Exception as exc:  # noqa: BLE001 — ne bloque jamais le démarrage
+        logger.warning("Effets initiaux au démarrage échoués (ignoré): %s", exc)
+    start_scheduler()
+
     yield
 
     # --- Arrêt ---
+    stop_scheduler()
     await database.disconnect()
     logger.info("Application arrêtée")
 
@@ -139,16 +185,32 @@ app = FastAPI(
     root_path=settings.ROOT_PATH,
 )
 
-# CORS — dev : tout autorisé pour permettre à Expo Go de se connecter depuis
-# n'importe quelle IP LAN (pas de domaine fixe côté mobile).
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_origin_regex=settings.CORS_ORIGIN_REGEX,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)
+# Rate limiting global (slowapi) : le limiteur est disponible via app.state,
+# et les dépassements renvoient un 429 propre.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS.
+# En dev : tout autorisé pour qu'Expo Go se connecte depuis n'importe quelle IP
+# LAN (pas de domaine fixe côté mobile). En production : on restreint aux
+# origines déclarées dans CORS_ORIGINS (jamais wildcard + credentials ensemble).
+if settings.is_development:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_origin_regex=settings.CORS_ORIGIN_REGEX,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 # Fichiers uploadés (avatars, preuves d'activité) — ANNEXE V3.
 os.makedirs(UPLOAD_DIR, exist_ok=True)

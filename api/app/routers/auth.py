@@ -1,23 +1,32 @@
 # app/routers/auth.py
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.database.database import database, utilisateurs
 from app.dependencies import get_current_user
 from app.models.schemas import PushTokenInput, SignupInput, Token, UpdateMeInput
 from app.services.uploads import save_upload
+from app.utils.ratelimit import limiter
 from app.utils.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(tags=["auth"])
 
+# Hash bcrypt factice : comparé quand l'utilisateur n'existe pas, pour que le
+# temps de réponse du login soit constant (évite l'énumération par timing).
+_DUMMY_HASH = "$2b$12$C6UzMDM.H6dfI/f/IKcEeO3Q0Z1nO9bqE0Xh0aQ0z0qGqg8Zs5Qy"
+
+# Longueur minimale de mot de passe (relevée de 6 à 8).
+_MIN_PASSWORD_LEN = 8
+
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def signup(data: SignupInput):
-    """Crée un utilisateur. 400 si email/téléphone déjà pris ou mot de passe < 6 caractères."""
-    if len(data.password) < 6:
+@limiter.limit("5/minute")
+async def signup(request: Request, data: SignupInput):
+    """Crée un utilisateur. 400 si email/téléphone déjà pris ou mot de passe trop court."""
+    if len(data.password) < _MIN_PASSWORD_LEN:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Le mot de passe doit contenir au moins 6 caractères",
+            detail=f"Le mot de passe doit contenir au moins {_MIN_PASSWORD_LEN} caractères",
         )
 
     email = data.email.strip().lower()
@@ -48,7 +57,10 @@ async def signup(data: SignupInput):
 
 
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+@limiter.limit("10/minute")
+async def login_for_access_token(
+    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
+):
     """Login : `username` accepte email OU nom OU téléphone."""
     query = utilisateurs.select().where(
         (utilisateurs.c.email == form_data.username)
@@ -57,22 +69,42 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     user = await database.fetch_one(query)
 
-    if not user or not verify_password(form_data.password, user["mot_de_passe_hash"]):
+    # Toujours vérifier un hash (celui de l'utilisateur, ou un hash factice) pour
+    # que le temps de réponse ne révèle pas si l'identifiant existe.
+    hashed = user["mot_de_passe_hash"] if user else _DUMMY_HASH
+    password_ok = verify_password(form_data.password, hashed)
+
+    if not user or not password_ok:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Identifiant ou mot de passe incorrect",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(data={"sub": str(user["id"])})
+    access_token = create_access_token(
+        data={"sub": str(user["id"]), "tv": int(user["token_version"] or 0)}
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/logout")
 async def logout(current_user: dict = Depends(get_current_user)):
-    """Pas de session serveur à invalider (mode dégradé JWT-only) : no-op côté API,
-    le client doit simplement supprimer le token stocké."""
+    """Déconnexion simple : le client supprime le token stocké. Le token reste
+    techniquement valide jusqu'à expiration (pour tout révoquer, voir
+    /me/deconnexion-globale)."""
     return {"message": "Déconnexion réussie"}
+
+
+@router.post("/me/deconnexion-globale")
+async def deconnexion_globale(current_user: dict = Depends(get_current_user)):
+    """Invalide TOUS les tokens existants de l'utilisateur (y compris celui-ci)
+    en incrémentant sa version de session. Utile en cas de vol de token ou de
+    déconnexion de tous les appareils."""
+    await database.execute(
+        "UPDATE utilisateurs SET token_version = token_version + 1 WHERE id = :uid",
+        values={"uid": current_user["id"]},
+    )
+    return {"message": "Toutes les sessions ont été déconnectées"}
 
 
 @router.get("/me")

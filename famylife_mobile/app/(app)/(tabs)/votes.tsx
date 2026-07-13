@@ -134,7 +134,6 @@ export default function VotesScreen() {
       >
         <SectionTitle
           title={t('nav.votes')}
-          emoji="🗳️"
           right={
             <View style={styles.headerActionsRow}>
               <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />

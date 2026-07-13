@@ -25,6 +25,7 @@ from app.models.schemas import (
 )
 from app.services.notifications import notifier
 from app.services.points import ajuster_points
+from app.services.gage_effets import appliquer_effets, dumps_effets, parse_effets
 from app.services.uploads import save_upload
 from app.utils.formatting import mini_user
 
@@ -34,6 +35,12 @@ VALID_STATUTS = {"a_faire", "en_cours", "termine"}
 VALID_GAGE_RESULTATS = {"reussi", "echoue"}
 VALID_RECURRENCES = {"aucune", "quotidien", "hebdo", "mensuel"}
 VALID_VISIBILITES = {"maison", "participants"}
+
+
+def _next_weekday(d: date, weekday: int) -> date:
+    """Prochaine date tombant sur `weekday` (0=lundi … 6=dimanche), après `d`."""
+    delta = (weekday - d.weekday() - 1) % 7 + 1
+    return d + timedelta(days=delta)
 
 
 def _parse_dt(value) -> Optional[datetime]:
@@ -194,6 +201,8 @@ async def _serialize_activite(row: dict) -> dict:
         idx = int(data.get("rotation_index") or 0) % len(data["rotation_ordre"])
         holder_id = data["rotation_ordre"][idx]
         data["rotation_titulaire"] = await _createur_for(holder_id)
+    data["gage_effets_echec"] = parse_effets(data.get("gage_effets_echec"))
+    data["gage_effets_reussite"] = parse_effets(data.get("gage_effets_reussite"))
     return data
 
 
@@ -276,12 +285,37 @@ async def _resoudre_gage(row: dict, resultat: str) -> dict:
         delta = -int(row.get("points_penalite") or 0)
         new_statut = row["statut"]
 
-    await ajuster_points(row["maison_id"], assigne_ids, delta, motif=f"gage:{resultat}:activite:{row['id']}")
-    await database.execute(
-        activites.update()
-        .where(activites.c.id == row["id"])
-        .values(gage_resultat=resultat, statut=new_statut)
-    )
+    # « Claim » atomique : la résolution n'est appliquée que si le gage est
+    # encore 'en_attente', dans la même requête. Un seul appel concurrent gagne
+    # le claim → plus de double attribution de points (TOCTOU supprimé).
+    async with database.transaction():
+        claimed = await database.fetch_one(
+            """
+            UPDATE activites SET gage_resultat = :res, statut = :st
+            WHERE id = :id AND gage_resultat = 'en_attente'
+            RETURNING id
+            """,
+            values={"res": resultat, "st": new_statut, "id": row["id"]},
+        )
+        if claimed is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Le gage a déjà été résolu"
+            )
+        await ajuster_points(
+            row["maison_id"], assigne_ids, delta, motif=f"gage:{resultat}:activite:{row['id']}"
+        )
+        # Effets de gage paramétrables (points/tâche/amende/note) appliqués
+        # automatiquement aux assignés selon le résultat.
+        effets = row.get("gage_effets_reussite") if resultat == "reussi" else row.get("gage_effets_echec")
+        if effets and assigne_ids:
+            await appliquer_effets(
+                effets,
+                maison_id=row["maison_id"],
+                cibles=assigne_ids,
+                source_titre=row["titre"],
+                createur_id=row["createur_id"],
+            )
+
     updated = await _get_activite_or_404(row["id"])
     if resultat == "reussi":
         await _creer_occurrence_suivante(updated)
@@ -400,17 +434,19 @@ async def _set_assignations(maison_id: int, activite_id: int, user_ids: List[int
 async def list_activites(
     maison_id: int,
     statut: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user),
 ):
     await require_membre(maison_id, current_user["id"])
 
-    # Fait avancer les rotations échues (relais de tour) avant de renvoyer la liste.
-    await _appliquer_rotations_dues(maison_id)
-
+    # Les rotations échues sont désormais avancées par le scheduler
+    # (app/services/scheduler.py), plus à la lecture — évite les effets de bord
+    # et les races sur un simple GET.
     query = activites.select().where(activites.c.maison_id == maison_id)
     if statut:
         query = query.where(activites.c.statut == statut)
-    query = query.order_by(activites.c.date_creation.desc())
+    query = query.order_by(activites.c.date_creation.desc()).limit(limit).offset(offset)
 
     rows = await database.fetch_all(query)
     result = []
@@ -449,20 +485,28 @@ async def create_activite(
     if rotation_active and rotation_ordre and rotation_delai > 0:
         rotation_echeance = datetime.now() + timedelta(days=rotation_delai)
 
+    # Échéance : date explicite, ou calée sur un jour-seuil (echeance_jour_semaine).
+    date_echeance = data.date_echeance
+    if date_echeance is None and data.echeance_jour_semaine is not None:
+        date_echeance = _next_weekday(date.today(), int(data.echeance_jour_semaine))
+
     activite_id = await database.execute(
         activites.insert().values(
             maison_id=maison_id,
             titre=data.titre,
             description=data.description,
             statut=statut,
-            date_echeance=data.date_echeance,
+            date_echeance=date_echeance,
             heure_echeance=data.heure_echeance,
+            echeance_jour_semaine=data.echeance_jour_semaine,
             rappel=bool(data.rappel),
             gage_actif=bool(data.gage_actif),
             penalite=data.penalite,
             recompense=data.recompense,
             points_penalite=int(data.points_penalite or 0),
             points_recompense=int(data.points_recompense or 0),
+            gage_effets_echec=dumps_effets(data.gage_effets_echec),
+            gage_effets_reussite=dumps_effets(data.gage_effets_reussite),
             recurrence=recurrence,
             visibilite=visibilite,
             rotation_active=rotation_active,
@@ -554,6 +598,11 @@ async def update_activite(
         values["date_echeance"] = data.date_echeance
     if data.heure_echeance is not None:
         values["heure_echeance"] = data.heure_echeance
+    if data.echeance_jour_semaine is not None:
+        values["echeance_jour_semaine"] = int(data.echeance_jour_semaine)
+        # Jour-seuil fourni sans date : cale l'échéance sur la prochaine occurrence.
+        if data.date_echeance is None:
+            values["date_echeance"] = _next_weekday(date.today(), int(data.echeance_jour_semaine))
     if data.rappel is not None:
         values["rappel"] = bool(data.rappel)
     if data.gage_actif is not None:
@@ -566,6 +615,10 @@ async def update_activite(
         values["points_penalite"] = int(data.points_penalite)
     if data.points_recompense is not None:
         values["points_recompense"] = int(data.points_recompense)
+    if data.gage_effets_echec is not None:
+        values["gage_effets_echec"] = dumps_effets(data.gage_effets_echec)
+    if data.gage_effets_reussite is not None:
+        values["gage_effets_reussite"] = dumps_effets(data.gage_effets_reussite)
     if data.rotation_active is not None:
         values["rotation_active"] = bool(data.rotation_active)
     if data.rotation_ordre is not None:

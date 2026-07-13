@@ -137,7 +137,7 @@ export default function CoursesScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🛒 {t('courses.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('courses.titre')}</Text>
         {achetes.length > 0 ? (
           <Pressable onPress={handleViderAchetes} hitSlop={10}>
             <Trash2 size={20} color={colors.candy.orangeDark} />

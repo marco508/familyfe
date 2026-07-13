@@ -98,7 +98,7 @@ export default function ChatScreen() {
           <Pressable onPress={() => router.back()} hitSlop={10}>
             <ArrowLeft size={22} color={colors.text.dark} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text.dark }]}>💬 {t('chat.titre')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('chat.titre')}</Text>
           <View style={{ width: 22 }} />
         </View>
 

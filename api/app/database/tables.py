@@ -5,7 +5,7 @@ Source unique de vérité — database.py importe depuis ici.
 """
 from sqlalchemy import (
     Table, Column, Integer, String, ForeignKey, Date, TIMESTAMP,
-    Text, Boolean, Float, func, UniqueConstraint,
+    Text, Boolean, Float, Numeric, func, UniqueConstraint,
 )
 from .connection import metadata
 
@@ -25,6 +25,9 @@ utilisateurs = Table(
     Column("date_naissance", Date, nullable=True),
     # Jeton Expo push (best-effort, dev build uniquement — voir ANNEXE V3).
     Column("push_token", String, nullable=True),
+    # Version de session (ANNEXE V5) : incrémentée pour invalider tous les JWT
+    # existants d'un utilisateur (déconnexion globale, mot de passe compromis…).
+    Column("token_version", Integer, nullable=False, server_default="0"),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -37,7 +40,7 @@ maisons = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("nom", String, nullable=False),
     Column("code_invitation", String, unique=True, nullable=False, index=True),
-    Column("chef_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("chef_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("emoji", String, nullable=True, server_default="🏠"),
     Column("couleur", String, nullable=True, server_default="#FF4E9B"),
     # ─── ANNEXE V4 — Adresse & logement ─────────────────────────────────────
@@ -90,6 +93,9 @@ activites = Table(
     Column("statut", String, nullable=False, server_default="a_faire"),  # a_faire|en_cours|termine
     Column("date_echeance", Date, nullable=True),
     Column("heure_echeance", String, nullable=True),  # "HH:MM" — activité à faire ensemble à une heure
+    # Seuil par jour de la semaine (0=lundi … 6=dimanche) : alternative à une date
+    # fixe (ex. « avant vendredi »). Voir routers/activites.py.
+    Column("echeance_jour_semaine", Integer, nullable=True),
     Column("rappel", Boolean, nullable=False, server_default="1"),  # notifier les membres/assignés
     # ─── Planning / rotation des tours (paramétrable) ──────────────────────
     # Ex : le ménage tourne entre plusieurs membres ; si le tour n'est pas fait
@@ -107,6 +113,9 @@ activites = Table(
     Column("recompense", Text, nullable=True),    # description de la récompense si réussite
     Column("points_penalite", Integer, nullable=False, server_default="0"),
     Column("points_recompense", Integer, nullable=False, server_default="0"),
+    # Effets de gage paramétrables (ANNEXE V5) — appliqués à la résolution.
+    Column("gage_effets_echec", Text, nullable=True),
+    Column("gage_effets_reussite", Text, nullable=True),
     # 'en_attente' | 'reussi' | 'echoue'
     Column("gage_resultat", String, nullable=False, server_default="en_attente"),
     # 'aucune' | 'quotidien' | 'hebdo' | 'mensuel' — recrée automatiquement la
@@ -116,7 +125,7 @@ activites = Table(
     Column("preuve_url", String, nullable=True),
     # ANNEXE V4 — activité sociale : maison entière ou liste de participants restreinte.
     Column("visibilite", String, nullable=False, server_default="maison"),  # maison|participants
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -159,7 +168,7 @@ evenements = Table(
     # 'aucune' | 'hebdo' | 'mensuel' (indicatif — prochaines occurrences calculées
     # côté client ou via génération simple côté serveur).
     Column("recurrence", String, nullable=False, server_default="aucune"),
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -174,7 +183,7 @@ votes = Table(
     Column("question", String, nullable=False),
     Column("description", Text, nullable=True),
     Column("statut", String, nullable=False, server_default="ouvert"),  # ouvert|clos
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
     Column("date_cloture", TIMESTAMP, nullable=True),
 )
@@ -193,7 +202,7 @@ vote_bulletins = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("vote_id", Integer, ForeignKey("votes.id", ondelete="CASCADE"), nullable=False, index=True),
     Column("option_id", Integer, ForeignKey("vote_options.id", ondelete="CASCADE"), nullable=False),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
     UniqueConstraint("vote_id", "utilisateur_id", name="unique_vote_bulletin"),
 )
@@ -242,7 +251,8 @@ depenses = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("maison_id", Integer, ForeignKey("maisons.id"), nullable=False, index=True),
     Column("titre", String, nullable=False),
-    Column("montant", Float, nullable=False),
+    # Monnaie : Numeric(10,2) — exact, pas d'erreurs d'arrondi (contrairement à Float).
+    Column("montant", Numeric(10, 2), nullable=False),
     Column("paye_par", Integer, ForeignKey("utilisateurs.id"), nullable=False),
     Column("date", TIMESTAMP, server_default=func.now()),
     Column("categorie", String, nullable=True),
@@ -255,7 +265,7 @@ depense_parts = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("depense_id", Integer, ForeignKey("depenses.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
 )
 
 # ─── Menu de la semaine ─────────────────────────────────────────────────────
@@ -277,7 +287,7 @@ messages = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("maison_id", Integer, ForeignKey("maisons.id"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("contenu", Text, nullable=False),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
@@ -288,7 +298,7 @@ activite_commentaires = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("activite_id", Integer, ForeignKey("activites.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("contenu", Text, nullable=False),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
@@ -312,7 +322,7 @@ recompense_echanges = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("recompense_id", Integer, ForeignKey("boutique_recompenses.id"), nullable=False, index=True),
     Column("maison_id", Integer, ForeignKey("maisons.id"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("cout", Integer, nullable=False),
     Column("statut", String, nullable=False, server_default="demande"),  # demande|valide|refuse
     Column("date_creation", TIMESTAMP, server_default=func.now()),
@@ -341,7 +351,7 @@ defis = Table(
     Column("points", Integer, nullable=False, server_default="0"),
     Column("date_fin", TIMESTAMP, nullable=True),
     Column("statut", String, nullable=False, server_default="ouvert"),  # ouvert|clos
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -350,7 +360,7 @@ defi_participants = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("defi_id", Integer, ForeignKey("defis.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("termine", Boolean, nullable=False, server_default="0"),
     UniqueConstraint("defi_id", "utilisateur_id", name="unique_defi_participant"),
 )
@@ -371,7 +381,7 @@ evenement_reponses = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("evenement_id", Integer, ForeignKey("evenements.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("reponse", String, nullable=False),  # oui|non|peut_etre
     UniqueConstraint("evenement_id", "utilisateur_id", name="unique_evenement_reponse"),
 )
@@ -403,7 +413,7 @@ regles = Table(
     Column("statut", String, nullable=False, server_default="adoptee"),  # proposee|adoptee|rejetee
     Column("vote_id", Integer, ForeignKey("votes.id"), nullable=True),
     Column("ordre", Integer, nullable=False, server_default="0"),
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -429,11 +439,28 @@ taches = Table(
     Column("recompense", Text, nullable=True),
     Column("points_penalite", Integer, nullable=False, server_default="0"),
     Column("points_recompense", Integer, nullable=False, server_default="0"),
+    # ─── Gage « corvée » cumulatif (ANNEXE V5) ─────────────────────────────
+    # En rotation : si le titulaire rate l'échéance, la tâche NE passe PAS au
+    # suivant — elle lui reste, et un gage de `gage_semaines` semaines de corvée
+    # lui est imposé. Chaque nouvel oubli ajoute +1 semaine. Quand il s'exécute,
+    # `gage_semaines_restantes` décrémente ; la rotation ne repart qu'une fois le
+    # gage purgé (compteur à 0).
+    Column("gage_semaines", Integer, nullable=False, server_default="2"),        # gage initial (1er oubli)
+    Column("gage_semaines_restantes", Integer, nullable=False, server_default="0"),  # suivi live
+    # ─── Effets de gage paramétrables (ANNEXE V5) ──────────────────────────
+    # Liste JSON d'effets typés appliqués AUTOMATIQUEMENT à l'oubli (echec) ou à
+    # la réussite. Chaque effet = {"type": "points|tache|note", ...}. Voir
+    # app/services/gage_effets.py. Permet n'importe quel gage sans code dédié.
+    Column("gage_effets_echec", Text, nullable=True),
+    Column("gage_effets_reussite", Text, nullable=True),
     Column("echeance_date", Date, nullable=True),
     Column("echeance_heure", String, nullable=True),  # "HH:MM"
+    # Seuil par jour de la semaine (0=lundi … 6=dimanche) : si défini, l'échéance
+    # récurrente se cale automatiquement sur ce jour (ex. « avant mercredi »).
+    Column("echeance_jour_semaine", Integer, nullable=True),
     Column("statut", String, nullable=False, server_default="a_faire"),  # a_faire|fait
     Column("prochaine_echeance", TIMESTAMP, nullable=True),
-    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("createur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -443,7 +470,24 @@ tache_validations = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("tache_id", Integer, ForeignKey("taches.id", ondelete="CASCADE"), nullable=False, index=True),
-    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False),
+    Column("utilisateur_id", Integer, ForeignKey("utilisateurs.id"), nullable=False, index=True),
     Column("periode_cle", String, nullable=True),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
+    # Idempotence : une seule validation par tâche et par période (empêche le
+    # double-comptage de récompense sous concurrence). Le check applicatif seul
+    # était sujet à un TOCTOU.
+    UniqueConstraint("tache_id", "periode_cle", name="unique_tache_periode"),
 )
+
+# ─── Association tâche ↔ pièces (ANNEXE V5 : une tâche peut couvrir plusieurs pièces) ──
+# La colonne `taches.piece_id` est conservée pour compatibilité (pièce
+# « principale »), mais la source de vérité multi-pièces est cette table.
+tache_pieces = Table(
+    "tache_pieces",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("tache_id", Integer, ForeignKey("taches.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column("piece_id", Integer, ForeignKey("pieces.id", ondelete="CASCADE"), nullable=False, index=True),
+    UniqueConstraint("tache_id", "piece_id", name="unique_tache_piece"),
+)
+# (fin du schéma)

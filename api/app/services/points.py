@@ -15,19 +15,26 @@ async def ajuster_points(
     motif: str = "ajustement",
 ) -> None:
     """Ajoute `delta` points au score de chaque membre (dans cette maison) et
-    journalise chaque mouvement dans `points_log`."""
+    journalise chaque mouvement dans `points_log`.
+
+    L'UPDATE du solde et l'INSERT du journal sont enveloppés dans une même
+    transaction : le solde `membres_maison.points` ne peut plus diverger de
+    `points_log`. L'`UPDATE ... points + :delta` reste atomique au niveau ligne
+    (pas de lost-update sur l'incrément lui-même).
+    """
     if not delta:
         return
-    for uid in set(user_ids):
-        await database.execute(
-            """
-            UPDATE membres_maison SET points = points + :delta
-            WHERE maison_id = :mid AND utilisateur_id = :uid
-            """,
-            values={"delta": delta, "mid": maison_id, "uid": uid},
-        )
-        await database.execute(
-            points_log.insert().values(
-                maison_id=maison_id, utilisateur_id=uid, delta=delta, motif=motif
+    async with database.transaction():
+        for uid in set(user_ids):
+            await database.execute(
+                """
+                UPDATE membres_maison SET points = points + :delta
+                WHERE maison_id = :mid AND utilisateur_id = :uid
+                """,
+                values={"delta": delta, "mid": maison_id, "uid": uid},
             )
-        )
+            await database.execute(
+                points_log.insert().values(
+                    maison_id=maison_id, utilisateur_id=uid, delta=delta, motif=motif
+                )
+            )

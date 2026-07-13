@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from app.database.database import database, maisons, membres_maison
-from app.utils.security import decode_access_token
+from app.utils.security import decode_access_token_payload
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    user_id = decode_access_token(token)
+    payload = decode_access_token_payload(token)
+    user_id = payload.get("sub")
 
     try:
         uid = int(user_id)
@@ -35,7 +36,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         raise credentials_exception
 
     query = """
-        SELECT id, nom, email, telephone, image, date_naissance, date_creation
+        SELECT id, nom, email, telephone, image, date_naissance, date_creation, token_version
         FROM utilisateurs WHERE id = :uid
     """
     user = await database.fetch_one(query, values={"uid": uid})
@@ -48,7 +49,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return dict(user)
+    # Révocation : un token dont la version ne correspond plus à celle du compte
+    # (déconnexion globale) est rejeté, même s'il n'est pas encore expiré.
+    if int(payload.get("tv", 0)) != int(user["token_version"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expirée, veuillez vous reconnecter",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    data = dict(user)
+    data.pop("token_version", None)  # champ interne, pas exposé
+    return data
 
 
 # ==================== Autorisation maison ====================
@@ -130,6 +142,27 @@ async def require_gestion(maison_id: int, user_id: int) -> str:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Action non autorisée pour un compte enfant",
+        )
+    return row["role"]
+
+
+async def require_gestion_ou_createur(
+    maison_id: int, user_id: int, createur_id: Optional[int]
+) -> str:
+    """Autorise l'action si l'utilisateur est le créateur de la ressource OU
+    peut gérer la maison (chef / co-chef / chef_temporaire, jamais un enfant).
+
+    Centralise le pattern « gestionnaire OU créateur » qui était recopié dans
+    activites/votes/defis/evenements avec des ensembles de rôles divergents
+    (certains oubliaient chef_temporaire). 403 sinon. Renvoie le rôle.
+    """
+    row = await require_membre_row(maison_id, user_id)
+    if createur_id is not None and user_id == createur_id:
+        return row["role"]
+    if row["role"] not in ("chef", "co_chef", "chef_temporaire") or row.get("est_enfant"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Action réservée au créateur ou à un responsable de la maison",
         )
     return row["role"]
 

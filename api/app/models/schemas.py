@@ -1,7 +1,7 @@
 # app/models/schemas.py
 """Modèles Pydantic pour les payloads des routes (source de vérité des contrats JSON)."""
 from datetime import date, datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -133,7 +133,8 @@ class RegleUpdateInput(BaseModel):
 class TacheCreateInput(BaseModel):
     titre: str
     description: Optional[str] = None
-    piece_id: Optional[int] = None
+    piece_id: Optional[int] = None  # legacy : pièce principale (compat)
+    piece_ids: Optional[List[int]] = None  # une tâche peut couvrir plusieurs pièces
     frequence: Optional[str] = "ponctuel"  # ponctuel|quotidien|hebdo|mensuel
     assignation: Optional[str] = "fixe"    # fixe|rotation
     assigne_id: Optional[int] = None
@@ -142,16 +143,26 @@ class TacheCreateInput(BaseModel):
     gage_actif: Optional[bool] = False
     penalite: Optional[str] = None
     recompense: Optional[str] = None
-    points_penalite: Optional[int] = 0
-    points_recompense: Optional[int] = 0
+    points_penalite: Optional[int] = Field(default=0, ge=0)
+    points_recompense: Optional[int] = Field(default=0, ge=0)
+    # Gage « corvée » cumulatif : nombre de semaines imposées au 1er oubli (+1 par
+    # oubli suivant). La tâche reste au retardataire tant que le gage n'est pas purgé.
+    gage_semaines: Optional[int] = Field(default=2, ge=1)
+    # Effets de gage paramétrables (appliqués auto à l'oubli / à la réussite).
+    # Chaque effet : {"type": "points"|"tache"|"note", ...}. Voir gage_effets.py.
+    gage_effets_echec: Optional[List[Dict[str, Any]]] = None
+    gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
     echeance_date: Optional[date] = None
     echeance_heure: Optional[str] = None
+    # Seuil par jour de semaine (0=lundi … 6=dimanche) : alternative à une date fixe.
+    echeance_jour_semaine: Optional[int] = Field(default=None, ge=0, le=6)
 
 
 class TacheUpdateInput(BaseModel):
     titre: Optional[str] = None
     description: Optional[str] = None
     piece_id: Optional[int] = None
+    piece_ids: Optional[List[int]] = None
     frequence: Optional[str] = None
     assignation: Optional[str] = None
     assigne_id: Optional[int] = None
@@ -160,10 +171,14 @@ class TacheUpdateInput(BaseModel):
     gage_actif: Optional[bool] = None
     penalite: Optional[str] = None
     recompense: Optional[str] = None
-    points_penalite: Optional[int] = None
-    points_recompense: Optional[int] = None
+    points_penalite: Optional[int] = Field(default=None, ge=0)
+    points_recompense: Optional[int] = Field(default=None, ge=0)
+    gage_semaines: Optional[int] = Field(default=None, ge=1)
+    gage_effets_echec: Optional[List[Dict[str, Any]]] = None
+    gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
     echeance_date: Optional[date] = None
     echeance_heure: Optional[str] = None
+    echeance_jour_semaine: Optional[int] = Field(default=None, ge=0, le=6)
     statut: Optional[str] = None
 
 
@@ -175,6 +190,8 @@ class ActiviteCreateInput(BaseModel):
     statut: Optional[str] = "a_faire"
     date_echeance: Optional[date] = None
     heure_echeance: Optional[str] = None       # "HH:MM"
+    # Seuil par jour de semaine (0=lundi … 6=dimanche) : alternative à une date fixe.
+    echeance_jour_semaine: Optional[int] = Field(default=None, ge=0, le=6)
     rappel: Optional[bool] = True              # notifier les membres/assignés
     assignes: Optional[List[int]] = None
     # Système de gage (optionnel)
@@ -183,6 +200,9 @@ class ActiviteCreateInput(BaseModel):
     recompense: Optional[str] = None
     points_penalite: Optional[int] = 0
     points_recompense: Optional[int] = 0
+    # Effets de gage paramétrables (appliqués à la résolution du gage).
+    gage_effets_echec: Optional[List[Dict[str, Any]]] = None
+    gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
     # Rotation / relais de tours (optionnel, paramétrable)
     rotation_active: Optional[bool] = False
     rotation_ordre: Optional[List[int]] = None    # ordre des membres qui prennent le tour
@@ -200,6 +220,7 @@ class ActiviteUpdateInput(BaseModel):
     statut: Optional[str] = None
     date_echeance: Optional[date] = None
     heure_echeance: Optional[str] = None
+    echeance_jour_semaine: Optional[int] = Field(default=None, ge=0, le=6)
     rappel: Optional[bool] = None
     assignes: Optional[List[int]] = None
     # Système de gage (optionnel)
@@ -208,6 +229,8 @@ class ActiviteUpdateInput(BaseModel):
     recompense: Optional[str] = None
     points_penalite: Optional[int] = None
     points_recompense: Optional[int] = None
+    gage_effets_echec: Optional[List[Dict[str, Any]]] = None
+    gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
     # Rotation / relais de tours
     rotation_active: Optional[bool] = None
     rotation_ordre: Optional[List[int]] = None
@@ -302,7 +325,7 @@ class CourseItemUpdateInput(BaseModel):
 
 class DepenseCreateInput(BaseModel):
     titre: str
-    montant: float
+    montant: float = Field(gt=0)  # un montant de dépense est strictement positif
     paye_par: Optional[int] = None
     date: Optional[datetime] = None
     categorie: Optional[str] = None
@@ -312,7 +335,7 @@ class DepenseCreateInput(BaseModel):
 
 class DepenseUpdateInput(BaseModel):
     titre: Optional[str] = None
-    montant: Optional[float] = None
+    montant: Optional[float] = Field(default=None, gt=0)
     paye_par: Optional[int] = None
     date: Optional[datetime] = None
     categorie: Optional[str] = None
@@ -350,14 +373,14 @@ class MessageCreateInput(BaseModel):
 
 class BoutiqueCreateInput(BaseModel):
     nom: str
-    cout_points: int
+    cout_points: int = Field(ge=0)  # un coût négatif crédirait des points à l'achat
     description: Optional[str] = None
     actif: Optional[bool] = True
 
 
 class BoutiqueUpdateInput(BaseModel):
     nom: Optional[str] = None
-    cout_points: Optional[int] = None
+    cout_points: Optional[int] = Field(default=None, ge=0)
     description: Optional[str] = None
     actif: Optional[bool] = None
 
@@ -367,7 +390,7 @@ class BoutiqueUpdateInput(BaseModel):
 class DefiCreateInput(BaseModel):
     titre: str
     description: Optional[str] = None
-    points: int
+    points: int = Field(gt=0)  # récompense d'un défi : strictement positive
     date_fin: Optional[datetime] = None
 
 

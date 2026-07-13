@@ -1,7 +1,11 @@
 # app/config.py
 from typing import List
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+# Valeur de dev factice : autorisée seulement en environnement de développement.
+_DEFAULT_SECRET = "dev-secret-change-me"
 
 
 class Settings(BaseSettings):
@@ -40,6 +44,24 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.ENVIRONMENT == "development"
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == "production"
+
+    @model_validator(mode="after")
+    def _guard_secret_key(self) -> "Settings":
+        """Refuse de démarrer hors dev avec la clé secrète par défaut.
+
+        Sinon n'importe qui connaissant cette valeur (elle est dans le dépôt)
+        pourrait forger des JWT et usurper tous les comptes.
+        """
+        if not self.is_development and self.SECRET_KEY == _DEFAULT_SECRET:
+            raise ValueError(
+                "SECRET_KEY doit être défini (variable d'environnement) en dehors "
+                "du mode développement. Générez-en un avec: openssl rand -hex 32"
+            )
+        return self
 
     class Config:
         env_file = ".env"

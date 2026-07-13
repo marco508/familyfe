@@ -179,7 +179,7 @@ export default function MenuScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🍽️ {t('menu.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('menu.titre')}</Text>
         <View style={{ width: 22 }} />
       </View>
 

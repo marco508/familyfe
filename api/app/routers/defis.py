@@ -1,5 +1,5 @@
 # app/routers/defis.py — Défis de maison (ANNEXE V3)
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.database import database, defi_participants, defis
 from app.dependencies import get_current_user, require_gestion, require_membre, require_not_visiteur
@@ -50,10 +50,19 @@ async def _serialize(row: dict, current_user_id: int) -> dict:
 
 
 @router.get("/maisons/{maison_id}/defis")
-async def list_defis(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_defis(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
-        defis.select().where(defis.c.maison_id == maison_id).order_by(defis.c.date_creation.desc())
+        defis.select()
+        .where(defis.c.maison_id == maison_id)
+        .order_by(defis.c.date_creation.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [await _serialize(dict(r), current_user["id"]) for r in rows]
 
@@ -61,25 +70,27 @@ async def list_defis(maison_id: int, current_user: dict = Depends(get_current_us
 @router.post("/maisons/{maison_id}/defis", status_code=status.HTTP_201_CREATED)
 async def create_defi(maison_id: int, data: DefiCreateInput, current_user: dict = Depends(get_current_user)):
     await require_not_visiteur(maison_id, current_user["id"], "Un visiteur ne peut pas créer de défi")
-    defi_id = await database.execute(
-        defis.insert().values(
-            maison_id=maison_id,
-            titre=data.titre,
-            description=data.description,
-            points=data.points,
-            date_fin=data.date_fin,
-            statut="ouvert",
-            createur_id=current_user["id"],
+    # Création atomique : le défi et sa notification maison.
+    async with database.transaction():
+        defi_id = await database.execute(
+            defis.insert().values(
+                maison_id=maison_id,
+                titre=data.titre,
+                description=data.description,
+                points=data.points,
+                date_fin=data.date_fin,
+                statut="ouvert",
+                createur_id=current_user["id"],
+            )
         )
-    )
-    await notifier_maison(
-        maison_id,
-        type="defi",
-        titre="🏆 Nouveau défi",
-        message=f"« {data.titre} » — rejoins-le !",
-        lien="defis",
-        exclure=current_user["id"],
-    )
+        await notifier_maison(
+            maison_id,
+            type="defi",
+            titre="🏆 Nouveau défi",
+            message=f"« {data.titre} » — rejoins-le !",
+            lien="defis",
+            exclure=current_user["id"],
+        )
     return await _serialize(await _get_defi_or_404(defi_id), current_user["id"])
 
 
@@ -121,21 +132,23 @@ async def terminer_defi(defi_id: int, current_user: dict = Depends(get_current_u
     )
     deja_termine = bool(participant["termine"]) if participant else False
 
-    if not participant:
-        await database.execute(
-            defi_participants.insert().values(
-                defi_id=defi_id, utilisateur_id=current_user["id"], termine=True
+    # Atomique : marquer terminé + attribuer les points ensemble.
+    async with database.transaction():
+        if not participant:
+            await database.execute(
+                defi_participants.insert().values(
+                    defi_id=defi_id, utilisateur_id=current_user["id"], termine=True
+                )
             )
-        )
-    elif not deja_termine:
-        await database.execute(
-            defi_participants.update().where(defi_participants.c.id == participant["id"]).values(termine=True)
-        )
+        elif not deja_termine:
+            await database.execute(
+                defi_participants.update().where(defi_participants.c.id == participant["id"]).values(termine=True)
+            )
 
-    if not deja_termine:
-        await ajuster_points(
-            row["maison_id"], [current_user["id"]], int(row["points"] or 0), motif=f"defi:termine:{defi_id}"
-        )
+        if not deja_termine:
+            await ajuster_points(
+                row["maison_id"], [current_user["id"]], int(row["points"] or 0), motif=f"defi:termine:{defi_id}"
+            )
 
     return await _serialize(await _get_defi_or_404(defi_id), current_user["id"])
 
@@ -157,6 +170,8 @@ async def delete_defi(defi_id: int, current_user: dict = Depends(get_current_use
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seul le gestionnaire ou le créateur peut supprimer ce défi",
         )
-    await database.execute(defi_participants.delete().where(defi_participants.c.defi_id == defi_id))
-    await database.execute(defis.delete().where(defis.c.id == defi_id))
+    # Suppression en cascade atomique : participants + défi.
+    async with database.transaction():
+        await database.execute(defi_participants.delete().where(defi_participants.c.defi_id == defi_id))
+        await database.execute(defis.delete().where(defis.c.id == defi_id))
     return {"message": "Défi supprimé"}

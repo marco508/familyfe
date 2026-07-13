@@ -1,7 +1,9 @@
 # app/routers/maisons.py
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+
+from app.utils.ratelimit import limiter
 
 from app.database.database import (
     activite_assignations,
@@ -27,6 +29,7 @@ from app.database.database import (
     repas as repas_table,
     courses_items,
     tache_validations,
+    tache_pieces,
     taches,
     utilisateurs,
     vote_bulletins,
@@ -227,104 +230,111 @@ async def delete_maison(maison_id: int, current_user: dict = Depends(get_current
     await require_chef(maison_id, current_user["id"])
     await get_maison_or_404(maison_id)
 
-    # --- Activités (assignations, participants, sous-tâches, commentaires) ---
-    activite_id_rows = await database.fetch_all(
-        "SELECT id FROM activites WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    activite_ids = [r["id"] for r in activite_id_rows]
-    if activite_ids:
-        await database.execute(
-            activite_assignations.delete().where(activite_assignations.c.activite_id.in_(activite_ids))
+    # Toute la cascade est atomique : une interruption ne peut plus laisser la
+    # maison à moitié supprimée (données orphelines).
+    async with database.transaction():
+        # --- Activités (assignations, participants, sous-tâches, commentaires) ---
+        activite_id_rows = await database.fetch_all(
+            "SELECT id FROM activites WHERE maison_id = :mid", values={"mid": maison_id}
         )
-        await database.execute(
-            activite_participants.delete().where(activite_participants.c.activite_id.in_(activite_ids))
+        activite_ids = [r["id"] for r in activite_id_rows]
+        if activite_ids:
+            await database.execute(
+                activite_assignations.delete().where(activite_assignations.c.activite_id.in_(activite_ids))
+            )
+            await database.execute(
+                activite_participants.delete().where(activite_participants.c.activite_id.in_(activite_ids))
+            )
+            await database.execute(
+                activite_sous_taches.delete().where(activite_sous_taches.c.activite_id.in_(activite_ids))
+            )
+            await database.execute(
+                activite_commentaires.delete().where(activite_commentaires.c.activite_id.in_(activite_ids))
+            )
+        await database.execute(activites.delete().where(activites.c.maison_id == maison_id))
+
+        # --- ANNEXE V4 : Tâches (+ validations) ---
+        tache_id_rows = await database.fetch_all(
+            "SELECT id FROM taches WHERE maison_id = :mid", values={"mid": maison_id}
         )
-        await database.execute(
-            activite_sous_taches.delete().where(activite_sous_taches.c.activite_id.in_(activite_ids))
+        tache_ids = [r["id"] for r in tache_id_rows]
+        if tache_ids:
+            await database.execute(tache_pieces.delete().where(tache_pieces.c.tache_id.in_(tache_ids)))
+            await database.execute(tache_validations.delete().where(tache_validations.c.tache_id.in_(tache_ids)))
+        await database.execute(taches.delete().where(taches.c.maison_id == maison_id))
+
+        # --- ANNEXE V4 : Règles ---
+        await database.execute(regles.delete().where(regles.c.maison_id == maison_id))
+
+        # --- ANNEXE V4 : Pièces ---
+        await database.execute(pieces.delete().where(pieces.c.maison_id == maison_id))
+
+        # --- Votes ---
+        vote_id_rows = await database.fetch_all(
+            "SELECT id FROM votes WHERE maison_id = :mid", values={"mid": maison_id}
         )
-        await database.execute(
-            activite_commentaires.delete().where(activite_commentaires.c.activite_id.in_(activite_ids))
+        vote_ids = [r["id"] for r in vote_id_rows]
+        if vote_ids:
+            await database.execute(vote_bulletins.delete().where(vote_bulletins.c.vote_id.in_(vote_ids)))
+            await database.execute(vote_options.delete().where(vote_options.c.vote_id.in_(vote_ids)))
+        await database.execute(votes.delete().where(votes.c.maison_id == maison_id))
+
+        # --- Événements (RSVP) ---
+        evenement_id_rows = await database.fetch_all(
+            "SELECT id FROM evenements WHERE maison_id = :mid", values={"mid": maison_id}
         )
-    await database.execute(activites.delete().where(activites.c.maison_id == maison_id))
+        evenement_ids = [r["id"] for r in evenement_id_rows]
+        if evenement_ids:
+            await database.execute(
+                evenement_reponses.delete().where(evenement_reponses.c.evenement_id.in_(evenement_ids))
+            )
+        await database.execute(evenements.delete().where(evenements.c.maison_id == maison_id))
 
-    # --- ANNEXE V4 : Tâches (+ validations) ---
-    tache_id_rows = await database.fetch_all(
-        "SELECT id FROM taches WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    tache_ids = [r["id"] for r in tache_id_rows]
-    if tache_ids:
-        await database.execute(tache_validations.delete().where(tache_validations.c.tache_id.in_(tache_ids)))
-    await database.execute(taches.delete().where(taches.c.maison_id == maison_id))
+        # --- Courses ---
+        await database.execute(courses_items.delete().where(courses_items.c.maison_id == maison_id))
 
-    # --- ANNEXE V4 : Règles ---
-    await database.execute(regles.delete().where(regles.c.maison_id == maison_id))
-
-    # --- ANNEXE V4 : Pièces ---
-    await database.execute(pieces.delete().where(pieces.c.maison_id == maison_id))
-
-    # --- Votes ---
-    vote_id_rows = await database.fetch_all(
-        "SELECT id FROM votes WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    vote_ids = [r["id"] for r in vote_id_rows]
-    if vote_ids:
-        await database.execute(vote_bulletins.delete().where(vote_bulletins.c.vote_id.in_(vote_ids)))
-        await database.execute(vote_options.delete().where(vote_options.c.vote_id.in_(vote_ids)))
-    await database.execute(votes.delete().where(votes.c.maison_id == maison_id))
-
-    # --- Événements (RSVP) ---
-    evenement_id_rows = await database.fetch_all(
-        "SELECT id FROM evenements WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    evenement_ids = [r["id"] for r in evenement_id_rows]
-    if evenement_ids:
-        await database.execute(
-            evenement_reponses.delete().where(evenement_reponses.c.evenement_id.in_(evenement_ids))
+        # --- Dépenses ---
+        depense_id_rows = await database.fetch_all(
+            "SELECT id FROM depenses WHERE maison_id = :mid", values={"mid": maison_id}
         )
-    await database.execute(evenements.delete().where(evenements.c.maison_id == maison_id))
+        depense_ids = [r["id"] for r in depense_id_rows]
+        if depense_ids:
+            await database.execute(depense_parts.delete().where(depense_parts.c.depense_id.in_(depense_ids)))
+        await database.execute(depenses.delete().where(depenses.c.maison_id == maison_id))
 
-    # --- Courses ---
-    await database.execute(courses_items.delete().where(courses_items.c.maison_id == maison_id))
+        # --- Menu ---
+        await database.execute(repas_table.delete().where(repas_table.c.maison_id == maison_id))
 
-    # --- Dépenses ---
-    depense_id_rows = await database.fetch_all(
-        "SELECT id FROM depenses WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    depense_ids = [r["id"] for r in depense_id_rows]
-    if depense_ids:
-        await database.execute(depense_parts.delete().where(depense_parts.c.depense_id.in_(depense_ids)))
-    await database.execute(depenses.delete().where(depenses.c.maison_id == maison_id))
+        # --- Chat ---
+        await database.execute(messages.delete().where(messages.c.maison_id == maison_id))
 
-    # --- Menu ---
-    await database.execute(repas_table.delete().where(repas_table.c.maison_id == maison_id))
+        # --- Boutique ---
+        await database.execute(recompense_echanges.delete().where(recompense_echanges.c.maison_id == maison_id))
+        await database.execute(boutique_recompenses.delete().where(boutique_recompenses.c.maison_id == maison_id))
 
-    # --- Chat ---
-    await database.execute(messages.delete().where(messages.c.maison_id == maison_id))
+        # --- Défis ---
+        defi_id_rows = await database.fetch_all(
+            "SELECT id FROM defis WHERE maison_id = :mid", values={"mid": maison_id}
+        )
+        defi_ids = [r["id"] for r in defi_id_rows]
+        if defi_ids:
+            await database.execute(defi_participants.delete().where(defi_participants.c.defi_id.in_(defi_ids)))
+        await database.execute(defis.delete().where(defis.c.maison_id == maison_id))
 
-    # --- Boutique ---
-    await database.execute(recompense_echanges.delete().where(recompense_echanges.c.maison_id == maison_id))
-    await database.execute(boutique_recompenses.delete().where(boutique_recompenses.c.maison_id == maison_id))
+        # --- Points log ---
+        await database.execute(points_log.delete().where(points_log.c.maison_id == maison_id))
 
-    # --- Défis ---
-    defi_id_rows = await database.fetch_all(
-        "SELECT id FROM defis WHERE maison_id = :mid", values={"mid": maison_id}
-    )
-    defi_ids = [r["id"] for r in defi_id_rows]
-    if defi_ids:
-        await database.execute(defi_participants.delete().where(defi_participants.c.defi_id.in_(defi_ids)))
-    await database.execute(defis.delete().where(defis.c.maison_id == maison_id))
-
-    # --- Points log ---
-    await database.execute(points_log.delete().where(points_log.c.maison_id == maison_id))
-
-    await database.execute(membres_maison.delete().where(membres_maison.c.maison_id == maison_id))
-    await database.execute(maisons.delete().where(maisons.c.id == maison_id))
+        await database.execute(membres_maison.delete().where(membres_maison.c.maison_id == maison_id))
+        await database.execute(maisons.delete().where(maisons.c.id == maison_id))
 
     return {"message": "Maison supprimée"}
 
 
 @router.post("/maisons/join")
-async def join_maison(data: MaisonJoinInput, current_user: dict = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def join_maison(
+    request: Request, data: MaisonJoinInput, current_user: dict = Depends(get_current_user)
+):
     """Rejoint une maison via son code d'invitation. 404 si code inconnu, 200 si déjà membre."""
     code = data.code_invitation.strip().upper()
     maison = await database.fetch_one(maisons.select().where(maisons.c.code_invitation == code))
@@ -481,11 +491,44 @@ async def remove_membre(maison_id: int, uid: int, current_user: dict = Depends(g
             status_code=status.HTTP_404_NOT_FOUND, detail="Cet utilisateur n'est pas membre de la maison"
         )
 
-    await database.execute(
-        membres_maison.delete().where(
-            (membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == uid)
+    # Retrait atomique + nettoyage des données de participation du membre dans
+    # CETTE maison (sinon assignations, bulletins, participations, validations
+    # pointeraient vers un non-membre et fausseraient classements/jointures).
+    # On conserve volontairement l'historique partagé : dépenses et chat
+    # (l'utilisateur existe toujours en tant que compte, seule l'appartenance
+    # à la maison est supprimée).
+    async with database.transaction():
+        for table in ("activite_assignations", "activite_participants"):
+            await database.execute(
+                f"DELETE FROM {table} WHERE utilisateur_id = :uid AND activite_id IN "
+                "(SELECT id FROM activites WHERE maison_id = :mid)",
+                values={"uid": uid, "mid": maison_id},
+            )
+        await database.execute(
+            "DELETE FROM vote_bulletins WHERE utilisateur_id = :uid AND vote_id IN "
+            "(SELECT id FROM votes WHERE maison_id = :mid)",
+            values={"uid": uid, "mid": maison_id},
         )
-    )
+        await database.execute(
+            "DELETE FROM defi_participants WHERE utilisateur_id = :uid AND defi_id IN "
+            "(SELECT id FROM defis WHERE maison_id = :mid)",
+            values={"uid": uid, "mid": maison_id},
+        )
+        await database.execute(
+            "DELETE FROM tache_validations WHERE utilisateur_id = :uid AND tache_id IN "
+            "(SELECT id FROM taches WHERE maison_id = :mid)",
+            values={"uid": uid, "mid": maison_id},
+        )
+        await database.execute(
+            "DELETE FROM evenement_reponses WHERE utilisateur_id = :uid AND evenement_id IN "
+            "(SELECT id FROM evenements WHERE maison_id = :mid)",
+            values={"uid": uid, "mid": maison_id},
+        )
+        await database.execute(
+            membres_maison.delete().where(
+                (membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == uid)
+            )
+        )
     return {"message": "Membre retiré"}
 
 
@@ -662,19 +705,23 @@ async def transferer_chef(
     if role is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cet utilisateur n'est pas membre de la maison")
 
-    await database.execute(
-        maisons.update().where(maisons.c.id == maison_id).values(chef_id=data.utilisateur_id)
-    )
-    await database.execute(
-        membres_maison.update()
-        .where((membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == data.utilisateur_id))
-        .values(role="chef", est_enfant=False)
-    )
-    await database.execute(
-        membres_maison.update()
-        .where((membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == current_user["id"]))
-        .values(role="membre")
-    )
+    # Les trois écritures (nouveau chef sur la maison, promotion du membre,
+    # rétrogradation de l'ancien chef) sont atomiques : plus de risque de
+    # laisser la maison avec deux chefs ou aucun en cas d'interruption.
+    async with database.transaction():
+        await database.execute(
+            maisons.update().where(maisons.c.id == maison_id).values(chef_id=data.utilisateur_id)
+        )
+        await database.execute(
+            membres_maison.update()
+            .where((membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == data.utilisateur_id))
+            .values(role="chef", est_enfant=False)
+        )
+        await database.execute(
+            membres_maison.update()
+            .where((membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == current_user["id"]))
+            .values(role="membre")
+        )
 
     updated = await database.fetch_one(maisons.select().where(maisons.c.id == maison_id))
     result = dict(updated)

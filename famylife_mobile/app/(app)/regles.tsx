@@ -212,7 +212,7 @@ export default function ReglesScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>📜 {t('regles.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('regles.titre')}</Text>
         {isGestion ? (
           <Pressable onPress={openCreate} style={[styles.addButton, { backgroundColor: colors.primary.main }, shadows.candyPink]}>
             <Plus size={20} color={colors.candy.white} />

@@ -1,7 +1,7 @@
 # app/routers/pieces.py — Pièces de la maison (ANNEXE V4)
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.database.database import database, pieces, taches, utilisateurs
+from app.database.database import database, pieces, taches, tache_pieces, utilisateurs
 from app.dependencies import get_current_user, get_role_in_maison, require_gestion, require_membre
 from app.models.schemas import PieceAffecterInput, PieceCreateInput, PieceUpdateInput
 from app.utils.formatting import mini_user
@@ -33,10 +33,19 @@ async def _serialize(row: dict) -> dict:
 
 
 @router.get("/maisons/{maison_id}/pieces")
-async def list_pieces(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_pieces(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
-        pieces.select().where(pieces.c.maison_id == maison_id).order_by(pieces.c.date_creation.asc())
+        pieces.select()
+        .where(pieces.c.maison_id == maison_id)
+        .order_by(pieces.c.date_creation.asc())
+        .limit(limit)
+        .offset(offset)
     )
     return [await _serialize(dict(r)) for r in rows]
 
@@ -104,9 +113,12 @@ async def delete_piece(piece_id: int, current_user: dict = Depends(get_current_u
     row = await _get_piece_or_404(piece_id)
     await require_gestion(row["maison_id"], current_user["id"])
 
-    # Détache les tâches liées à cette pièce (ne les supprime pas).
-    await database.execute(taches.update().where(taches.c.piece_id == piece_id).values(piece_id=None))
-    await database.execute(pieces.delete().where(pieces.c.id == piece_id))
+    # Détache les tâches liées à cette pièce (ne les supprime pas) : colonne
+    # legacy `piece_id` remise à NULL + retrait des associations multi-pièces.
+    async with database.transaction():
+        await database.execute(taches.update().where(taches.c.piece_id == piece_id).values(piece_id=None))
+        await database.execute(tache_pieces.delete().where(tache_pieces.c.piece_id == piece_id))
+        await database.execute(pieces.delete().where(pieces.c.id == piece_id))
     return {"message": "Pièce supprimée"}
 
 

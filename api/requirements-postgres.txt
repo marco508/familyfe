@@ -1,0 +1,6 @@
+# Drivers PostgreSQL — utilisés uniquement en Docker/production.
+# NE PAS installer en dev local sous SQLite (et surtout pas sous Python 3.14,
+# où asyncpg ne compile pas). Le Dockerfile utilise Python 3.12.
+-r requirements.txt
+asyncpg==0.30.0
+psycopg2-binary==2.9.10

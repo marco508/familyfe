@@ -133,6 +133,9 @@ export default function DepensesScreen() {
     ]);
   };
 
+  const totalDepenses = depenses.reduce((sum, d) => sum + d.montant, 0);
+  const monSolde = bilan?.soldes.find((s) => s.utilisateur_id === user?.id)?.solde ?? 0;
+
   return (
     <View style={styles.flex}>
       <ScreenBackground>
@@ -140,7 +143,7 @@ export default function DepensesScreen() {
           <Pressable onPress={() => router.back()} hitSlop={10}>
             <ArrowLeft size={22} color={colors.text.dark} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text.dark }]}>💰 {t('depenses.titre')}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('depenses.titre')}</Text>
           {!isVisiteur ? (
             <Pressable onPress={openModal} hitSlop={10}>
               <Plus size={22} color={colors.primary.main} />
@@ -166,6 +169,29 @@ export default function DepensesScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary.main} />}
         >
           {isVisiteur ? <VisitorBanner /> : null}
+
+          {!loading && maisonActive ? (
+            <CandyCard style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: colors.text.dark }]}>{totalDepenses.toFixed(2)} €</Text>
+                  <Text style={[styles.summaryLabel, { color: colors.text.body }]}>Total</Text>
+                </View>
+                <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: monSolde >= 0 ? colors.candy.greenDark : colors.candy.red }]}>
+                    {monSolde >= 0 ? '+' : ''}{monSolde.toFixed(2)} €
+                  </Text>
+                  <Text style={[styles.summaryLabel, { color: colors.text.body }]}>{t('depenses.monSolde')}</Text>
+                </View>
+                <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: colors.text.dark }]}>{depenses.length}</Text>
+                  <Text style={[styles.summaryLabel, { color: colors.text.body }]}>{t('depenses.titre')}</Text>
+                </View>
+              </View>
+            </CandyCard>
+          ) : null}
 
           {loading ? (
             <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
@@ -242,7 +268,7 @@ export default function DepensesScreen() {
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('depenses.nouvelle')} 💰</Text>
+                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('depenses.nouvelle')}</Text>
                 <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
                   <X size={22} color={colors.text.dark} />
                 </Pressable>
@@ -314,6 +340,12 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
   segmentedWrap: { paddingHorizontal: spacing.xl, marginBottom: spacing.md },
   container: { padding: spacing.xl, paddingTop: 0, paddingBottom: spacing['4xl'] },
+  summaryCard: { marginBottom: spacing.lg },
+  summaryRow: { flexDirection: 'row', alignItems: 'center' },
+  summaryItem: { flex: 1, alignItems: 'center' },
+  summaryDivider: { width: 1, height: 32 },
+  summaryValue: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
+  summaryLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },
   card: { marginBottom: spacing.sm },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },

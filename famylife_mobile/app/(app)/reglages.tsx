@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { ArrowLeft, Moon, Sun, Camera, LogOut, Cake } from 'lucide-react-native';
+import { ArrowLeft, Moon, Sun, Camera, LogOut, Cake, ShieldOff } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
@@ -15,7 +15,7 @@ import { Avatar, CandyButton, CandyCard, CandyInput, SectionTitle, Segmented, To
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function ReglagesScreen() {
-  const { user, logout, refreshProfile } = useAuth();
+  const { user, logout, logoutAll, refreshProfile } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
   const { t, lang, setLang } = useT();
 
@@ -92,6 +92,17 @@ export default function ReglagesScreen() {
     ]);
   };
 
+  const handleLogoutAll = () => {
+    Alert.alert(
+      t('reglages.deconnexionTous') + ' ?',
+      t('reglages.deconnexionTousConfirm'),
+      [
+        { text: t('common.annuler'), style: 'cancel' },
+        { text: t('reglages.toutDeconnecter'), style: 'destructive', onPress: logoutAll },
+      ]
+    );
+  };
+
   return (
     <ScreenBackground>
       <View style={styles.header}>
@@ -165,6 +176,10 @@ export default function ReglagesScreen() {
           variant="danger"
           icon={<LogOut size={18} color={colors.candy.white} />}
         />
+        <Pressable onPress={handleLogoutAll} style={styles.logoutAllRow} hitSlop={8}>
+          <ShieldOff size={16} color={colors.candy.red} />
+          <Text style={[styles.logoutAllText, { color: colors.candy.red }]}>{t('reglages.deconnexionTous')}</Text>
+        </Pressable>
       </ScrollView>
     </ScreenBackground>
   );
@@ -198,4 +213,12 @@ const styles = StyleSheet.create({
   rowStart: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },
+  logoutAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+  },
+  logoutAllText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
 });

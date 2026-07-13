@@ -219,7 +219,7 @@ export default function BoutiqueScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🎁 {t('boutique.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('boutique.titre')}</Text>
         {tab === 'gestion' ? (
           <Pressable onPress={openCreate} hitSlop={10}>
             <Plus size={22} color={colors.primary.main} />

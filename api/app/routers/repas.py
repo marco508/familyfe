@@ -24,6 +24,8 @@ async def list_repas(
     maison_id: int,
     debut: Optional[str] = Query(None),
     fin: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user),
 ):
     await require_membre(maison_id, current_user["id"])
@@ -32,7 +34,7 @@ async def list_repas(
         query = query.where(repas.c.date >= debut)
     if fin:
         query = query.where(repas.c.date <= fin)
-    query = query.order_by(repas.c.date.asc())
+    query = query.order_by(repas.c.date.asc()).limit(limit).offset(offset)
     rows = await database.fetch_all(query)
     return [dict(r) for r in rows]
 

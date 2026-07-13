@@ -566,7 +566,6 @@ export default function MaisonScreen() {
       {/* ANNEXE V4 — Logement */}
       <SectionTitle
         title={t('maison.logementSection')}
-        emoji="🏡"
         right={
           isGestion && !editingLogement ? (
             <Pressable onPress={openEditLogement} hitSlop={8} style={[styles.editButton, { backgroundColor: colors.primary.subtle }]}>

@@ -15,10 +15,12 @@ import {
   Platform,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, X, Gift, Repeat, Lock } from 'lucide-react-native';
+import { Plus, X, Gift, Repeat, Lock, CalendarDays } from 'lucide-react-native';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import activiteService, { Activite, StatutActivite, Visibilite } from '../../src/services/activiteService';
+import { GageEffet } from '../../src/services/tacheService';
+import GageEffetsEditor from '../../components/GageEffetsEditor';
 import { planifierRappelActivite } from '../../src/services/reminderService';
 import {
   CandyButton,
@@ -37,6 +39,13 @@ import {
 import { typography, spacing, borderRadius, shadows } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
+
+function gageEffetBadge(e: GageEffet): string {
+  if (e.type === 'points') return `${(e.valeur ?? 0) > 0 ? '+' : ''}${e.valeur} pts`;
+  if (e.type === 'tache') return '+ tâche';
+  if (e.type === 'amende') return `${e.montant} €`;
+  return 'note';
+}
 
 const STATUT_ORDER: StatutActivite[] = ['a_faire', 'en_cours', 'termine'];
 const STATUT_VARIANT: Record<StatutActivite, 'orange' | 'blue' | 'green'> = {
@@ -71,6 +80,7 @@ export default function ActivitesScreen() {
   const [description, setDescription] = useState('');
   const [dateEcheance, setDateEcheance] = useState('');
   const [heureEcheance, setHeureEcheance] = useState('');
+  const [echeanceJour, setEcheanceJour] = useState<number | null>(null);
   const [rappel, setRappel] = useState(true);
   const [assignes, setAssignes] = useState<number[]>([]);
 
@@ -79,6 +89,8 @@ export default function ActivitesScreen() {
   const [participants, setParticipants] = useState<number[]>([]);
 
   const [gageActif, setGageActif] = useState(false);
+  const [effetsEchec, setEffetsEchec] = useState<GageEffet[]>([]);
+  const [effetsReussite, setEffetsReussite] = useState<GageEffet[]>([]);
   const [penalite, setPenalite] = useState('');
   const [recompense, setRecompense] = useState('');
   const [pointsPenalite, setPointsPenalite] = useState(5);
@@ -123,11 +135,14 @@ export default function ActivitesScreen() {
     setDescription('');
     setDateEcheance('');
     setHeureEcheance('');
+    setEcheanceJour(null);
     setRappel(true);
     setAssignes([]);
     setVisibilite('maison');
     setParticipants([]);
     setGageActif(false);
+    setEffetsEchec([]);
+    setEffetsReussite([]);
     setPenalite('');
     setRecompense('');
     setPointsPenalite(5);
@@ -172,6 +187,7 @@ export default function ActivitesScreen() {
       description: description.trim() || undefined,
       date_echeance: dateEcheance.trim() || undefined,
       heure_echeance: heureEcheance.trim() || undefined,
+      echeance_jour_semaine: echeanceJour,
       rappel,
       assignes: assignes.length ? assignes : undefined,
       gage_actif: gageActif,
@@ -179,6 +195,8 @@ export default function ActivitesScreen() {
       recompense: gageActif ? recompense.trim() || undefined : undefined,
       points_penalite: gageActif ? pointsPenalite : undefined,
       points_recompense: gageActif ? pointsRecompense : undefined,
+      gage_effets_echec: gageActif ? effetsEchec : undefined,
+      gage_effets_reussite: gageActif ? effetsReussite : undefined,
       rotation_active: rotationActive,
       rotation_ordre: rotationActive ? rotationOrdre : undefined,
       rotation_delai_jours: rotationActive ? rotationDelaiJours : undefined,
@@ -219,7 +237,6 @@ export default function ActivitesScreen() {
       >
         <SectionTitle
           title={t('activite.titre')}
-          emoji="📋"
           right={
             <View style={styles.headerActionsRow}>
               <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />
@@ -265,25 +282,24 @@ export default function ActivitesScreen() {
               <Pressable onPress={() => router.push(`/(app)/activites/${a.id}`)}>
                 <Text style={[styles.cardTitle, { color: colors.text.dark }]}>{a.titre}</Text>
                 {a.date_echeance ? (
-                  <Text style={[styles.cardMeta, { color: colors.text.body }]}>
-                    📅 {a.date_echeance}{a.heure_echeance ? ` ${t('activite.a')} ${a.heure_echeance}` : ''}
-                  </Text>
+                  <View style={styles.cardMetaRow}>
+                    <CalendarDays size={13} color={colors.text.muted} />
+                    <Text style={[styles.cardMeta, { color: colors.text.body }]}>
+                      {a.date_echeance}{a.heure_echeance ? ` ${t('activite.a')} ${a.heure_echeance}` : ''}
+                    </Text>
+                  </View>
                 ) : null}
 
                 {a.gage_actif || (a.rotation_active && a.rotation_titulaire) ? (
                   <View style={styles.badgesRow}>
                     {a.gage_actif ? (
-                      a.gage_resultat !== 'en_attente' ? (
-                        <Badge
-                          label={a.gage_resultat === 'reussi' ? t('activite.reussi') : t('activite.echoue')}
-                          variant={a.gage_resultat === 'reussi' ? 'green' : 'orange'}
-                        />
-                      ) : (
-                        <>
-                          {a.recompense ? <Badge label={`🎁 ${a.recompense}`} variant="yellow" /> : null}
-                          {a.penalite ? <Badge label={`⚠️ ${a.penalite}`} variant="orange" /> : null}
-                        </>
-                      )
+                      <>
+                        {a.recompense ? <Badge label={`🎁 ${a.recompense}`} variant="yellow" /> : null}
+                        {a.penalite ? <Badge label={`⚠️ ${a.penalite}`} variant="orange" /> : null}
+                        {(a.gage_effets_echec ?? []).slice(0, 2).map((e, i) => (
+                          <Badge key={`ge-${i}`} label={gageEffetBadge(e)} variant="orange" />
+                        ))}
+                      </>
                     ) : null}
                     {a.rotation_active && a.rotation_titulaire ? (
                       <Badge label={`🔄 ${a.rotation_titulaire.nom}`} variant="purple" />
@@ -353,6 +369,28 @@ export default function ActivitesScreen() {
                 value={heureEcheance}
                 onChangeText={setHeureEcheance}
               />
+
+              <Text style={[styles.label, { color: colors.text.dark }]}>Ou avant un jour</Text>
+              <View style={styles.jourRow}>
+                {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((label, idx) => {
+                  const active = echeanceJour === idx;
+                  return (
+                    <Pressable
+                      key={label}
+                      onPress={() => setEcheanceJour(active ? null : idx)}
+                      style={[
+                        styles.jourChip,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                        active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                      ]}
+                    >
+                      <Text style={[styles.jourChipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
               <View style={styles.toggleRow}>
                 <Text style={[styles.toggleLabel, { color: colors.text.dark }]}>{t('activite.rappel')}</Text>
@@ -448,6 +486,12 @@ export default function ActivitesScreen() {
                       <Stepper label={t('activite.pointsRecompense')} value={pointsRecompense} onValueChange={setPointsRecompense} min={0} max={100} />
                       <Stepper label={t('activite.pointsPenalite')} value={pointsPenalite} onValueChange={setPointsPenalite} min={0} max={100} />
                     </View>
+                    <GageEffetsEditor
+                      effetsEchec={effetsEchec}
+                      effetsReussite={effetsReussite}
+                      onChangeEchec={setEffetsEchec}
+                      onChangeReussite={setEffetsReussite}
+                    />
                   </>
                 ) : null}
               </View>
@@ -530,7 +574,8 @@ const styles = StyleSheet.create({
   filterChipText: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm },
   card: { marginBottom: spacing.md },
   cardTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
-  cardMeta: { fontSize: typography.fontSize.sm, marginTop: 2, fontWeight: typography.fontWeight.medium },
+  cardMeta: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 4 },
   badgesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
   avatarStack: { flexDirection: 'row', alignItems: 'center' },
@@ -545,6 +590,9 @@ const styles = StyleSheet.create({
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
+  jourRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
+  jourChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.pill, borderWidth: 1.5 },
+  jourChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   toggleLabel: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.md },
   membresList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },

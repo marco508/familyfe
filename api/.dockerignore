@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Base SQLite locale (on utilise Postgres en Docker)
+*.db
+*.sqlite3
+
+# Uploads locaux (persistés via un volume Docker, pas via l'image)
+uploads/
+
+# Secrets / env locaux
+.env
+
+# Git & divers
+.git
+.gitignore
+README.md
+run.sh

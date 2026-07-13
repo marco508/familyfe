@@ -1,7 +1,13 @@
 # app/routers/boutique.py — Boutique de récompenses (ANNEXE V3)
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.database.database import boutique_recompenses, database, membres_maison, recompense_echanges
+from app.database.database import (
+    boutique_recompenses,
+    database,
+    membres_maison,
+    points_log,
+    recompense_echanges,
+)
 from app.dependencies import (
     get_current_user,
     require_gestion,
@@ -47,12 +53,19 @@ async def _get_echange_or_404(echange_id: int) -> dict:
 # ==================== Catalogue ====================
 
 @router.get("/maisons/{maison_id}/boutique")
-async def list_boutique(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_boutique(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
         boutique_recompenses.select()
         .where(boutique_recompenses.c.maison_id == maison_id)
         .order_by(boutique_recompenses.c.cout_points.asc())
+        .limit(limit)
+        .offset(offset)
     )
     return [_serialize_recompense(r) for r in rows]
 
@@ -103,8 +116,9 @@ async def update_boutique(
 async def delete_boutique(recompense_id: int, current_user: dict = Depends(get_current_user)):
     row = await _get_recompense_or_404(recompense_id)
     await require_gestion(row["maison_id"], current_user["id"])
-    await database.execute(recompense_echanges.delete().where(recompense_echanges.c.recompense_id == recompense_id))
-    await database.execute(boutique_recompenses.delete().where(boutique_recompenses.c.id == recompense_id))
+    async with database.transaction():
+        await database.execute(recompense_echanges.delete().where(recompense_echanges.c.recompense_id == recompense_id))
+        await database.execute(boutique_recompenses.delete().where(boutique_recompenses.c.id == recompense_id))
     return {"message": "Récompense supprimée"}
 
 
@@ -115,28 +129,45 @@ async def echanger(recompense_id: int, current_user: dict = Depends(get_current_
     row = await _get_recompense_or_404(recompense_id)
     await require_not_visiteur(row["maison_id"], current_user["id"], "Un visiteur ne peut pas échanger de récompense")
 
-    membre_row = await database.fetch_one(
-        membres_maison.select().where(
-            (membres_maison.c.maison_id == row["maison_id"])
-            & (membres_maison.c.utilisateur_id == current_user["id"])
-        )
-    )
-    points = membre_row["points"] if membre_row else 0
     cout = row["cout_points"]
-    if points < cout:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Points insuffisants")
 
-    await ajuster_points(row["maison_id"], [current_user["id"]], -cout, motif=f"boutique:echange:{recompense_id}")
-
-    echange_id = await database.execute(
-        recompense_echanges.insert().values(
-            recompense_id=recompense_id,
-            maison_id=row["maison_id"],
-            utilisateur_id=current_user["id"],
-            cout=cout,
-            statut="demande",
+    # Débit atomique : le décrément n'a lieu que si le solde est suffisant, dans
+    # la même requête (WHERE points >= :cout). Supprime le TOCTOU « lire → tester
+    # → débiter » qui autorisait un double-échange concurrent / solde négatif.
+    # RETURNING est supporté par Postgres et SQLite ≥ 3.35 (nos cibles).
+    async with database.transaction():
+        updated = await database.fetch_one(
+            """
+            UPDATE membres_maison SET points = points - :cout
+            WHERE maison_id = :mid AND utilisateur_id = :uid AND points >= :cout
+            RETURNING points
+            """,
+            values={"cout": cout, "mid": row["maison_id"], "uid": current_user["id"]},
         )
-    )
+        if updated is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Points insuffisants",
+            )
+        # Journalise le débit (ajuster_points est court-circuité ici pour garder
+        # le décrément conditionnel atomique).
+        await database.execute(
+            points_log.insert().values(
+                maison_id=row["maison_id"],
+                utilisateur_id=current_user["id"],
+                delta=-cout,
+                motif=f"boutique:echange:{recompense_id}",
+            )
+        )
+        echange_id = await database.execute(
+            recompense_echanges.insert().values(
+                recompense_id=recompense_id,
+                maison_id=row["maison_id"],
+                utilisateur_id=current_user["id"],
+                cout=cout,
+                statut="demande",
+            )
+        )
 
     gestion_rows = await database.fetch_all(
         "SELECT utilisateur_id FROM membres_maison WHERE maison_id = :mid AND role IN ('chef','co_chef')",
@@ -155,7 +186,12 @@ async def echanger(recompense_id: int, current_user: dict = Depends(get_current_
 
 
 @router.get("/maisons/{maison_id}/echanges")
-async def list_echanges(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_echanges(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
         """
@@ -165,8 +201,9 @@ async def list_echanges(maison_id: int, current_user: dict = Depends(get_current
         JOIN utilisateurs u ON u.id = e.utilisateur_id
         WHERE e.maison_id = :mid
         ORDER BY e.date_creation DESC
+        LIMIT :limit OFFSET :offset
         """,
-        values={"mid": maison_id},
+        values={"mid": maison_id, "limit": limit, "offset": offset},
     )
     return [dict(r) for r in rows]
 
@@ -179,12 +216,20 @@ async def valider_echange(echange_id: int, current_user: dict = Depends(get_curr
     await require_not_enfant(
         row["maison_id"], current_user["id"], "Un compte enfant ne peut pas valider de récompense"
     )
-    if row["statut"] != "demande":
+
+    # Transition d'état idempotente : seule une demande encore « demande » passe
+    # à « valide » (empêche le double-traitement concurrent).
+    updated = await database.fetch_one(
+        """
+        UPDATE recompense_echanges SET statut = 'valide'
+        WHERE id = :id AND statut = 'demande'
+        RETURNING id
+        """,
+        values={"id": echange_id},
+    )
+    if updated is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cet échange a déjà été traité")
 
-    await database.execute(
-        recompense_echanges.update().where(recompense_echanges.c.id == echange_id).values(statut="valide")
-    )
     await notifier(
         [row["utilisateur_id"]],
         type="boutique",
@@ -203,16 +248,24 @@ async def refuser_echange(echange_id: int, current_user: dict = Depends(get_curr
     await require_not_enfant(
         row["maison_id"], current_user["id"], "Un compte enfant ne peut pas valider de récompense"
     )
-    if row["statut"] != "demande":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cet échange a déjà été traité")
 
-    await database.execute(
-        recompense_echanges.update().where(recompense_echanges.c.id == echange_id).values(statut="refuse")
-    )
-    # Refus : recrédite les points déduits lors de la demande.
-    await ajuster_points(
-        row["maison_id"], [row["utilisateur_id"]], row["cout"], motif=f"boutique:refus:{echange_id}"
-    )
+    # Refus idempotent + recrédit, dans une transaction : on ne recrédite que si
+    # l'échange était bien « demande » (évite un double-remboursement).
+    async with database.transaction():
+        updated = await database.fetch_one(
+            """
+            UPDATE recompense_echanges SET statut = 'refuse'
+            WHERE id = :id AND statut = 'demande'
+            RETURNING id
+            """,
+            values={"id": echange_id},
+        )
+        if updated is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cet échange a déjà été traité")
+        # Recrédite les points déduits lors de la demande.
+        await ajuster_points(
+            row["maison_id"], [row["utilisateur_id"]], row["cout"], motif=f"boutique:refus:{echange_id}"
+        )
     await notifier(
         [row["utilisateur_id"]],
         type="boutique",

@@ -1,5 +1,6 @@
 // services/activiteService.ts
 import apiClient, { ApiResponse } from './apiClient';
+import { GageEffet } from './tacheService';
 
 export type StatutActivite = 'a_faire' | 'en_cours' | 'termine';
 export type GageResultat = 'en_attente' | 'reussi' | 'echoue';
@@ -28,6 +29,8 @@ export interface Activite {
   statut: StatutActivite;
   date_echeance: string | null; // AAAA-MM-JJ
   heure_echeance: string | null; // HH:MM
+  // Seuil par jour de semaine (0=lundi … 6=dimanche), alternative à une date fixe.
+  echeance_jour_semaine: number | null;
   rappel: boolean;
   createur_id: number;
   date_creation: string;
@@ -40,6 +43,9 @@ export interface Activite {
   points_penalite: number;
   points_recompense: number;
   gage_resultat: GageResultat;
+  // Effets de gage paramétrables (appliqués à la résolution du gage).
+  gage_effets_echec: GageEffet[];
+  gage_effets_reussite: GageEffet[];
   // Rotation / relais de tours
   rotation_active: boolean;
   rotation_ordre: number[];
@@ -62,6 +68,7 @@ export interface ActiviteCreateInput {
   statut?: StatutActivite;
   date_echeance?: string; // AAAA-MM-JJ
   heure_echeance?: string; // HH:MM
+  echeance_jour_semaine?: number | null; // 0=lundi … 6=dimanche
   rappel?: boolean;
   assignes?: number[];
   // Gage
@@ -70,6 +77,8 @@ export interface ActiviteCreateInput {
   recompense?: string;
   points_penalite?: number;
   points_recompense?: number;
+  gage_effets_echec?: GageEffet[];
+  gage_effets_reussite?: GageEffet[];
   // Rotation
   rotation_active?: boolean;
   rotation_ordre?: number[];

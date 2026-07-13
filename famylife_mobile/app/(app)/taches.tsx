@@ -23,7 +23,7 @@ import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useT } from '../src/i18n';
 import { useTheme } from '../src/contexts/ThemeContext';
-import tacheService, { AssignationTache, FrequenceTache, Tache } from '../src/services/tacheService';
+import tacheService, { AssignationTache, FrequenceTache, GageEffet, GageEffetType, Tache } from '../src/services/tacheService';
 import pieceService, { Piece } from '../src/services/pieceService';
 import {
   Avatar,
@@ -38,6 +38,7 @@ import {
   Toggle,
   VisitorBanner,
 } from '../components/ui';
+import GageEffetsEditor from '../components/GageEffetsEditor';
 import { typography, spacing, borderRadius, shadows } from '../theme/designTokens';
 
 const FREQUENCE_VARIANT: Record<FrequenceTache, 'neutral' | 'blue' | 'purple' | 'orange'> = {
@@ -81,7 +82,7 @@ export default function TachesScreen() {
 
   const [titre, setTitre] = useState('');
   const [description, setDescription] = useState('');
-  const [pieceId, setPieceId] = useState<number | null>(null);
+  const [pieceIds, setPieceIds] = useState<number[]>([]);
   const [frequence, setFrequence] = useState<FrequenceTache>('ponctuel');
   const [assignation, setAssignation] = useState<AssignationTache>('fixe');
   const [assigneId, setAssigneId] = useState<number | null>(null);
@@ -89,12 +90,26 @@ export default function TachesScreen() {
   const [rotationConditions, setRotationConditions] = useState('');
   const [echeanceDate, setEcheanceDate] = useState('');
   const [echeanceHeure, setEcheanceHeure] = useState('');
+  // Seuil par jour de semaine (0=lundi … 6=dimanche), alternative à une date.
+  const [echeanceJour, setEcheanceJour] = useState<number | null>(null);
 
   const [gageActif, setGageActif] = useState(false);
   const [penalite, setPenalite] = useState('');
   const [recompense, setRecompense] = useState('');
   const [pointsPenalite, setPointsPenalite] = useState(5);
   const [pointsRecompense, setPointsRecompense] = useState(5);
+  // Gage « corvée » : nombre de semaines imposées au 1er oubli (rotation).
+  const [gageSemaines, setGageSemaines] = useState(2);
+  // Effets de gage paramétrables (appliqués auto à l'oubli / à la réussite).
+  const [effetsEchec, setEffetsEchec] = useState<GageEffet[]>([]);
+  const [effetsReussite, setEffetsReussite] = useState<GageEffet[]>([]);
+  const [draftCible, setDraftCible] = useState<'echec' | 'reussite' | null>(null);
+  const [draftType, setDraftType] = useState<GageEffetType>('points');
+  const [draftValeur, setDraftValeur] = useState('5');
+  const [draftTitre, setDraftTitre] = useState('');
+  const [draftJours, setDraftJours] = useState('7');
+  const [draftMontant, setDraftMontant] = useState('5');
+  const [draftTexte, setDraftTexte] = useState('');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -131,7 +146,7 @@ export default function TachesScreen() {
   const resetForm = () => {
     setTitre('');
     setDescription('');
-    setPieceId(null);
+    setPieceIds([]);
     setFrequence('ponctuel');
     setAssignation('fixe');
     setAssigneId(null);
@@ -139,11 +154,16 @@ export default function TachesScreen() {
     setRotationConditions('');
     setEcheanceDate('');
     setEcheanceHeure('');
+    setEcheanceJour(null);
     setGageActif(false);
     setPenalite('');
     setRecompense('');
     setPointsPenalite(5);
     setPointsRecompense(5);
+    setGageSemaines(2);
+    setEffetsEchec([]);
+    setEffetsReussite([]);
+    setDraftCible(null);
     setError('');
   };
 
@@ -157,7 +177,14 @@ export default function TachesScreen() {
     setEditing(tache);
     setTitre(tache.titre);
     setDescription(tache.description || '');
-    setPieceId(tache.piece_id);
+    // Multi-pièces : reprend la liste, avec repli sur l'ancien champ unique.
+    setPieceIds(
+      tache.pieces && tache.pieces.length > 0
+        ? tache.pieces.map((p) => p.id)
+        : tache.piece_id != null
+        ? [tache.piece_id]
+        : []
+    );
     setFrequence(tache.frequence);
     setAssignation(tache.assignation);
     setAssigneId(tache.assigne_id);
@@ -165,11 +192,16 @@ export default function TachesScreen() {
     setRotationConditions(tache.rotation_conditions || '');
     setEcheanceDate(tache.echeance_date || '');
     setEcheanceHeure(tache.echeance_heure || '');
+    setEcheanceJour(tache.echeance_jour_semaine ?? null);
     setGageActif(tache.gage_actif);
     setPenalite(tache.penalite || '');
     setRecompense(tache.recompense || '');
     setPointsPenalite(tache.points_penalite ?? 5);
     setPointsRecompense(tache.points_recompense ?? 5);
+    setGageSemaines(tache.gage_semaines ?? 2);
+    setEffetsEchec(tache.gage_effets_echec ?? []);
+    setEffetsReussite(tache.gage_effets_reussite ?? []);
+    setDraftCible(null);
     setError('');
     setModalVisible(true);
   };
@@ -177,6 +209,137 @@ export default function TachesScreen() {
   const toggleRotationMembre = (id: number) => {
     setRotationOrdre((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
+
+  const togglePiece = (id: number) => {
+    setPieceIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  // Jours de la semaine pour le sélecteur de « jour-seuil » (0=lundi).
+  const JOURS_SEMAINE = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+  // ─── Constructeur de gage paramétrable (effets) ───────────────────────────
+  const effetLabel = (e: GageEffet) =>
+    e.type === 'points'
+      ? `${(e.valeur ?? 0) > 0 ? '+' : ''}${e.valeur} pts`
+      : e.type === 'tache'
+      ? `${t('gage.typeTache')} : ${e.titre}`
+      : e.type === 'amende'
+      ? `${t('gage.typeAmende')} : ${e.montant} €`
+      : `${t('gage.typeNote')} : ${e.texte}`;
+
+  const addEffet = () => {
+    let effet: GageEffet | null = null;
+    if (draftType === 'points') {
+      const v = parseInt(draftValeur, 10);
+      if (!v) return;
+      effet = { type: 'points', valeur: v };
+    } else if (draftType === 'tache') {
+      if (!draftTitre.trim()) return;
+      effet = { type: 'tache', titre: draftTitre.trim(), jours: parseInt(draftJours, 10) || 0 };
+    } else if (draftType === 'amende') {
+      const m = parseFloat(draftMontant.replace(',', '.'));
+      if (!m || m <= 0) return;
+      effet = { type: 'amende', montant: Math.round(m * 100) / 100 };
+    } else {
+      if (!draftTexte.trim()) return;
+      effet = { type: 'note', texte: draftTexte.trim() };
+    }
+    const setter = draftCible === 'echec' ? setEffetsEchec : setEffetsReussite;
+    setter((prev) => [...prev, effet as GageEffet]);
+    setDraftCible(null);
+    setDraftTitre('');
+    setDraftTexte('');
+    setDraftValeur('5');
+    setDraftJours('7');
+    setDraftMontant('5');
+  };
+
+  const removeEffet = (cible: 'echec' | 'reussite', idx: number) => {
+    const setter = cible === 'echec' ? setEffetsEchec : setEffetsReussite;
+    setter((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const renderEffetsSection = (cible: 'echec' | 'reussite', effets: GageEffet[]) => (
+    <View style={{ marginTop: spacing.md }}>
+      <Text style={[styles.label, { color: colors.text.dark }]}>
+        {cible === 'echec' ? 'Si oubliée (gage)' : 'Si réussie (récompense)'}
+      </Text>
+      <View style={styles.chipsRow}>
+        {effets.map((e, i) => (
+          <Pressable
+            key={i}
+            onPress={() => removeEffet(cible, i)}
+            style={[styles.chip, { backgroundColor: colors.primary.subtle, borderColor: colors.primary.main }]}
+          >
+            <Text style={[styles.chipText, { color: colors.primary.main }]}>{effetLabel(e)}  ✕</Text>
+          </Pressable>
+        ))}
+        <Pressable
+          onPress={() => setDraftCible(cible)}
+          style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
+          <Text style={[styles.chipText, { color: colors.text.body }]}>+ effet</Text>
+        </Pressable>
+      </View>
+      {draftCible === cible ? (
+        <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
+          <Segmented
+            value={draftType}
+            onChange={setDraftType}
+            options={[
+              { value: 'points', label: 'Points' },
+              { value: 'tache', label: 'Tâche' },
+              { value: 'amende', label: 'Amende' },
+              { value: 'note', label: 'Note' },
+            ]}
+          />
+          {draftType === 'points' ? (
+            <CandyInput
+              label="Points (négatif = pénalité)"
+              value={draftValeur}
+              onChangeText={setDraftValeur}
+              keyboardType="numbers-and-punctuation"
+              style={{ marginTop: spacing.sm }}
+            />
+          ) : null}
+          {draftType === 'tache' ? (
+            <>
+              <CandyInput
+                label="Intitulé de la corvée"
+                placeholder="Faire la vaisselle"
+                value={draftTitre}
+                onChangeText={setDraftTitre}
+                style={{ marginTop: spacing.sm }}
+              />
+              <CandyInput label="À faire sous (jours)" value={draftJours} onChangeText={setDraftJours} keyboardType="number-pad" />
+            </>
+          ) : null}
+          {draftType === 'amende' ? (
+            <CandyInput
+              label="Montant de l'amende (€) — versé à la cagnotte"
+              value={draftMontant}
+              onChangeText={setDraftMontant}
+              keyboardType="decimal-pad"
+              style={{ marginTop: spacing.sm }}
+            />
+          ) : null}
+          {draftType === 'note' ? (
+            <CandyInput
+              label="Message"
+              placeholder="Bonnet ridicule toute la journée"
+              value={draftTexte}
+              onChangeText={setDraftTexte}
+              style={{ marginTop: spacing.sm }}
+            />
+          ) : null}
+          <View style={styles.stepperRow}>
+            <CandyButton label={t('common.ajouter')} onPress={addEffet} variant="pink" style={{ flex: 1 }} />
+            <CandyButton label={t('common.annuler')} onPress={() => setDraftCible(null)} variant="ghost" style={{ flex: 1 }} />
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
 
   const handleSave = async () => {
     if (!maisonActive) return;
@@ -197,7 +360,7 @@ export default function TachesScreen() {
     const data = {
       titre: titre.trim(),
       description: description.trim() || undefined,
-      piece_id: pieceId,
+      piece_ids: pieceIds,
       frequence,
       assignation,
       assigne_id: assignation === 'fixe' ? assigneId : undefined,
@@ -205,11 +368,15 @@ export default function TachesScreen() {
       rotation_conditions: assignation === 'rotation' ? rotationConditions.trim() || undefined : undefined,
       echeance_date: echeanceDate.trim() || undefined,
       echeance_heure: echeanceHeure.trim() || undefined,
+      echeance_jour_semaine: echeanceJour,
       gage_actif: gageActif,
       penalite: gageActif ? penalite.trim() || undefined : undefined,
       recompense: gageActif ? recompense.trim() || undefined : undefined,
       points_penalite: gageActif ? pointsPenalite : undefined,
       points_recompense: gageActif ? pointsRecompense : undefined,
+      gage_semaines: gageActif ? gageSemaines : undefined,
+      gage_effets_echec: gageActif ? effetsEchec : undefined,
+      gage_effets_reussite: gageActif ? effetsReussite : undefined,
     };
     const res = editing ? await tacheService.update(editing.id, data) : await tacheService.create(maisonActive.id, data);
     setSaving(false);
@@ -256,6 +423,12 @@ export default function TachesScreen() {
   );
   const autresTaches = taches.filter((tc) => !tachesDuJour.includes(tc));
 
+  // Corvées en cours : tâches dont le titulaire purge un gage (semaines dues).
+  const tachesEnGage = taches
+    .filter((tc) => (tc.gage_semaines_restantes ?? 0) > 0)
+    .sort((a, b) => b.gage_semaines_restantes - a.gage_semaines_restantes);
+  const totalSemaines = tachesEnGage.reduce((n, tc) => n + tc.gage_semaines_restantes, 0);
+
   const renderTache = (tache: Tache) => {
     const canValidate = peutValider(tache);
     return (
@@ -281,8 +454,17 @@ export default function TachesScreen() {
         <View style={styles.badgesRow}>
           <Badge label={FREQUENCE_LABEL[tache.frequence]} variant={FREQUENCE_VARIANT[tache.frequence]} />
           {tache.assignation === 'rotation' ? <Badge label="🔄" variant="purple" /> : null}
+          {(tache.pieces ?? []).map((p) => (
+            <Badge key={p.id} label={`🚪 ${p.nom}`} variant="neutral" />
+          ))}
           {tache.gage_actif ? <Badge label={tache.recompense ? `🎁 ${tache.recompense}` : '🎁'} variant="yellow" /> : null}
           {tache.gage_actif && tache.penalite ? <Badge label={`⚠️ ${tache.penalite}`} variant="orange" /> : null}
+          {tache.gage_semaines_restantes > 0 ? (
+            <Badge label={`⛓️ ${tache.gage_semaines_restantes} ${t('gage.semCorvee')}`} variant="pink" />
+          ) : null}
+          {(tache.gage_effets_echec ?? []).slice(0, 3).map((e, i) => (
+            <Badge key={`ge-${i}`} label={effetLabel(e)} variant="orange" />
+          ))}
         </View>
 
         {isGestion ? (
@@ -307,7 +489,7 @@ export default function TachesScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🧹 {t('taches.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('taches.titre')}</Text>
         {isGestion ? (
           <Pressable onPress={openCreate} style={[styles.addButton, { backgroundColor: colors.primary.main }, shadows.candyPink]}>
             <Plus size={20} color={colors.candy.white} />
@@ -329,6 +511,28 @@ export default function TachesScreen() {
           <EmptyState emoji="🧹" title={t('taches.aucuneTache')} message={isGestion ? t('taches.ajouterBouton') : undefined} />
         ) : (
           <>
+            {tachesEnGage.length > 0 ? (
+              <View style={{ marginBottom: spacing.lg }}>
+                <Text style={[styles.sectionLabel, { color: colors.text.dark }]}>
+                  ⛓️ {t('gage.corveesEnCours')} ({totalSemaines} sem.)
+                </Text>
+                {tachesEnGage.map((tc) => (
+                  <CandyCard key={`gage-${tc.id}`} style={styles.gageItem}>
+                    <Avatar name={tc.titulaire?.nom} image={tc.titulaire?.image ?? null} size={32} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.gageTitulaire, { color: colors.text.dark }]} numberOfLines={1}>
+                        {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
+                      </Text>
+                      <Text style={[styles.cardMeta, { color: colors.text.body }]} numberOfLines={1}>
+                        {tc.titre}
+                      </Text>
+                    </View>
+                    <Badge label={`${tc.gage_semaines_restantes} sem.`} variant="pink" />
+                  </CandyCard>
+                ))}
+              </View>
+            ) : null}
+
             <Text style={[styles.sectionLabel, { color: colors.text.dark }]}>{t('taches.duJour')}</Text>
             {tachesDuJour.length === 0 ? (
               <CandyCard style={{ marginBottom: spacing.lg }}>
@@ -374,36 +578,33 @@ export default function TachesScreen() {
                 multiline
               />
 
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('taches.pieceOptionnelle')}</Text>
-              <View style={styles.chipsRow}>
-                <Pressable
-                  onPress={() => setPieceId(null)}
-                  style={[
-                    styles.chip,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                    pieceId === null && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                  ]}
-                >
-                  <Text style={[styles.chipText, { color: pieceId === null ? colors.primary.main : colors.text.body }]}>
-                    {t('taches.aucunePiece')}
-                  </Text>
-                </Pressable>
-                {pieces.map((p) => (
-                  <Pressable
-                    key={p.id}
-                    onPress={() => setPieceId(p.id)}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      pieceId === p.id && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                    ]}
-                  >
-                    <Text style={[styles.chipText, { color: pieceId === p.id ? colors.primary.main : colors.text.body }]}>
-                      {p.nom}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <Text style={[styles.label, { color: colors.text.dark }]}>
+                {t('taches.pieceOptionnelle')} {pieceIds.length > 0 ? `(${pieceIds.length})` : ''}
+              </Text>
+              {pieces.length === 0 ? (
+                <Text style={[styles.helperText, { color: colors.text.body }]}>Aucune pièce dans la maison pour l’instant.</Text>
+              ) : (
+                <View style={styles.chipsRow}>
+                  {pieces.map((p) => {
+                    const active = pieceIds.includes(p.id);
+                    return (
+                      <Pressable
+                        key={p.id}
+                        onPress={() => togglePiece(p.id)}
+                        style={[
+                          styles.chip,
+                          { backgroundColor: colors.card, borderColor: colors.border },
+                          active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                        ]}
+                      >
+                        <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                          {active ? '✓ ' : ''}{p.nom}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
 
               <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>{t('taches.frequence')}</Text>
               <Segmented value={frequence} onChange={setFrequence} options={FREQUENCES} />
@@ -421,6 +622,33 @@ export default function TachesScreen() {
                 value={echeanceHeure}
                 onChangeText={setEcheanceHeure}
               />
+
+              <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>
+                Ou avant un jour (récurrent)
+              </Text>
+              <Text style={[styles.helperText, { color: colors.text.body }]}>
+                L’échéance se cale sur ce jour chaque période (ex. « avant mercredi »).
+              </Text>
+              <View style={styles.chipsRow}>
+                {JOURS_SEMAINE.map((label, idx) => {
+                  const active = echeanceJour === idx;
+                  return (
+                    <Pressable
+                      key={label}
+                      onPress={() => setEcheanceJour(active ? null : idx)}
+                      style={[
+                        styles.chip,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                        active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                      ]}
+                    >
+                      <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
               <Text style={[styles.label, { color: colors.text.dark }]}>{t('taches.assignation')}</Text>
               <Segmented
@@ -525,6 +753,27 @@ export default function TachesScreen() {
                       <Stepper label={t('activite.pointsRecompense')} value={pointsRecompense} onValueChange={setPointsRecompense} min={0} max={100} />
                       <Stepper label={t('activite.pointsPenalite')} value={pointsPenalite} onValueChange={setPointsPenalite} min={0} max={100} />
                     </View>
+                    {assignation === 'rotation' ? (
+                      <View style={{ marginTop: spacing.md }}>
+                        <Stepper
+                          label={t('gage.semainesCorvee')}
+                          value={gageSemaines}
+                          onValueChange={setGageSemaines}
+                          min={1}
+                          max={12}
+                        />
+                        <Text style={[styles.helperText, { color: colors.text.body, marginTop: spacing.sm }]}>
+                          {t('gage.semainesCorveeAide')}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    <GageEffetsEditor
+                      effetsEchec={effetsEchec}
+                      effetsReussite={effetsReussite}
+                      onChangeEchec={setEffetsEchec}
+                      onChangeReussite={setEffetsReussite}
+                    />
                   </>
                 ) : null}
               </View>
@@ -564,6 +813,8 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   emptyInlineText: { fontWeight: typography.fontWeight.medium, textAlign: 'center' },
   card: { marginBottom: spacing.md },
+  gageItem: { marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  gageTitulaire: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.extrabold },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   cardTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   cardMeta: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },

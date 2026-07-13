@@ -1,0 +1,3 @@
+# Dépendances de développement / tests (non incluses dans l'image de prod).
+-r requirements.txt
+pytest==8.3.4

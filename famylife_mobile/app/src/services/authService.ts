@@ -77,6 +77,24 @@ class AuthService {
     }
   }
 
+  // Déconnexion de TOUS les appareils : incrémente la version de session côté
+  // serveur, ce qui invalide immédiatement tous les tokens existants (utile en
+  // cas de vol de token). On efface aussi le token local.
+  async deconnexionGlobale(): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await apiClient.post<{ message: string }>('/me/deconnexion-globale', {});
+      await apiClient.clearToken();
+      return response;
+    } catch (error) {
+      await apiClient.clearToken();
+      return {
+        data: { message: 'Déconnexion locale effectuée' },
+        error: error instanceof Error ? error.message : undefined,
+        status: 0,
+      };
+    }
+  }
+
   async getProfile(): Promise<ApiResponse<UserProfile>> {
     return apiClient.get('/me');
   }

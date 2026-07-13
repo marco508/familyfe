@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.database import database, vote_bulletins, vote_options, votes
 from app.dependencies import get_current_user, require_membre, require_not_enfant, require_not_visiteur
@@ -56,10 +56,19 @@ async def _serialize_vote(row: dict, current_user_id: int) -> dict:
 
 
 @router.get("/maisons/{maison_id}/votes")
-async def list_votes(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_votes(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
-        votes.select().where(votes.c.maison_id == maison_id).order_by(votes.c.date_creation.desc())
+        votes.select()
+        .where(votes.c.maison_id == maison_id)
+        .order_by(votes.c.date_creation.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [await _serialize_vote(dict(r), current_user["id"]) for r in rows]
 
@@ -75,26 +84,28 @@ async def create_vote(
     if len(options) < 2:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Il faut au moins 2 options")
 
-    vote_id = await database.execute(
-        votes.insert().values(
-            maison_id=maison_id,
-            question=data.question,
-            description=data.description,
-            createur_id=current_user["id"],
+    # Création atomique : le vote et ses options doivent apparaître ensemble.
+    async with database.transaction():
+        vote_id = await database.execute(
+            votes.insert().values(
+                maison_id=maison_id,
+                question=data.question,
+                description=data.description,
+                createur_id=current_user["id"],
+            )
         )
-    )
-    for texte in options:
-        await database.execute(vote_options.insert().values(vote_id=vote_id, texte=texte))
+        for texte in options:
+            await database.execute(vote_options.insert().values(vote_id=vote_id, texte=texte))
 
-    # Prévient toute la maison qu'un vote est ouvert (décision à prendre ensemble).
-    await notifier_maison(
-        maison_id,
-        type="vote",
-        titre="🗳️ Nouveau vote",
-        message=f"« {data.question} » — donne ton avis !",
-        lien=f"vote:{vote_id}",
-        exclure=current_user["id"],
-    )
+        # Prévient toute la maison qu'un vote est ouvert (décision à prendre ensemble).
+        await notifier_maison(
+            maison_id,
+            type="vote",
+            titre="🗳️ Nouveau vote",
+            message=f"« {data.question} » — donne ton avis !",
+            lien=f"vote:{vote_id}",
+            exclure=current_user["id"],
+        )
 
     row = await _get_vote_or_404(vote_id)
     return await _serialize_vote(row, current_user["id"])
@@ -129,18 +140,19 @@ async def voter(vote_id: int, data: VoteVoterInput, current_user: dict = Depends
             & (vote_bulletins.c.utilisateur_id == current_user["id"])
         )
     )
-    if existing:
-        await database.execute(
-            vote_bulletins.update()
-            .where(vote_bulletins.c.id == existing["id"])
-            .values(option_id=data.option_id)
-        )
-    else:
-        await database.execute(
-            vote_bulletins.insert().values(
-                vote_id=vote_id, option_id=data.option_id, utilisateur_id=current_user["id"]
+    async with database.transaction():
+        if existing:
+            await database.execute(
+                vote_bulletins.update()
+                .where(vote_bulletins.c.id == existing["id"])
+                .values(option_id=data.option_id)
             )
-        )
+        else:
+            await database.execute(
+                vote_bulletins.insert().values(
+                    vote_id=vote_id, option_id=data.option_id, utilisateur_id=current_user["id"]
+                )
+            )
 
     updated = await _get_vote_or_404(vote_id)
     return await _serialize_vote(updated, current_user["id"])
@@ -178,7 +190,9 @@ async def delete_vote(vote_id: int, current_user: dict = Depends(get_current_use
             detail="Seul le gestionnaire ou le créateur peut supprimer ce vote",
         )
 
-    await database.execute(vote_bulletins.delete().where(vote_bulletins.c.vote_id == vote_id))
-    await database.execute(vote_options.delete().where(vote_options.c.vote_id == vote_id))
-    await database.execute(votes.delete().where(votes.c.id == vote_id))
+    # Suppression en cascade atomique : bulletins + options + vote.
+    async with database.transaction():
+        await database.execute(vote_bulletins.delete().where(vote_bulletins.c.vote_id == vote_id))
+        await database.execute(vote_options.delete().where(vote_options.c.vote_id == vote_id))
+        await database.execute(votes.delete().where(votes.c.id == vote_id))
     return {"message": "Vote supprimé"}

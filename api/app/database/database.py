@@ -36,6 +36,7 @@ from .tables import (
     regles,
     taches,
     tache_validations,
+    tache_pieces,
     activite_participants,
 )
 
@@ -72,5 +73,6 @@ __all__ = [
     "regles",
     "taches",
     "tache_validations",
+    "tache_pieces",
     "activite_participants",
 ]

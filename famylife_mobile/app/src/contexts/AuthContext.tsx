@@ -10,6 +10,7 @@ interface AuthContextData {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
   signup: (data: SignupData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -91,6 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  // Déconnexion de tous les appareils : révoque tous les tokens côté serveur.
+  const logoutAll = async () => {
+    await authService.deconnexionGlobale();
+    setUser(null);
+  };
+
   const refreshProfile = async () => {
     await loadUserProfile();
   };
@@ -104,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         signup,
         logout,
+        logoutAll,
         refreshProfile,
       }}
     >

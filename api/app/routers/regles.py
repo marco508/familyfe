@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.database import database, membres_maison, regles, vote_bulletins, vote_options, votes
 from app.dependencies import get_current_user, require_gestion, require_membre, require_membre_row
@@ -68,10 +68,19 @@ async def _serialize(row: dict, current_user_id: int) -> dict:
 
 
 @router.get("/maisons/{maison_id}/regles")
-async def list_regles(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_regles(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
-        regles.select().where(regles.c.maison_id == maison_id).order_by(regles.c.ordre.asc(), regles.c.id.asc())
+        regles.select()
+        .where(regles.c.maison_id == maison_id)
+        .order_by(regles.c.ordre.asc(), regles.c.id.asc())
+        .limit(limit)
+        .offset(offset)
     )
     return [await _serialize(dict(r), current_user["id"]) for r in rows]
 
@@ -90,32 +99,34 @@ async def create_regle(
     )
     ordre = (count_row["n"] if count_row else 0) + 1
 
-    vote_id = None
-    statut = "adoptee"
-    if data.soumettre_au_vote:
-        vote_id = await database.execute(
-            votes.insert().values(
+    # Création atomique : vote lié (+ options) et règle doivent apparaître ensemble.
+    async with database.transaction():
+        vote_id = None
+        statut = "adoptee"
+        if data.soumettre_au_vote:
+            vote_id = await database.execute(
+                votes.insert().values(
+                    maison_id=maison_id,
+                    question=f"Adopter la règle « {data.titre} » ?",
+                    description=data.contenu,
+                    createur_id=current_user["id"],
+                )
+            )
+            await database.execute(vote_options.insert().values(vote_id=vote_id, texte="Oui"))
+            await database.execute(vote_options.insert().values(vote_id=vote_id, texte="Non"))
+            statut = "proposee"
+
+        regle_id = await database.execute(
+            regles.insert().values(
                 maison_id=maison_id,
-                question=f"Adopter la règle « {data.titre} » ?",
-                description=data.contenu,
+                titre=data.titre,
+                contenu=data.contenu,
+                statut=statut,
+                vote_id=vote_id,
+                ordre=ordre,
                 createur_id=current_user["id"],
             )
         )
-        await database.execute(vote_options.insert().values(vote_id=vote_id, texte="Oui"))
-        await database.execute(vote_options.insert().values(vote_id=vote_id, texte="Non"))
-        statut = "proposee"
-
-    regle_id = await database.execute(
-        regles.insert().values(
-            maison_id=maison_id,
-            titre=data.titre,
-            contenu=data.contenu,
-            statut=statut,
-            vote_id=vote_id,
-            ordre=ordre,
-            createur_id=current_user["id"],
-        )
-    )
 
     if data.soumettre_au_vote:
         await notifier_maison(

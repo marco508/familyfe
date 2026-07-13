@@ -10,8 +10,10 @@ from jose import JWTError, jwt
 
 from app.config import settings
 
-# Supprimer les warnings passlib/bcrypt superflus
-warnings.filterwarnings("ignore", category=UserWarning)
+# Supprimer uniquement les warnings superflus émis par bcrypt (et pas tous les
+# UserWarning du process, qui pourraient masquer des alertes utiles).
+warnings.filterwarnings("ignore", category=UserWarning, module="bcrypt")
+warnings.filterwarnings("ignore", category=UserWarning, module="passlib")
 
 logger = logging.getLogger(__name__)
 
@@ -52,18 +54,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_access_token(token: str) -> str:
-    """Décode et valide un token JWT, renvoie l'id utilisateur (sub)."""
+def decode_access_token_payload(token: str) -> dict:
+    """Décode et valide un token JWT, renvoie le payload complet (sub, tv, exp…)."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        if payload.get("sub") is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token invalide - utilisateur non trouvé",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        return user_id
+        return payload
     except JWTError as e:
         logger.info("Erreur JWT: %s", e)
         raise HTTPException(
@@ -71,6 +72,11 @@ def decode_access_token(token: str) -> str:
             detail="Token JWT invalide ou expiré",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def decode_access_token(token: str) -> str:
+    """Décode et valide un token JWT, renvoie l'id utilisateur (sub)."""
+    return decode_access_token_payload(token)["sub"]
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:

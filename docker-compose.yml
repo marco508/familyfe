@@ -1,0 +1,63 @@
+# docker-compose : backend FamyLife (API FastAPI + base PostgreSQL).
+#
+# Lancement :   docker compose up --build
+# API dispo sur http://localhost:8000  (doc interactive : /docs)
+#
+# Les valeurs sensibles (SECRET_KEY, mots de passe) ont un défaut de dev ;
+# surchargez-les via un fichier .env à côté de ce fichier (voir .env.example).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-famylife}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-famylife}
+      POSTGRES_DB: ${POSTGRES_DB:-famylife}
+    volumes:
+      # Persistance des données de la base entre les redémarrages.
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # L'API n'est lancée qu'une fois Postgres prêt à accepter des connexions.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-famylife} -d ${POSTGRES_DB:-famylife}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      # Exposé pour inspection locale (DBeaver, psql…). Retirez-le en prod.
+      - "5432:5432"
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # 1) `alembic upgrade head` crée le schéma sur une base NEUVE (baseline).
+    # 2) L'app démarre ensuite avec AUTO_CREATE_TABLES=True : create_all (idempotent)
+    #    crée les tables manquantes et `_ensure_columns` ajoute les colonnes
+    #    manquantes sur une base EXISTANTE (auto-réparation, ex. token_version,
+    #    gage_semaines…). Combinaison robuste pour le dév : plus besoin de wiper
+    #    le volume à chaque nouvelle colonne.
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      # URL async (asyncpg) pointant vers le service "db" du réseau compose.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-famylife}:${POSTGRES_PASSWORD:-famylife}@db:5432/${POSTGRES_DB:-famylife}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      ALGORITHM: HS256
+      TOKEN_EXPIRE_DAYS: "7"
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      # Filet de sécurité : ajoute automatiquement tables/colonnes manquantes au
+      # démarrage (voir _ensure_columns dans app/main.py).
+      AUTO_CREATE_TABLES: "True"
+      CORS_ORIGINS: "*"
+      CORS_ORIGIN_REGEX: ".*"
+    volumes:
+      # Persistance des fichiers uploadés (avatars, preuves) hors du conteneur.
+      - uploads:/app/uploads
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+  uploads:

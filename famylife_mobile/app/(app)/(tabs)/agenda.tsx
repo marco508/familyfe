@@ -193,7 +193,6 @@ export default function AgendaScreen() {
       >
         <SectionTitle
           title={t('nav.agenda')}
-          emoji="🗓️"
           right={
             <View style={styles.headerActionsRow}>
               <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />

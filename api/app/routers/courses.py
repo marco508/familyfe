@@ -1,5 +1,5 @@
 # app/routers/courses.py — Liste de courses (ANNEXE V3)
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.database import courses_items, database
 from app.dependencies import get_current_user, require_membre, require_not_visiteur
@@ -22,12 +22,19 @@ async def _get_item_or_404(item_id: int) -> dict:
 
 
 @router.get("/maisons/{maison_id}/courses")
-async def list_courses(maison_id: int, current_user: dict = Depends(get_current_user)):
+async def list_courses(
+    maison_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
     await require_membre(maison_id, current_user["id"])
     rows = await database.fetch_all(
         courses_items.select()
         .where(courses_items.c.maison_id == maison_id)
         .order_by(courses_items.c.achete.asc(), courses_items.c.date_creation.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return [_serialize(r) for r in rows]
 
