@@ -23,7 +23,7 @@
         "android.permission.READ_CONTACTS"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#FFE9F3",
+        "backgroundColor": "#2F6E5B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -43,9 +43,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#FFE9F3",
+          "backgroundColor": "#2F6E5B",
           "dark": {
-            "backgroundColor": "#2A1B45"
+            "backgroundColor": "#245546"
           }
         }
       ],
