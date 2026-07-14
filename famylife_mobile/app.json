@@ -20,7 +20,12 @@
       "package": "com.famylife.famylife",
       "usesCleartextTraffic": true,
       "permissions": [
-        "android.permission.READ_CONTACTS"
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#2F6E5B",
@@ -70,7 +75,16 @@
     "extra": {
       "router": {},
       "apiUrlLocal": "http://localhost:8005",
-      "apiUrlRemote": "https://familyfe.dkpsolution.tech/api"
+      "apiUrlRemote": "https://familyfe.dkpsolution.tech/api",
+      "eas": {
+        "projectId": "8c1b84cf-8afe-4a38-95f4-f7a0d97e515a"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8c1b84cf-8afe-4a38-95f4-f7a0d97e515a"
     }
   }
 }
