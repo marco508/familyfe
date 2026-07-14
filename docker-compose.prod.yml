@@ -1,0 +1,72 @@
+# docker-compose.prod.yml — surcouche PRODUCTION FamiLyfe.
+# Intègre l'API (sous /familyfe_api) et la vitrine (sous /familyfe) au Traefik
+# DÉJÀ présent sur le VPS (celui qui sert yomu). Domaine : dkpsolution.tech.
+#
+# Lancer AVEC le compose de base :
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Variables .env (à côté de ce fichier) :
+#   SECRET_KEY           64+ car. aléatoires (openssl rand -hex 48)
+#   POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+#   SITE_ADDRESS         hôte servi (défaut: dkpsolution.tech)
+#   TRAEFIK_NETWORK      réseau Docker externe de Traefik (défaut: traefik-proxy)
+#   TRAEFIK_ENTRYPOINT   entrypoint HTTPS de Traefik (défaut: websecure)
+#   TRAEFIK_CERTRESOLVER certresolver Let's Encrypt (défaut: letsencrypt)
+services:
+
+  # ─── API FastAPI, servie sous /familyfe_api ───────────────────────────────
+  api:
+    # Alembic si possible, sinon on n'échoue pas : AUTO_CREATE_TABLES construit
+    # le schéma au démarrage (create_all + _ensure_columns).
+    command: sh -c "alembic upgrade head || true; uvicorn app.main:app --host 0.0.0.0 --port 8005"
+    environment:
+      ENVIRONMENT: production
+      RELOAD: "false"
+      # create_all + _ensure_columns créent tables/colonnes manquantes au boot.
+      AUTO_CREATE_TABLES: "True"
+      # Traefik retire /familyfe_api (StripPrefix) ; root_path corrige /docs & openapi.
+      ROOT_PATH: /familyfe_api
+      CORS_ORIGINS: "https://dkpsolution.tech"
+      CORS_ORIGIN_REGEX: ""
+    networks:
+      - default
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-proxy}"
+      # Route le préfixe /familyfe_api vers l'API (priorité haute), puis le retire.
+      - "traefik.http.routers.familyfe-api.rule=Host(`${SITE_ADDRESS:-dkpsolution.tech}`) && PathPrefix(`/familyfe_api`)"
+      - "traefik.http.routers.familyfe-api.priority=20"
+      - "traefik.http.routers.familyfe-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.familyfe-api.tls=true"
+      - "traefik.http.routers.familyfe-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.middlewares.familyfe-api-strip.stripprefix.prefixes=/familyfe_api"
+      - "traefik.http.routers.familyfe-api.middlewares=familyfe-api-strip"
+      - "traefik.http.services.familyfe-api.loadbalancer.server.port=8005"
+
+  # ─── Vitrine (landing page statique), servie sous /familyfe ───────────────
+  vitrine:
+    image: nginx:alpine
+    container_name: familyfe_vitrine
+    restart: unless-stopped
+    volumes:
+      - ./vitrine:/usr/share/nginx/html:ro
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-proxy}"
+      - "traefik.http.routers.familyfe-site.rule=Host(`${SITE_ADDRESS:-dkpsolution.tech}`) && PathPrefix(`/familyfe`)"
+      - "traefik.http.routers.familyfe-site.priority=10"
+      - "traefik.http.routers.familyfe-site.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.familyfe-site.tls=true"
+      - "traefik.http.routers.familyfe-site.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.middlewares.familyfe-site-strip.stripprefix.prefixes=/familyfe"
+      - "traefik.http.routers.familyfe-site.middlewares=familyfe-site-strip"
+      - "traefik.http.services.familyfe-site.loadbalancer.server.port=80"
+
+# Réseau externe géré par ta stack Traefik (déjà créé pour yomu). On s'y rattache.
+networks:
+  traefik_net:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-proxy}

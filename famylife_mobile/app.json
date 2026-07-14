@@ -70,7 +70,7 @@
     "extra": {
       "router": {},
       "apiUrlLocal": "http://localhost:8005",
-      "apiUrlRemote": "http://localhost:8005"
+      "apiUrlRemote": "https://dkpsolution.tech/familyfe_api"
     }
   }
 }
