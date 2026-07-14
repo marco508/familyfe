@@ -8,20 +8,17 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, Trash2, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, ArrowRight } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import depensesService, { BilanDepenses, Depense } from '../src/services/depensesService';
-import { Avatar, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, VisitorBanner } from '../components/ui';
+import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DepensesScreen() {
@@ -263,66 +260,57 @@ export default function DepensesScreen() {
         </ScrollView>
       </ScreenBackground>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('depenses.nouvelle')}</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('depenses.nouvelle')}
+        emoji="💸"
+        footer={<CandyButton label={t('common.creer')} onPress={handleCreate} loading={saving} variant="green" />}
+      >
+        <CandyInput label={t('common.titre')} placeholder={t('depenses.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+        <CandyInput
+          label={t('depenses.montant')}
+          placeholder="45.90"
+          value={montant}
+          onChangeText={setMontant}
+          keyboardType="decimal-pad"
+        />
+        <CandyInput label={t('courses.categorie')} placeholder={t('depenses.categoriePlaceholder')} value={categorie} onChangeText={setCategorie} />
 
-              <CandyInput label={t('common.titre')} placeholder={t('depenses.titrePlaceholder')} value={titre} onChangeText={setTitre} />
-              <CandyInput
-                label={t('depenses.montant')}
-                placeholder="45.90"
-                value={montant}
-                onChangeText={setMontant}
-                keyboardType="decimal-pad"
-              />
-              <CandyInput label={t('courses.categorie')} placeholder={t('depenses.categoriePlaceholder')} value={categorie} onChangeText={setCategorie} />
-
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.payePar')}</Text>
-              <View style={styles.chipsRow}>
-                {membres.map((m) => (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => setPayePar(m.id)}
-                    style={[styles.membreChip, { borderColor: colors.border }, payePar === m.id && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
-                  >
-                    <Avatar name={m.nom} image={m.image} size={22} />
-                    <Text style={[styles.membreChipText, { color: payePar === m.id ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
-                      {m.nom}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.participants')}</Text>
-              <View style={styles.chipsRow}>
-                {membres.map((m) => (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => toggleParticipant(m.id)}
-                    style={[styles.membreChip, { borderColor: colors.border }, participants.includes(m.id) && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
-                  >
-                    <Avatar name={m.nom} image={m.image} size={22} />
-                    <Text style={[styles.membreChipText, { color: participants.includes(m.id) ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
-                      {m.nom}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('common.creer')} onPress={handleCreate} loading={saving} variant="green" style={{ marginTop: spacing.md }} />
-            </ScrollView>
-          </KeyboardAvoidingView>
+        <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.payePar')}</Text>
+        <View style={styles.chipsRow}>
+          {membres.map((m) => (
+            <Pressable
+              key={m.id}
+              onPress={() => setPayePar(m.id)}
+              style={[styles.membreChip, { borderColor: colors.border }, payePar === m.id && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
+            >
+              <Avatar name={m.nom} image={m.image} size={22} />
+              <Text style={[styles.membreChipText, { color: payePar === m.id ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
+                {m.nom}
+              </Text>
+            </Pressable>
+          ))}
         </View>
-      </Modal>
+
+        <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.participants')}</Text>
+        <View style={styles.chipsRow}>
+          {membres.map((m) => (
+            <Pressable
+              key={m.id}
+              onPress={() => toggleParticipant(m.id)}
+              style={[styles.membreChip, { borderColor: colors.border }, participants.includes(m.id) && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
+            >
+              <Avatar name={m.nom} image={m.image} size={22} />
+              <Text style={[styles.membreChipText, { color: participants.includes(m.id) ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
+                {m.nom}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -359,10 +347,6 @@ const styles = StyleSheet.create({
   soldeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   reglementNom: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
   reglementMontant: { marginLeft: 'auto', fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   membreChip: {

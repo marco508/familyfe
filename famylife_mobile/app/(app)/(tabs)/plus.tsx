@@ -18,6 +18,8 @@ import {
   ClipboardCheck,
   ScrollText,
   Landmark,
+  Scale,
+  Share2,
 } from 'lucide-react-native';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -42,6 +44,8 @@ export default function PlusScreen() {
     { key: 'boutique', label: t('plus.boutique'), emoji: '🎁', icon: Gift, gradient: gradients.candyPurple, href: '/(app)/boutique' },
     { key: 'defis', label: t('plus.defis'), emoji: '🏆', icon: Trophy, gradient: gradients.candyYellow, href: '/(app)/defis' },
     { key: 'classement', label: t('plus.classement'), emoji: '🥇', icon: Medal, gradient: gradients.candyPink, href: '/(app)/classement' },
+    { key: 'equite', label: t('plus.equite'), emoji: '⚖️', icon: Scale, gradient: gradients.candyGreen, href: '/(app)/equite' },
+    { key: 'inviter', label: t('plus.inviter'), emoji: '✉️', icon: Share2, gradient: gradients.candyPink, href: '/(app)/inviter' },
     ...(isChef
       ? [{ key: 'portefeuille', label: t('plus.portefeuille'), emoji: '🏘️', icon: Landmark, gradient: gradients.candyOrange, href: '/(app)/portefeuille' }]
       : []),
@@ -68,7 +72,7 @@ export default function PlusScreen() {
                   <Icon size={26} color={colors.candy.white} />
                 </View>
                 <Text style={styles.tileLabel} numberOfLines={2}>
-                  {item.emoji} {item.label}
+                  {item.label}
                 </Text>
               </LinearGradient>
             </Pressable>

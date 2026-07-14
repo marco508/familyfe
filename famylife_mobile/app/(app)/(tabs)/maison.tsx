@@ -13,9 +13,6 @@ import {
   ActivityIndicator,
   Share,
   Alert,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,8 +27,6 @@ import {
   UserCog,
   Baby,
   Crown,
-  X,
-  DoorOpen,
   Plus,
   Settings2,
 } from 'lucide-react-native';
@@ -45,6 +40,7 @@ import authService from '../../src/services/authService';
 import rolesService, { RoleUpdateInput } from '../../src/services/rolesService';
 import pieceService, { Piece, TypePiece } from '../../src/services/pieceService';
 import {
+  BottomSheet,
   CandyButton,
   CandyCard,
   CandyInput,
@@ -62,6 +58,20 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 const MEDALS = ['🥇', '🥈', '🥉'];
 const TYPES_PIECE: TypePiece[] = ['chambre', 'salon', 'cuisine', 'salle_de_bain', 'bureau', 'garage', 'autre'];
 const LIENS_FAMILLE: LienFamille[] = ['pere', 'mere', 'enfant', 'frere', 'soeur', 'conjoint', 'autre'];
+
+// Petite icône cohérente par type de pièce (repère visuel léger dans les listes/chips).
+const PIECE_TYPE_EMOJI: Record<TypePiece, string> = {
+  chambre: '🛏️',
+  salon: '🛋️',
+  cuisine: '🍳',
+  salle_de_bain: '🛁',
+  bureau: '💼',
+  garage: '🚗',
+  autre: '🚪',
+};
+function pieceTypeEmoji(type: TypePiece): string {
+  return PIECE_TYPE_EMOJI[type] ?? '🚪';
+}
 
 // i18n key for a `LienFamille` value : la plupart correspondent au nom exact
 // (ex: "pere" -> "maison.pere"), sauf "enfant" et "autre" qui entrent en
@@ -298,7 +308,7 @@ export default function MaisonScreen() {
     if (!maisonActive) return;
     Alert.alert(
       t('maison.transfererChef') + ' ?',
-      `${m.nom} deviendra chef de la maison. Vous deviendrez membre.`,
+      `${m.nom} deviendra chef du logement. Vous deviendrez membre.`,
       [
         { text: t('common.annuler'), style: 'cancel' },
         {
@@ -551,16 +561,25 @@ export default function MaisonScreen() {
           </View>
         </View>
 
-        <Pressable onPress={handleShareCode} style={[styles.codeRow, { backgroundColor: colors.surface }]}>
-          <View>
+        <View style={[styles.codeRow, { backgroundColor: colors.surface }]}>
+          {/* ANNEXE V6 — l'écran dédié « Inviter » devient le point d'entrée principal. */}
+          <Pressable onPress={() => router.push('/(app)/inviter')} style={{ flex: 1 }}>
             <Text style={[styles.codeLabel, { color: colors.text.muted }]}>{t('maison.codeInvitation')}</Text>
             <Text style={[styles.codeValue, { color: colors.text.dark }]}>{maisonActive.code_invitation}</Text>
-          </View>
-          <View style={[styles.shareButton, { backgroundColor: colors.primary.main }]}>
-            <Share2 size={16} color={colors.candy.white} />
-            <Text style={[styles.shareButtonText, { color: colors.candy.white }]}>{t('maison.partager')}</Text>
-          </View>
-        </Pressable>
+          </Pressable>
+          {/* Partage rapide (message prérempli), sans passer par l'écran dédié. */}
+          <Pressable
+            onPress={handleShareCode}
+            hitSlop={8}
+            style={[styles.quickShareButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <Share2 size={16} color={colors.text.body} />
+          </Pressable>
+          <Pressable onPress={() => router.push('/(app)/inviter')} style={[styles.shareButton, { backgroundColor: colors.primary.main }]}>
+            <UserPlus size={16} color={colors.candy.white} />
+            <Text style={[styles.shareButtonText, { color: colors.candy.white }]}>{t('inviter.titre')}</Text>
+          </Pressable>
+        </View>
       </CandyCard>
 
       {/* ANNEXE V4 — Logement */}
@@ -663,7 +682,7 @@ export default function MaisonScreen() {
           {pieces.map((p) => (
             <CandyCard key={p.id} style={styles.leaderboardCard}>
               <View style={styles.membreRow}>
-                <DoorOpen size={20} color={colors.candy.purpleDark} />
+                <Text style={styles.pieceTypeEmoji}>{pieceTypeEmoji(p.type)}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.membreNom, { color: colors.text.dark }]}>{p.nom}</Text>
                   <Text style={[styles.membreEmail, { color: colors.text.body }]}>
@@ -873,160 +892,142 @@ export default function MaisonScreen() {
       />
     </ScrollView>
 
-    {/* ANNEXE V4 — Modale Pièce (création/édition) */}
-    <Modal visible={pieceModalVisible} animationType="slide" transparent onRequestClose={() => setPieceModalVisible(false)}>
-      <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-          <ScrollView keyboardShouldPersistTaps="handled">
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text.dark }]}>
-                {editingPiece ? t('common.modifier') : t('pieces.ajouter')} 🚪
-              </Text>
-              <Pressable onPress={() => setPieceModalVisible(false)} hitSlop={10}>
-                <X size={22} color={colors.text.dark} />
-              </Pressable>
-            </View>
+    {/* ANNEXE V4 — Bottom sheet Pièce (création/édition) */}
+    <BottomSheet
+      visible={pieceModalVisible}
+      onClose={() => setPieceModalVisible(false)}
+      title={editingPiece ? t('common.modifier') : t('pieces.ajouter')}
+      emoji="🚪"
+      footer={
+        <CandyButton label={t('common.enregistrer')} onPress={handleSavePiece} loading={savingPiece} variant="pink" />
+      }
+    >
+      <CandyInput label={t('pieces.nom')} placeholder={t('pieces.nomPlaceholder')} value={pieceNom} onChangeText={setPieceNom} />
 
-            <CandyInput label={t('pieces.nom')} placeholder={t('pieces.nomPlaceholder')} value={pieceNom} onChangeText={setPieceNom} />
-
-            <Text style={[styles.label, { color: colors.text.dark }]}>{t('pieces.type')}</Text>
-            <View style={styles.chipsRow}>
-              {TYPES_PIECE.map((tp) => {
-                const active = pieceType === tp;
-                return (
-                  <Pressable
-                    key={tp}
-                    onPress={() => setPieceType(tp)}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                    ]}
-                  >
-                    <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
-                      {t(`pieces.${tp === 'salle_de_bain' ? 'salleDeBain' : tp}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>{t('pieces.affecterA')}</Text>
-            <View style={styles.chipsRow}>
-              <Pressable
-                onPress={() => setPieceAffecteA(null)}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  pieceAffecteA === null && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                ]}
-              >
-                <Text style={[styles.chipText, { color: pieceAffecteA === null ? colors.primary.main : colors.text.body }]}>
-                  {t('pieces.personne')}
-                </Text>
-              </Pressable>
-              {membres.map((m) => {
-                const active = pieceAffecteA === m.id;
-                return (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => setPieceAffecteA(m.id)}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                    ]}
-                  >
-                    <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>{m.nom}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {pieceError ? <Text style={[styles.error, { color: colors.candy.red }]}>{pieceError}</Text> : null}
-
-            <CandyButton label={t('common.enregistrer')} onPress={handleSavePiece} loading={savingPiece} variant="pink" style={{ marginTop: spacing.md }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
-
-    {/* ANNEXE V4 — Modale Rôle avancé */}
-    <Modal visible={!!roleModalMembre} animationType="slide" transparent onRequestClose={() => setRoleModalMembre(null)}>
-      <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-          <ScrollView keyboardShouldPersistTaps="handled">
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text.dark }]}>
-                {t('maison.gererRole')} — {roleModalMembre?.nom}
-              </Text>
-              <Pressable onPress={() => setRoleModalMembre(null)} hitSlop={10}>
-                <X size={22} color={colors.text.dark} />
-              </Pressable>
-            </View>
-
-            <Text style={[styles.label, { color: colors.text.dark }]}>{t('maison.roles')}</Text>
-            <Segmented
-              value={roleModalRole}
-              onChange={(v) => setRoleModalRole(v as any)}
-              options={[
-                { value: 'membre', label: t('maison.roleMembre') },
-                { value: 'co_chef', label: t('maison.roleCoChef') },
-                { value: 'chef_temporaire', label: t('maison.roleChefTemporaire') },
-                { value: 'visiteur', label: t('maison.roleVisiteur') },
+      <Text style={[styles.label, { color: colors.text.dark }]}>{t('pieces.type')}</Text>
+      <View style={styles.chipsRow}>
+        {TYPES_PIECE.map((tp) => {
+          const active = pieceType === tp;
+          return (
+            <Pressable
+              key={tp}
+              onPress={() => setPieceType(tp)}
+              style={[
+                styles.chip,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
               ]}
-            />
-
-            <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.lg }]}>{t('maison.lienFamilleLabel')}</Text>
-            <View style={styles.chipsRow}>
-              <Pressable
-                onPress={() => setRoleModalLien(null)}
-                style={[
-                  styles.chip,
-                  { backgroundColor: colors.card, borderColor: colors.border },
-                  roleModalLien === null && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                ]}
-              >
-                <Text style={[styles.chipText, { color: roleModalLien === null ? colors.primary.main : colors.text.body }]}>
-                  {t('maison.lienFamilleAucun')}
-                </Text>
-              </Pressable>
-              {LIENS_FAMILLE.map((lien) => {
-                const active = roleModalLien === lien;
-                return (
-                  <Pressable
-                    key={lien}
-                    onPress={() => setRoleModalLien(lien)}
-                    style={[
-                      styles.chip,
-                      { backgroundColor: colors.card, borderColor: colors.border },
-                      active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                    ]}
-                  >
-                    <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
-                      {t(`maison.${lienFamilleKey(lien)}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {roleModalRole === 'chef_temporaire' || roleModalRole === 'visiteur' ? (
-              <CandyInput
-                label={t('maison.expireLe')}
-                placeholder="2026-12-31"
-                value={roleModalExpireLe}
-                onChangeText={setRoleModalExpireLe}
-              />
-            ) : null}
-
-            {roleModalError ? <Text style={[styles.error, { color: colors.candy.red }]}>{roleModalError}</Text> : null}
-
-            <CandyButton label={t('common.enregistrer')} onPress={handleSaveRoleAvance} loading={savingRoleAvance} variant="pink" style={{ marginTop: spacing.md }} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+            >
+              <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                {pieceTypeEmoji(tp)} {t(`pieces.${tp === 'salle_de_bain' ? 'salleDeBain' : tp}`)}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
-    </Modal>
+
+      <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>{t('pieces.affecterA')}</Text>
+      <View style={styles.chipsRow}>
+        <Pressable
+          onPress={() => setPieceAffecteA(null)}
+          style={[
+            styles.chip,
+            { backgroundColor: colors.card, borderColor: colors.border },
+            pieceAffecteA === null && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+          ]}
+        >
+          <Text style={[styles.chipText, { color: pieceAffecteA === null ? colors.primary.main : colors.text.body }]}>
+            {t('pieces.personne')}
+          </Text>
+        </Pressable>
+        {membres.map((m) => {
+          const active = pieceAffecteA === m.id;
+          return (
+            <Pressable
+              key={m.id}
+              onPress={() => setPieceAffecteA(m.id)}
+              style={[
+                styles.chip,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+              ]}
+            >
+              <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>{m.nom}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {pieceError ? <Text style={[styles.error, { color: colors.candy.red }]}>{pieceError}</Text> : null}
+    </BottomSheet>
+
+    {/* ANNEXE V4 — Bottom sheet Rôle avancé */}
+    <BottomSheet
+      visible={!!roleModalMembre}
+      onClose={() => setRoleModalMembre(null)}
+      title={`${t('maison.gererRole')} — ${roleModalMembre?.nom ?? ''}`}
+      emoji="⚙️"
+      footer={
+        <CandyButton label={t('common.enregistrer')} onPress={handleSaveRoleAvance} loading={savingRoleAvance} variant="pink" />
+      }
+    >
+      <Text style={[styles.label, { color: colors.text.dark }]}>{t('maison.roles')}</Text>
+      <Segmented
+        value={roleModalRole}
+        onChange={(v) => setRoleModalRole(v as any)}
+        options={[
+          { value: 'membre', label: t('maison.roleMembre') },
+          { value: 'co_chef', label: t('maison.roleCoChef') },
+          { value: 'chef_temporaire', label: t('maison.roleChefTemporaire') },
+          { value: 'visiteur', label: t('maison.roleVisiteur') },
+        ]}
+      />
+
+      <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.lg }]}>{t('maison.lienFamilleLabel')}</Text>
+      <View style={styles.chipsRow}>
+        <Pressable
+          onPress={() => setRoleModalLien(null)}
+          style={[
+            styles.chip,
+            { backgroundColor: colors.card, borderColor: colors.border },
+            roleModalLien === null && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+          ]}
+        >
+          <Text style={[styles.chipText, { color: roleModalLien === null ? colors.primary.main : colors.text.body }]}>
+            {t('maison.lienFamilleAucun')}
+          </Text>
+        </Pressable>
+        {LIENS_FAMILLE.map((lien) => {
+          const active = roleModalLien === lien;
+          return (
+            <Pressable
+              key={lien}
+              onPress={() => setRoleModalLien(lien)}
+              style={[
+                styles.chip,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+              ]}
+            >
+              <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                {t(`maison.${lienFamilleKey(lien)}`)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {roleModalRole === 'chef_temporaire' || roleModalRole === 'visiteur' ? (
+        <CandyInput
+          label={t('maison.expireLe')}
+          placeholder="2026-12-31"
+          value={roleModalExpireLe}
+          onChangeText={setRoleModalExpireLe}
+        />
+      ) : null}
+
+      {roleModalError ? <Text style={[styles.error, { color: colors.candy.red }]}>{roleModalError}</Text> : null}
+    </BottomSheet>
     </>
   );
 }
@@ -1053,12 +1054,20 @@ const styles = StyleSheet.create({
   codeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
   },
   codeLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
   codeValue: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black, letterSpacing: 2 },
+  quickShareButton: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1122,12 +1131,9 @@ const styles = StyleSheet.create({
   logementText: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   logementDetail: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: spacing.xs },
   pieceActionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  pieceTypeEmoji: { fontSize: 20, width: 22, textAlign: 'center' },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.pill, borderWidth: 1.5 },
   chipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
 });

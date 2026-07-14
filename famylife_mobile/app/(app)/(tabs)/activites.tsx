@@ -10,12 +10,9 @@ import {
   RefreshControl,
   Pressable,
   ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, X, Gift, Repeat, Lock, CalendarDays } from 'lucide-react-native';
+import { Plus, Gift, Repeat, Lock, CalendarDays } from 'lucide-react-native';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import activiteService, { Activite, StatutActivite, Visibilite } from '../../src/services/activiteService';
@@ -23,6 +20,7 @@ import { GageEffet } from '../../src/services/tacheService';
 import GageEffetsEditor from '../../components/GageEffetsEditor';
 import { planifierRappelActivite } from '../../src/services/reminderService';
 import {
+  BottomSheet,
   CandyButton,
   CandyCard,
   CandyInput,
@@ -335,21 +333,14 @@ export default function ActivitesScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={[styles.modalCard, { backgroundColor: colors.background }]}
-          >
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('activite.nouvelleActivite')}</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
-
-              <CandyInput label={t('activite.titreChamp')} placeholder={t('activite.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('activite.nouvelleActivite')}
+        emoji="🧺"
+        footer={<CandyButton label={t('activite.creerActivite')} onPress={handleCreate} loading={saving} variant="pink" />}
+      >
+        <CandyInput label={t('activite.titreChamp')} placeholder={t('activite.titrePlaceholder')} value={titre} onChangeText={setTitre} />
               <CandyInput
                 label={t('activite.descriptionOptionnelle')}
                 placeholder={t('activite.descriptionPlaceholder')}
@@ -542,13 +533,8 @@ export default function ActivitesScreen() {
                 ) : null}
               </View>
 
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('activite.creerActivite')} onPress={handleCreate} loading={saving} variant="pink" style={{ marginTop: spacing.md }} />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -580,15 +566,6 @@ const styles = StyleSheet.create({
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
   avatarStack: { flexDirection: 'row', alignItems: 'center' },
   avatarStackItem: { borderWidth: 2, borderRadius: 999 },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: {
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    padding: spacing.xl,
-    maxHeight: '88%',
-  },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   jourRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   jourChip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.pill, borderWidth: 1.5 },

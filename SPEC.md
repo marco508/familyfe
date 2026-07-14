@@ -13,7 +13,7 @@ Mêmes technos que `Mo/yomu` :
 - **Mobile** : Expo **SDK 54**, `expo-router`, TypeScript, `apiClient`/`AuthContext`, `expo-linear-gradient`, `lucide-react-native`.
 - **Design** : inspiration **Candy Crush** (couleurs vives, dégradés sucrés, boutons ronds « bonbon », ombres colorées, coins très arrondis, ambiance joyeuse).
 
-Le backend tourne en local sur `:8000`, la base par défaut est **SQLite**
+Le backend tourne en local sur `:8005`, la base par défaut est **SQLite**
 (`sqlite+aiosqlite:///./famylife.db`) avec `AUTO_CREATE_TABLES=True` pour un
 démarrage sans Postgres/Redis. Redis est optionnel (mode dégradé comme yomu).
 

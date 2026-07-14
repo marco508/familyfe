@@ -1,7 +1,7 @@
 # docker-compose : backend FamyLife (API FastAPI + base PostgreSQL).
 #
 # Lancement :   docker compose up --build
-# API dispo sur http://localhost:8000  (doc interactive : /docs)
+# API dispo sur http://localhost:8005  (doc interactive : /docs)
 #
 # Les valeurs sensibles (SECRET_KEY, mots de passe) ont un défaut de dev ;
 # surchargez-les via un fichier .env à côté de ce fichier (voir .env.example).
@@ -39,7 +39,7 @@ services:
     #    manquantes sur une base EXISTANTE (auto-réparation, ex. token_version,
     #    gage_semaines…). Combinaison robuste pour le dév : plus besoin de wiper
     #    le volume à chaque nouvelle colonne.
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8005"
     environment:
       # URL async (asyncpg) pointant vers le service "db" du réseau compose.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-famylife}:${POSTGRES_PASSWORD:-famylife}@db:5432/${POSTGRES_DB:-famylife}
@@ -56,7 +56,7 @@ services:
       # Persistance des fichiers uploadés (avatars, preuves) hors du conteneur.
       - uploads:/app/uploads
     ports:
-      - "8000:8000"
+      - "8005:8005"
 
 volumes:
   pgdata:

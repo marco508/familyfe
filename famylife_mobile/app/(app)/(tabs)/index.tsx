@@ -32,6 +32,7 @@ import evenementService, { Evenement } from '../../src/services/evenementService
 import voteService, { Vote } from '../../src/services/voteService';
 import tacheService, { Tache } from '../../src/services/tacheService';
 import maisonService, { Anniversaire } from '../../src/services/maisonService';
+import statsService, { BilanSemaine } from '../../src/services/statsService';
 import { CandyCard, Badge, EmptyState, NotificationBell, Avatar, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -63,6 +64,10 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // ANNEXE V6 — boucle magique : bilan de la semaine + série (streak) perso.
+  const [bilan, setBilan] = useState<BilanSemaine | null>(null);
+  const [streak, setStreak] = useState(0);
+
   const loadData = useCallback(async () => {
     if (!maisonActive) {
       setActivites([]);
@@ -70,23 +75,29 @@ export default function DashboardScreen() {
       setEvenements([]);
       setVotes([]);
       setAnniversaires([]);
+      setBilan(null);
+      setStreak(0);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      const [actRes, tacheRes, evtRes, voteRes, anniRes] = await Promise.all([
+      const [actRes, tacheRes, evtRes, voteRes, anniRes, bilanRes, streakRes] = await Promise.all([
         activiteService.list(maisonActive.id),
         tacheService.list(maisonActive.id),
         evenementService.list(maisonActive.id),
         voteService.list(maisonActive.id),
         maisonService.anniversaires(maisonActive.id),
+        statsService.bilanSemaine(maisonActive.id),
+        statsService.streak(maisonActive.id),
       ]);
       setActivites(actRes.data ?? []);
       setTaches(tacheRes.data ?? []);
       setEvenements(evtRes.data ?? []);
       setVotes(voteRes.data ?? []);
       setAnniversaires(anniRes.data ?? []);
+      setBilan(bilanRes.data ?? null);
+      setStreak(streakRes.data?.streak ?? 0);
     } finally {
       setLoading(false);
     }
@@ -182,9 +193,17 @@ export default function DashboardScreen() {
     >
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.greeting, { color: colors.text.dark }]} numberOfLines={1}>
-            {t('accueil.salut')} {user?.nom?.split(' ')[0] || ''}
-          </Text>
+          <View style={styles.greetingRow}>
+            <Text style={[styles.greeting, { color: colors.text.dark }]} numberOfLines={1}>
+              {t('accueil.salut')} {user?.nom?.split(' ')[0] || ''}
+            </Text>
+            {streak > 0 ? (
+              <View style={[styles.streakChip, { backgroundColor: colors.primary.subtle }]}>
+                <Flame size={13} color={colors.candy.orangeDark} />
+                <Text style={[styles.streakChipText, { color: colors.candy.orangeDark }]}>{streak}</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={[styles.dateText, { color: colors.text.muted }]}>{dateLabel}</Text>
         </View>
         <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />
@@ -251,6 +270,38 @@ export default function DashboardScreen() {
             </Pressable>
           </View>
         </CandyCard>
+      ) : null}
+
+      {/* ANNEXE V6 — boucle magique : carte visuelle « Bilan de la semaine ». */}
+      {maisonActive && !loading && bilan && bilan.total_taches > 0 ? (
+        <Pressable onPress={() => router.push('/(app)/equite')}>
+          <LinearGradient colors={gradients.candyYellow} style={styles.bilanCard}>
+            <View style={styles.bilanHeaderRow}>
+              <Trophy size={20} color={colors.candy.white} />
+              <Text style={[styles.bilanTitle, { color: colors.candy.white }]}>{t('bilan.titre')}</Text>
+            </View>
+            <View style={styles.bilanStatsRow}>
+              <View style={styles.bilanStat}>
+                <Text style={[styles.bilanStatValue, { color: colors.candy.white }]}>{bilan.total_taches}</Text>
+                <Text style={styles.bilanStatLabel}>{t('bilan.taches')}</Text>
+              </View>
+              <View style={styles.bilanStatDivider} />
+              <View style={styles.bilanStat}>
+                <Text style={[styles.bilanStatValue, { color: colors.candy.white }]}>{bilan.points_semaine}</Text>
+                <Text style={styles.bilanStatLabel}>{t('bilan.points')}</Text>
+              </View>
+            </View>
+            {bilan.top ? (
+              <View style={styles.bilanTopRow}>
+                <Avatar name={bilan.top.nom} image={bilan.top.image} size={38} ringColor="rgba(255,255,255,0.7)" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.bilanTopLabel}>🥇 {t('bilan.topLabel')}</Text>
+                  <Text style={[styles.bilanTopNom, { color: colors.candy.white }]} numberOfLines={1}>{bilan.top.nom}</Text>
+                </View>
+              </View>
+            ) : null}
+          </LinearGradient>
+        </Pressable>
       ) : null}
 
       {maisonActive && !loading ? (
@@ -382,8 +433,29 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   container: { padding: spacing.xl, paddingTop: spacing['2xl'], paddingBottom: 140 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   greeting: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.black },
+  streakChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: borderRadius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
+  streakChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.black },
   dateText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: 2, textTransform: 'capitalize' },
+  bilanCard: { borderRadius: borderRadius.card, padding: spacing.lg, marginBottom: spacing.lg },
+  bilanHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  bilanTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  bilanStatsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  bilanStat: { flex: 1, alignItems: 'center' },
+  bilanStatDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.4)' },
+  bilanStatValue: { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.black },
+  bilanStatLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold, color: 'rgba(255,255,255,0.85)', marginTop: 2 },
+  bilanTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: borderRadius.lg,
+    padding: spacing.sm,
+  },
+  bilanTopLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold, color: 'rgba(255,255,255,0.85)' },
+  bilanTopNom: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   birthdayBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: borderRadius.card, padding: spacing.lg, marginBottom: spacing.lg },
   birthdayBannerTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   birthdayBannerSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },

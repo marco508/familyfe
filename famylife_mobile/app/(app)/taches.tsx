@@ -11,13 +11,10 @@ import {
   RefreshControl,
   Pressable,
   ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, Gift, Pencil, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Plus, Gift, Pencil, Trash2 } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
@@ -25,12 +22,15 @@ import { useT } from '../src/i18n';
 import { useTheme } from '../src/contexts/ThemeContext';
 import tacheService, { AssignationTache, FrequenceTache, GageEffet, GageEffetType, Tache } from '../src/services/tacheService';
 import pieceService, { Piece } from '../src/services/pieceService';
+import statsService from '../src/services/statsService';
 import {
   Avatar,
   Badge,
+  BottomSheet,
   CandyButton,
   CandyCard,
   CandyInput,
+  Celebration,
   Checkbox,
   EmptyState,
   Segmented,
@@ -79,6 +79,11 @@ export default function TachesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<Tache | null>(null);
   const [validatingId, setValidatingId] = useState<number | null>(null);
+
+  // ANNEXE V6 — boucle magique : série (streak) + célébration à la validation.
+  const [streak, setStreak] = useState(0);
+  const [celebrationVisible, setCelebrationVisible] = useState(false);
+  const [celebrationPoints, setCelebrationPoints] = useState(0);
 
   const [titre, setTitre] = useState('');
   const [description, setDescription] = useState('');
@@ -131,10 +136,20 @@ export default function TachesScreen() {
     }
   }, [maisonActive]);
 
+  const loadStreak = useCallback(async () => {
+    if (!maisonActive) {
+      setStreak(0);
+      return;
+    }
+    const res = await statsService.streak(maisonActive.id);
+    setStreak(res.data?.streak ?? 0);
+  }, [maisonActive]);
+
   useFocusEffect(
     useCallback(() => {
       load();
-    }, [load])
+      loadStreak();
+    }, [load, loadStreak])
   );
 
   const onRefresh = async () => {
@@ -412,7 +427,13 @@ export default function TachesScreen() {
       Alert.alert(t('common.erreur'), res.error);
       return;
     }
+    // ANNEXE V6 — boucle magique : célébration à chaque validation réussie.
+    // Points = récompense du gage si actif, sinon un petit +1 symbolique.
+    const gagnes = tache.gage_actif && tache.points_recompense ? tache.points_recompense : 1;
+    setCelebrationPoints(gagnes);
+    setCelebrationVisible(true);
     load();
+    loadStreak();
   };
 
   const peutValider = (tache: Tache) => isGestion || (!!user && tache.titulaire?.id === user.id);
@@ -489,7 +510,10 @@ export default function TachesScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('taches.titre')}</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={[styles.headerTitle, { color: colors.text.dark }]} numberOfLines={1}>{t('taches.titre')}</Text>
+          {streak > 0 ? <Badge label={`🔥 ${streak} ${t('streak.jourAbrev')}`} variant="orange" /> : null}
+        </View>
         {isGestion ? (
           <Pressable onPress={openCreate} style={[styles.addButton, { backgroundColor: colors.primary.main }, shadows.candyPink]}>
             <Plus size={20} color={colors.candy.white} />
@@ -554,23 +578,38 @@ export default function TachesScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={[styles.modalCard, { backgroundColor: colors.background }]}
-          >
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>
-                  {editing ? t('taches.modifierTache') : t('taches.nouvelleTache')}
-                </Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <Celebration
+        visible={celebrationVisible}
+        points={celebrationPoints}
+        emoji="✅"
+        onDone={() => setCelebrationVisible(false)}
+      />
 
-              <CandyInput label={t('taches.titreChamp')} placeholder={t('taches.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={editing ? t('taches.modifierTache') : t('taches.nouvelleTache')}
+        emoji="🧹"
+        footer={
+          <View>
+            <CandyButton
+              label={editing ? t('common.enregistrer') : t('taches.creerTache')}
+              onPress={handleSave}
+              loading={saving}
+              variant="pink"
+            />
+            {editing ? (
+              <CandyButton
+                label={t('common.supprimer')}
+                onPress={() => handleDelete(editing)}
+                variant="ghost"
+                style={{ marginTop: spacing.sm }}
+              />
+            ) : null}
+          </View>
+        }
+      >
+        <CandyInput label={t('taches.titreChamp')} placeholder={t('taches.titrePlaceholder')} value={titre} onChangeText={setTitre} />
               <CandyInput
                 label={t('taches.descriptionOptionnelle')}
                 value={description}
@@ -582,7 +621,7 @@ export default function TachesScreen() {
                 {t('taches.pieceOptionnelle')} {pieceIds.length > 0 ? `(${pieceIds.length})` : ''}
               </Text>
               {pieces.length === 0 ? (
-                <Text style={[styles.helperText, { color: colors.text.body }]}>Aucune pièce dans la maison pour l’instant.</Text>
+                <Text style={[styles.helperText, { color: colors.text.body }]}>Aucune pièce dans le logement pour l’instant.</Text>
               ) : (
                 <View style={styles.chipsRow}>
                   {pieces.map((p) => {
@@ -778,16 +817,8 @@ export default function TachesScreen() {
                 ) : null}
               </View>
 
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={editing ? t('common.enregistrer') : t('taches.creerTache')} onPress={handleSave} loading={saving} variant="pink" style={{ marginTop: spacing.md }} />
-              {editing ? (
-                <CandyButton label={t('common.supprimer')} onPress={() => handleDelete(editing)} variant="ghost" style={{ marginTop: spacing.sm }} />
-              ) : null}
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -801,6 +832,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing['2xl'],
     paddingBottom: spacing.md,
   },
+  headerTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   headerTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
   addButton: {
     width: 40,
@@ -827,10 +859,6 @@ const styles = StyleSheet.create({
   },
   gestionButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   gestionButtonText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.pill, borderWidth: 1.5 },

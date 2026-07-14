@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # --- Serveur ---
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 8005
     RELOAD: bool = False
     ENVIRONMENT: str = "development"
     # Crée les tables au démarrage si absentes (dev uniquement).

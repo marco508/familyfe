@@ -69,8 +69,8 @@
     },
     "extra": {
       "router": {},
-      "apiUrlLocal": "http://localhost:8000",
-      "apiUrlRemote": "http://localhost:8000"
+      "apiUrlLocal": "http://localhost:8005",
+      "apiUrlRemote": "http://localhost:8005"
     }
   }
 }

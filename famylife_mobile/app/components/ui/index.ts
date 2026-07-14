@@ -14,3 +14,5 @@ export { default as Checkbox } from './Checkbox';
 export { default as Fab } from './Fab';
 export { default as ListItem } from './ListItem';
 export { default as VisitorBanner } from './VisitorBanner';
+export { default as BottomSheet } from './BottomSheet';
+export { default as Celebration } from './Celebration';

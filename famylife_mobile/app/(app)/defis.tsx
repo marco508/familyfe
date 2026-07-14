@@ -10,20 +10,17 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, Lock, Trash2, Check } from 'lucide-react-native';
+import { ArrowLeft, Plus, Lock, Trash2, Check } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import defisService, { Defi } from '../src/services/defisService';
-import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Stepper, VisitorBanner } from '../components/ui';
+import { Avatar, Badge, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Stepper, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DefisScreen() {
@@ -247,29 +244,20 @@ export default function DefisScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('defis.nouveau')} 🏆</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('defis.nouveau')}
+        emoji="🏆"
+        footer={<CandyButton label={t('common.creer')} onPress={handleCreate} loading={saving} variant="yellow" />}
+      >
+        <CandyInput label={t('courses.nom')} value={titre} onChangeText={setTitre} />
+        <CandyInput label={t('boutique.description')} value={description} onChangeText={setDescription} multiline />
+        <Stepper label={t('defis.points')} value={points} onValueChange={setPoints} min={1} max={1000} suffix="pts" />
+        <CandyInput label={`${t('defis.echeance')} (AAAA-MM-JJ)`} placeholder="2026-08-01" value={dateFin} onChangeText={setDateFin} />
 
-              <CandyInput label={t('courses.nom')} value={titre} onChangeText={setTitre} />
-              <CandyInput label={t('boutique.description')} value={description} onChangeText={setDescription} multiline />
-              <Stepper label={t('defis.points')} value={points} onValueChange={setPoints} min={1} max={1000} suffix="pts" />
-              <CandyInput label={`${t('defis.echeance')} (AAAA-MM-JJ)`} placeholder="2026-08-01" value={dateFin} onChangeText={setDateFin} />
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('common.creer')} onPress={handleCreate} loading={saving} variant="yellow" />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -297,9 +285,5 @@ const styles = StyleSheet.create({
   gestionRow: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.md },
   gestionButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   gestionButtonText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },
 });

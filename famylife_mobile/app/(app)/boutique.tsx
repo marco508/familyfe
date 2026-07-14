@@ -11,20 +11,17 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, Gift, Pencil, Check, XCircle } from 'lucide-react-native';
+import { ArrowLeft, Plus, Gift, Pencil, Check, XCircle } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import boutiqueService, { Echange, Recompense } from '../src/services/boutiqueService';
-import { Avatar, Badge, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, Stepper, Toggle, VisitorBanner } from '../components/ui';
+import { Avatar, Badge, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, Stepper, Toggle, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 type Tab = 'boutique' | 'echanges' | 'gestion';
@@ -306,42 +303,35 @@ export default function BoutiqueScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>
-                  {editing ? t('common.modifier') : t('boutique.echanger')} 🎁
-                </Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
-
-              <CandyInput label={t('courses.nom')} value={nom} onChangeText={setNom} />
-              <Stepper label={t('boutique.cout')} value={cout} onValueChange={setCout} min={1} max={1000} suffix="pts" />
-              <CandyInput label={t('boutique.description')} value={description} onChangeText={setDescription} multiline />
-              <View style={styles.toggleRow}>
-                <Text style={[styles.label, { color: colors.text.dark }]}>{t('boutique.active')}</Text>
-                <Toggle value={actif} onValueChange={setActif} />
-              </View>
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('common.enregistrer')} onPress={handleSave} loading={saving} variant="purple" />
-              {editing ? (
-                <CandyButton
-                  label={t('common.supprimer')}
-                  onPress={() => handleDelete(editing)}
-                  variant="ghost"
-                  style={{ marginTop: spacing.sm }}
-                />
-              ) : null}
-            </ScrollView>
-          </KeyboardAvoidingView>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={editing ? t('common.modifier') : t('boutique.echanger')}
+        emoji="🎁"
+        footer={
+          <View>
+            <CandyButton label={t('common.enregistrer')} onPress={handleSave} loading={saving} variant="purple" />
+            {editing ? (
+              <CandyButton
+                label={t('common.supprimer')}
+                onPress={() => handleDelete(editing)}
+                variant="ghost"
+                style={{ marginTop: spacing.sm }}
+              />
+            ) : null}
+          </View>
+        }
+      >
+        <CandyInput label={t('courses.nom')} value={nom} onChangeText={setNom} />
+        <Stepper label={t('boutique.cout')} value={cout} onValueChange={setCout} min={1} max={1000} suffix="pts" />
+        <CandyInput label={t('boutique.description')} value={description} onChangeText={setDescription} multiline />
+        <View style={styles.toggleRow}>
+          <Text style={[styles.label, { color: colors.text.dark }]}>{t('boutique.active')}</Text>
+          <Toggle value={actif} onValueChange={setActif} />
         </View>
-      </Modal>
+
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -367,10 +357,6 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   membreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   gestionButtonsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },

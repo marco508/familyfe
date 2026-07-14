@@ -20,11 +20,11 @@ cp .env.example .env
 
 ./run.sh
 # ou directement :
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8005 --reload
 ```
 
-L'API est servie sur `http://localhost:8000`. Documentation interactive sur
-`http://localhost:8000/docs`.
+L'API est servie sur `http://localhost:8005`. Documentation interactive sur
+`http://localhost:8005/docs`.
 
 Au premier démarrage, les tables sont créées automatiquement dans
 `famylife.db` (SQLite) grâce à `AUTO_CREATE_TABLES=True`.
@@ -43,7 +43,7 @@ PostgreSQL persistante, sans rien installer localement (ni Python, ni Postgres).
 docker compose up --build
 ```
 
-- API : `http://localhost:8000` (doc : `/docs`)
+- API : `http://localhost:8005` (doc : `/docs`)
 - PostgreSQL : exposé sur `localhost:5432` (user/mdp/base : `famylife`)
 
 Les données de la base sont conservées dans le volume `pgdata`, et les fichiers

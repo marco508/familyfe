@@ -10,19 +10,16 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, ShoppingCart, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Plus, ShoppingCart, Trash2 } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import repasService, { MomentRepas, Repas } from '../src/services/repasService';
-import { CandyButton, CandyCard, CandyInput, Segmented } from '../components/ui';
+import { BottomSheet, CandyButton, CandyCard, CandyInput, Segmented } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 function pad(n: number): string {
@@ -245,64 +242,52 @@ export default function MenuScreen() {
       </ScrollView>
 
       {/* Ajouter un repas */}
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('menu.ajouterRepas')} 🍽️</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('menu.ajouterRepas')}
+        emoji="🍽️"
+        footer={<CandyButton label={t('common.ajouter')} onPress={handleAdd} loading={saving} variant="orange" />}
+      >
+        <Text style={[styles.label, { color: colors.text.dark }]}>{momentLabel(modalMoment)} · {modalDate}</Text>
+        <Segmented
+          value={modalMoment}
+          onChange={setModalMoment}
+          options={MOMENTS.map((m) => ({ value: m, label: momentLabel(m) }))}
+        />
+        <View style={{ height: spacing.md }} />
+        <CandyInput label={t('common.titre')} placeholder={t('menu.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+        <CandyInput label={t('menu.notes')} value={notes} onChangeText={setNotes} multiline />
 
-              <Text style={[styles.label, { color: colors.text.dark }]}>{momentLabel(modalMoment)} · {modalDate}</Text>
-              <Segmented
-                value={modalMoment}
-                onChange={setModalMoment}
-                options={MOMENTS.map((m) => ({ value: m, label: momentLabel(m) }))}
-              />
-              <View style={{ height: spacing.md }} />
-              <CandyInput label={t('common.titre')} placeholder={t('menu.titrePlaceholder')} value={titre} onChangeText={setTitre} />
-              <CandyInput label={t('menu.notes')} value={notes} onChangeText={setNotes} multiline />
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('common.ajouter')} onPress={handleAdd} loading={saving} variant="orange" />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
 
       {/* Vers courses */}
-      <Modal visible={!!coursesModal} animationType="slide" transparent onRequestClose={() => setCoursesModal(null)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('menu.ajouterCourses')} 🛒</Text>
-              <Pressable onPress={() => setCoursesModal(null)} hitSlop={10}>
-                <X size={22} color={colors.text.dark} />
-              </Pressable>
-            </View>
-            <Text style={[styles.label, { color: colors.text.body }]}>{coursesModal?.titre}</Text>
-            <CandyInput
-              label={t('menu.ingredients')}
-              placeholder={t('menu.ingredientsPlaceholder')}
-              value={ingredients}
-              onChangeText={setIngredients}
-              multiline
-            />
-            <CandyButton
-              label={t('menu.ajouterCourses')}
-              onPress={handleVersCourses}
-              loading={sendingCourses}
-              disabled={!ingredients.trim()}
-              variant="green"
-              icon={<ShoppingCart size={18} color={colors.candy.white} />}
-            />
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+      <BottomSheet
+        visible={!!coursesModal}
+        onClose={() => setCoursesModal(null)}
+        title={t('menu.ajouterCourses')}
+        emoji="🛒"
+        footer={
+          <CandyButton
+            label={t('menu.ajouterCourses')}
+            onPress={handleVersCourses}
+            loading={sendingCourses}
+            disabled={!ingredients.trim()}
+            variant="green"
+            icon={<ShoppingCart size={18} color={colors.candy.white} />}
+          />
+        }
+      >
+        <Text style={[styles.label, { color: colors.text.body }]}>{coursesModal?.titre}</Text>
+        <CandyInput
+          label={t('menu.ingredients')}
+          placeholder={t('menu.ingredientsPlaceholder')}
+          value={ingredients}
+          onChangeText={setIngredients}
+          multiline
+        />
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -343,10 +328,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   mealTitle: { flex: 1, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },
 });

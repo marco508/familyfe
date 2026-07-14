@@ -22,11 +22,11 @@ cd ../api
 python -m venv .venv
 source .venv/bin/activate   # ou .venv\Scripts\activate sous Windows
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8005 --reload
 ```
 
-L'API tourne sur `http://localhost:8000` (SQLite, aucune configuration
-requise). Vérifiez que `http://localhost:8000/health` répond bien
+L'API tourne sur `http://localhost:8005` (SQLite, aucune configuration
+requise). Vérifiez que `http://localhost:8005/health` répond bien
 `{"status":"healthy"}`.
 
 ## 2. Démarrer l'application mobile
@@ -39,7 +39,7 @@ npx expo start
 
 Scannez le QR code avec l'app **Expo Go** (Android : scanner intégré à Expo
 Go ; iOS : appareil photo). L'app détecte automatiquement l'IP LAN de votre
-ordinateur (via le serveur Metro) pour joindre le backend sur le port 8000 —
+ordinateur (via le serveur Metro) pour joindre le backend sur le port 8005 —
 aucune configuration d'URL n'est nécessaire (voir
 `app/src/services/apiClient.ts`, repris de `Mo/yomu`).
 

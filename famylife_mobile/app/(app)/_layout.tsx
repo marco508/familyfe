@@ -65,6 +65,9 @@ export default function AppLayout() {
         <Stack.Screen name="taches" />
         <Stack.Screen name="regles" />
         <Stack.Screen name="portefeuille" />
+        {/* ANNEXE V6 — Invitation partageable, moteur d'équité */}
+        <Stack.Screen name="inviter" />
+        <Stack.Screen name="equite" />
       </Stack>
       {/* ANNEXE V4 — rappel des règles à la connexion (modale non bloquante). */}
       <RulesReminderModal />

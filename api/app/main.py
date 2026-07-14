@@ -29,6 +29,7 @@ from app.routers import (
     pieces,
     regles,
     repas,
+    stats,
     taches,
     users,
     votes,
@@ -235,6 +236,8 @@ app.include_router(defis.router)
 app.include_router(pieces.router)
 app.include_router(taches.router)
 app.include_router(regles.router)
+# ANNEXE V6 — Équité, séries, bilan
+app.include_router(stats.router)
 
 
 @app.get("/")

@@ -43,7 +43,7 @@ const extra = (Constants.expoConfig?.extra ?? {}) as {
 
 // En dev sur téléphone (Expo Go / dev build en LAN), on récupère l'IP du PC
 // depuis l'hôte du serveur Metro : l'app tape alors automatiquement sur
-// http://<cette-ip>:8000, sans configuration ni ngrok.
+// http://<cette-ip>:8005, sans configuration ni ngrok.
 function getDevServerIp(): string | null {
   const c: any = Constants as any;
   const candidates = [
@@ -81,10 +81,10 @@ class ApiClient {
     // Téléphone en dev : IP du PC déduite du serveur Metro (aucune config, sans ngrok).
     const devHostIp = __DEV__ && !isWeb ? getDevServerIp() : null;
     const local = isWeb
-      ? `${w.location.protocol}//${w.location.hostname}:8000`
+      ? `${w.location.protocol}//${w.location.hostname}:8005`
       : devHostIp
-        ? `http://${devHostIp}:8000`
-        : (extra.apiUrlLocal ?? 'http://localhost:8000');
+        ? `http://${devHostIp}:8005`
+        : (extra.apiUrlLocal ?? 'http://localhost:8005');
     // En dev, pas d'URL distante figée : on retombe sur le local si besoin.
     const remote = extra.apiUrlRemote ?? local;
     this.NETWORK_URLS = { local, remote };

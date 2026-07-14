@@ -10,17 +10,14 @@ import {
   RefreshControl,
   Pressable,
   ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Plus, X, Lock, Trash2 } from 'lucide-react-native';
+import { Plus, Lock, Trash2 } from 'lucide-react-native';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import voteService, { Vote } from '../../src/services/voteService';
-import { CandyButton, CandyCard, CandyInput, SectionTitle, Badge, EmptyState, NotificationBell, VisitorBanner } from '../../components/ui';
+import { BottomSheet, CandyButton, CandyCard, CandyInput, SectionTitle, Badge, EmptyState, NotificationBell, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius, shadows } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -207,60 +204,48 @@ export default function VotesScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={[styles.modalCard, { backgroundColor: colors.background }]}
-          >
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('votes.nouveauVote')}</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('votes.nouveauVote')}
+        emoji="🤔"
+        footer={<CandyButton label={t('votes.lancerLeVote')} onPress={handleCreate} loading={saving} variant="blue" />}
+      >
+        <CandyInput label={t('votes.question')} placeholder={t('votes.questionPlaceholder')} value={question} onChangeText={setQuestion} />
+        <CandyInput
+          label={t('activite.descriptionOptionnelle')}
+          placeholder={t('activite.descriptionPlaceholder')}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
 
-              <CandyInput label={t('votes.question')} placeholder={t('votes.questionPlaceholder')} value={question} onChangeText={setQuestion} />
+        <Text style={[styles.label, { color: colors.text.dark }]}>{t('votes.options')}</Text>
+        {options.map((opt, idx) => (
+          <View key={idx} style={styles.optionRow}>
+            <View style={{ flex: 1 }}>
               <CandyInput
-                label={t('activite.descriptionOptionnelle')}
-                placeholder={t('activite.descriptionPlaceholder')}
-                value={description}
-                onChangeText={setDescription}
-                multiline
+                placeholder={`${t('votes.option')} ${idx + 1}`}
+                value={opt}
+                onChangeText={(v) => updateOption(idx, v)}
+                style={{ marginBottom: 0 }}
               />
-
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('votes.options')}</Text>
-              {options.map((opt, idx) => (
-                <View key={idx} style={styles.optionRow}>
-                  <View style={{ flex: 1 }}>
-                    <CandyInput
-                      placeholder={`${t('votes.option')} ${idx + 1}`}
-                      value={opt}
-                      onChangeText={(v) => updateOption(idx, v)}
-                      style={{ marginBottom: 0 }}
-                    />
-                  </View>
-                  {options.length > 2 ? (
-                    <Pressable onPress={() => removeOption(idx)} style={styles.removeOptionButton} hitSlop={8}>
-                      <Trash2 size={18} color={colors.candy.red} />
-                    </Pressable>
-                  ) : null}
-                </View>
-              ))}
-
-              <Pressable onPress={addOption} style={styles.addOptionButton}>
-                <Plus size={16} color={colors.secondary.main} />
-                <Text style={[styles.addOptionText, { color: colors.secondary.main }]}>{t('votes.ajouterOption')}</Text>
+            </View>
+            {options.length > 2 ? (
+              <Pressable onPress={() => removeOption(idx)} style={styles.removeOptionButton} hitSlop={8}>
+                <Trash2 size={18} color={colors.candy.red} />
               </Pressable>
+            ) : null}
+          </View>
+        ))}
 
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+        <Pressable onPress={addOption} style={styles.addOptionButton}>
+          <Plus size={16} color={colors.secondary.main} />
+          <Text style={[styles.addOptionText, { color: colors.secondary.main }]}>{t('votes.ajouterOption')}</Text>
+        </Pressable>
 
-              <CandyButton label={t('votes.lancerLeVote')} onPress={handleCreate} loading={saving} variant="blue" style={{ marginTop: spacing.md }} />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -289,15 +274,6 @@ const styles = StyleSheet.create({
   totalVoix: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium },
   closeButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,138,61,0.16)', paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: borderRadius.pill },
   closeButtonText: { fontWeight: typography.fontWeight.extrabold, fontSize: typography.fontSize.xs },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: {
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    padding: spacing.xl,
-    maxHeight: '90%',
-  },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   optionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   removeOptionButton: { marginBottom: spacing.lg, padding: spacing.xs },

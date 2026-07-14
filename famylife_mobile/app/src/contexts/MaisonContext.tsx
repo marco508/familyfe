@@ -136,7 +136,7 @@ export const MaisonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const createMaison = async (data: MaisonCreateInput) => {
     const response = await maisonService.create(data);
     if (response.error || !response.data) {
-      return { success: false, error: response.error || 'Impossible de créer la maison' };
+      return { success: false, error: response.error || 'Impossible de créer le logement' };
     }
     await refresh();
     await selectMaison(response.data);
@@ -146,7 +146,7 @@ export const MaisonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const joinMaison = async (codeInvitation: string) => {
     const response = await maisonService.join(codeInvitation);
     if (response.error || !response.data) {
-      return { success: false, error: response.error || 'Impossible de rejoindre la maison' };
+      return { success: false, error: response.error || 'Impossible de rejoindre le logement' };
     }
     await refresh();
     return { success: true };

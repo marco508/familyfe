@@ -10,19 +10,16 @@ import {
   RefreshControl,
   Pressable,
   ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Plus, X, Check, XCircle, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Plus, Check, XCircle, Trash2 } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useT } from '../src/i18n';
 import { useTheme } from '../src/contexts/ThemeContext';
 import regleService, { Regle } from '../src/services/regleService';
-import { Badge, CandyButton, CandyCard, CandyInput, EmptyState, Toggle, VisitorBanner } from '../components/ui';
+import { Badge, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Toggle, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius, shadows } from '../theme/designTokens';
 
 export default function ReglesScreen() {
@@ -264,38 +261,29 @@ export default function ReglesScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.modalCard, { backgroundColor: colors.background }]}>
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('regles.proposerRegle')} 📜</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('regles.proposerRegle')}
+        emoji="📜"
+        footer={<CandyButton label={t('regles.proposer')} onPress={handleCreate} loading={saving} variant="purple" />}
+      >
+        <CandyInput label={t('regles.titreChamp')} placeholder={t('regles.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+        <CandyInput
+          label={t('regles.contenu')}
+          placeholder={t('regles.contenuPlaceholder')}
+          value={contenu}
+          onChangeText={setContenu}
+          multiline
+        />
 
-              <CandyInput label={t('regles.titreChamp')} placeholder={t('regles.titrePlaceholder')} value={titre} onChangeText={setTitre} />
-              <CandyInput
-                label={t('regles.contenu')}
-                placeholder={t('regles.contenuPlaceholder')}
-                value={contenu}
-                onChangeText={setContenu}
-                multiline
-              />
-
-              <View style={styles.toggleRow}>
-                <Text style={[styles.label, { color: colors.text.dark }]}>{t('regles.soumettreAuVote')}</Text>
-                <Toggle value={soumettreAuVote} onValueChange={setSoumettreAuVote} />
-              </View>
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('regles.proposer')} onPress={handleCreate} loading={saving} variant="purple" />
-            </ScrollView>
-          </KeyboardAvoidingView>
+        <View style={styles.toggleRow}>
+          <Text style={[styles.label, { color: colors.text.dark }]}>{t('regles.soumettreAuVote')}</Text>
+          <Toggle value={soumettreAuVote} onValueChange={setSoumettreAuVote} />
         </View>
-      </Modal>
+
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -326,10 +314,6 @@ const styles = StyleSheet.create({
   gestionButtonsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   deleteRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm },
   deleteText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: borderRadius.xl, borderTopRightRadius: borderRadius.xl, padding: spacing.xl, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },

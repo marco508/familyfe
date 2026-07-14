@@ -30,11 +30,11 @@ RUN useradd --create-home appuser \
     && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8005
 
 # Healthcheck applicatif (endpoint /health défini dans app/main.py)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health').status==200 else sys.exit(1)"
+    CMD python -c "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8005/health').status==200 else sys.exit(1)"
 
 # Pas de --reload en conteneur (c'est pour le dev local via run.sh).
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8005"]

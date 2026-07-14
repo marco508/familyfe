@@ -21,12 +21,12 @@ famylife/
 cd api
 python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
-bash run.sh          # ou : uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+bash run.sh          # ou : uvicorn app.main:app --host 0.0.0.0 --port 8005 --reload
 ```
 
 - Base **SQLite** par défaut (`famylife.db`), tables créées automatiquement au démarrage.
 - Aucune config obligatoire (un `SECRET_KEY` de dev est prévu). Voir `api/.env.example` pour personnaliser.
-- Vérifier : http://localhost:8000/health et la doc interactive http://localhost:8000/docs
+- Vérifier : http://localhost:8005/health et la doc interactive http://localhost:8005/docs
 
 ## 2. Lancer l'app mobile (Expo Go)
 
@@ -38,7 +38,7 @@ npx expo start
 
 Scanner le QR code avec **Expo Go** (SDK 54). Le téléphone et l'ordinateur
 doivent être sur le **même Wi-Fi** : l'app détecte automatiquement l'IP du PC
-et tape sur `http://<ip-du-pc>:8000` (comme yomu). Pour forcer une autre URL,
+et tape sur `http://<ip-du-pc>:8005` (comme yomu). Pour forcer une autre URL,
 modifier `extra.apiUrlLocal` dans `app.json`.
 
 ## Fonctionnalités avancées (v2)

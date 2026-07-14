@@ -9,18 +9,15 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
   RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronLeft, ChevronRight, Plus, X, MapPin, Clock } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Plus, MapPin, Clock } from 'lucide-react-native';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import evenementService, { Evenement } from '../../src/services/evenementService';
 import { planifierRappelEvenement } from '../../src/services/reminderService';
-import { CandyButton, CandyCard, CandyInput, SectionTitle, EmptyState, NotificationBell, VisitorBanner } from '../../components/ui';
+import { BottomSheet, CandyButton, CandyCard, CandyInput, SectionTitle, EmptyState, NotificationBell, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -288,70 +285,59 @@ export default function AgendaScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={[styles.modalCard, { backgroundColor: colors.background }]}
-          >
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: colors.text.dark }]}>{t('agenda.nouvelEvenement')}</Text>
-                <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
-                  <X size={22} color={colors.text.dark} />
-                </Pressable>
-              </View>
-              <Text style={[styles.modalDate, { color: colors.text.body }]}>
-                {selectedDay.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
-              </Text>
+      <BottomSheet
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={t('agenda.nouvelEvenement')}
+        emoji="🌤️"
+        footer={<CandyButton label={t('agenda.ajouterAgenda')} onPress={handleCreate} loading={saving} variant="purple" />}
+      >
+        <Text style={[styles.modalDate, { color: colors.text.body }]}>
+          {selectedDay.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+        </Text>
 
-              <CandyInput label={t('common.titre')} placeholder={t('agenda.titrePlaceholder')} value={titre} onChangeText={setTitre} />
-              <CandyInput label={t('agenda.lieuOptionnel')} placeholder={t('agenda.lieuPlaceholder')} value={lieu} onChangeText={setLieu} />
-              <CandyInput
-                label={t('activite.descriptionOptionnelle')}
-                placeholder={t('activite.descriptionPlaceholder')}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-              />
+        <CandyInput label={t('common.titre')} placeholder={t('agenda.titrePlaceholder')} value={titre} onChangeText={setTitre} />
+        <CandyInput label={t('agenda.lieuOptionnel')} placeholder={t('agenda.lieuPlaceholder')} value={lieu} onChangeText={setLieu} />
+        <CandyInput
+          label={t('activite.descriptionOptionnelle')}
+          placeholder={t('activite.descriptionPlaceholder')}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
 
-              <Pressable style={styles.toggleRow} onPress={() => setTouteLaJournee((v) => !v)}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    { borderColor: colors.border },
-                    touteLaJournee && { backgroundColor: colors.secondary.main, borderColor: colors.secondary.main },
-                  ]}
-                />
-                <Text style={[styles.toggleLabel, { color: colors.text.dark }]}>{t('agenda.touteLaJournee')}</Text>
-              </Pressable>
+        <Pressable style={styles.toggleRow} onPress={() => setTouteLaJournee((v) => !v)}>
+          <View
+            style={[
+              styles.checkbox,
+              { borderColor: colors.border },
+              touteLaJournee && { backgroundColor: colors.secondary.main, borderColor: colors.secondary.main },
+            ]}
+          />
+          <Text style={[styles.toggleLabel, { color: colors.text.dark }]}>{t('agenda.touteLaJournee')}</Text>
+        </Pressable>
 
-              {!touteLaJournee ? (
-                <CandyInput label={t('agenda.heureLabel')} placeholder="18:00" value={heure} onChangeText={setHeure} />
-              ) : null}
+        {!touteLaJournee ? (
+          <CandyInput label={t('agenda.heureLabel')} placeholder="18:00" value={heure} onChangeText={setHeure} />
+        ) : null}
 
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('agenda.couleur')}</Text>
-              <View style={styles.chipsRow}>
-                {COULEURS.map((c) => (
-                  <Pressable
-                    key={c}
-                    onPress={() => setCouleur(c)}
-                    style={[
-                      styles.colorChip,
-                      { backgroundColor: c },
-                      couleur === c && { borderColor: colors.text.dark },
-                    ]}
-                  />
-                ))}
-              </View>
-
-              {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
-
-              <CandyButton label={t('agenda.ajouterAgenda')} onPress={handleCreate} loading={saving} variant="purple" style={{ marginTop: spacing.md }} />
-            </ScrollView>
-          </KeyboardAvoidingView>
+        <Text style={[styles.label, { color: colors.text.dark }]}>{t('agenda.couleur')}</Text>
+        <View style={styles.chipsRow}>
+          {COULEURS.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setCouleur(c)}
+              style={[
+                styles.colorChip,
+                { backgroundColor: c },
+                couleur === c && { borderColor: colors.text.dark },
+              ]}
+            />
+          ))}
         </View>
-      </Modal>
+
+        {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -391,15 +377,6 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.xs },
   eventMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 2 },
   eventMeta: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalCard: {
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    padding: spacing.xl,
-    maxHeight: '90%',
-  },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
-  modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.black },
   modalDate: { fontWeight: typography.fontWeight.bold, marginBottom: spacing.lg, textTransform: 'capitalize' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
   checkbox: { width: 22, height: 22, borderRadius: borderRadius.sm, borderWidth: 2 },
