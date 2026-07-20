@@ -4,16 +4,24 @@
 // bordée, pour qu'il s'aligne naturellement à côté de la cloche en haut à
 // droite des écrans principaux.
 //
-// L'URL n'est PAS codée en dur ici : elle vient de app.json → expo.extra.helpUrl
-// (même mécanisme que les URLs d'API dans src/services/apiClient.ts). Si la clé
-// manque, le bouton ne fait rien plutôt que de planter.
+// L'URL est surchargeable via app.json → expo.extra.helpUrl (même mécanisme que
+// les URLs d'API dans src/services/apiClient.ts), MAIS elle a un repli en dur.
+//
+// Pourquoi ce repli : `expo.extra` est figé dans le manifeste au moment du
+// bundle. Un APK construit avant l'ajout de la clé — ou un Expo Go qui a gardé
+// son manifeste en cache — reçoit `helpUrl === undefined`. La version
+// précédente faisait alors un `return` silencieux : le bouton semblait cassé
+// (« ne renvoie nulle part ») sans le moindre message. Un bouton visible doit
+// TOUJOURS mener quelque part.
 import React from 'react';
-import { Pressable, StyleSheet, Linking } from 'react-native';
+import { Pressable, StyleSheet, Linking, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { HelpCircle } from 'lucide-react-native';
 import { borderRadius, shadows } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
+
+const AIDE_URL_PAR_DEFAUT = 'https://familyfe.dkpsolution.tech/aide.html';
 
 const extra = (Constants.expoConfig?.extra ?? {}) as { helpUrl?: string };
 
@@ -22,13 +30,13 @@ export default function HelpButton() {
   const { t } = useT();
 
   const openHelp = async () => {
-    const url = extra.helpUrl;
-    // Repli silencieux : pas d'URL configurée → on ne tente rien.
-    if (!url) return;
+    // Config si elle existe, sinon l'URL en dur : jamais de cul-de-sac.
+    const url = extra.helpUrl || AIDE_URL_PAR_DEFAUT;
     try {
       await Linking.openURL(url);
     } catch {
-      // Aucun navigateur disponible : on n'interrompt pas l'utilisateur.
+      // Aucun navigateur disponible : on le dit, au lieu de ne rien faire.
+      Alert.alert(t('common.aide'), url);
     }
   };
 

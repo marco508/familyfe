@@ -26,20 +26,24 @@
     --app-sage:#6FA36A;--app-teal:#3E9A9E;--app-gold:#DDA24C;--app-plum:#6B4460;
     --app-line:#F0E1D3;
   }
+  /* Dégradé de fond en calque fixe : `background-attachment:fixed` est
+     cassé sur iOS Safari (saccades, dégradé décalé). Un pseudo-élément
+     en position:fixed donne le même effet, partout. */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--g-warm)}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
     font-family:'DM Sans',-apple-system,'Segoe UI',sans-serif;
-    color:var(--ink);line-height:1.6;background:var(--g-warm);background-attachment:fixed;
+    color:var(--ink);line-height:1.6;background:var(--cream);
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:700;letter-spacing:-.2px}
   a{color:inherit;text-decoration:none}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
 
   /* ── En-tête ──────────────────────────────────────────────────────────── */
   header{position:sticky;top:0;z-index:30;background:rgba(255,248,240,.92);
-    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
   .nav{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
   .brand{display:flex;align-items:center;gap:11px;font-size:21px;font-weight:700;font-family:'Fraunces',serif}
   .mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;
@@ -50,7 +54,7 @@
   .nav-cta{background:var(--g-coral);color:#fff;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px}
 
   /* ── Hero ─────────────────────────────────────────────────────────────── */
-  .hero{padding:70px 0 40px;text-align:center}
+  .hero{padding:54px 0 32px;text-align:center}
   .hero h1{font-size:clamp(34px,5.4vw,54px);line-height:1.08}
   .hero p{max-width:600px;margin:18px auto 0;color:var(--body);font-size:clamp(16px,2vw,19px)}
   .jump{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:32px}
@@ -59,16 +63,16 @@
   .jump a:hover{border-color:var(--plum);color:var(--ink);transform:translateY(-1px)}
 
   /* ── Parcours ─────────────────────────────────────────────────────────── */
-  section.parcours{padding:56px 0;border-top:1px solid var(--line)}
+  section.parcours{padding:44px 0;border-top:1px solid var(--line)}
   .p-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
   .p-num{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;
     background:var(--g-coral);color:#fff;font-weight:700;font-family:'Fraunces',serif;font-size:18px}
   .p-head h2{font-size:clamp(24px,3.4vw,33px)}
-  .p-intro{color:var(--body);max-width:640px;margin-bottom:36px;font-size:16.5px}
+  .p-intro{color:var(--body);max-width:660px;margin-bottom:26px;font-size:16.5px}
 
-  .etapes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:34px;align-items:start}
+  .etapes{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:start}
   .etape{display:flex;flex-direction:column;align-items:center;text-align:center}
-  .etape-cap{margin-top:18px}
+  .etape-cap{margin-top:14px}
   .etape-cap .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:999px;
     background:var(--plum);color:#fff;font-size:13px;font-weight:700;margin-bottom:8px}
   .etape-cap h3{font-size:17px;margin-bottom:5px}
@@ -122,7 +126,10 @@
   .ph-grab{width:38px;height:4px;border-radius:9px;background:var(--app-line);margin:0 auto 10px}
   .ph-dim{position:absolute;inset:0;background:rgba(58,40,51,.35)}
   /* Anneau de progression (ProgressRing de l'app) */
+  /* Anneau : couleur pleine d'abord (repli si conic-gradient n'est pas
+     géré — Safari < 12.1), puis le dégradé conique par-dessus. */
   .ring{width:62px;height:62px;border-radius:999px;flex:none;
+    background:#EFE3D8;
     background:conic-gradient(var(--app-sage) 0 68%, #EFE3D8 68% 100%);
     display:grid;place-items:center}
   .ring span{width:46px;height:46px;border-radius:999px;background:#fff;display:grid;place-items:center;
@@ -133,24 +140,66 @@
   .avs b:first-child{margin-left:0}
 
   /* ── Bloc « Où est… ? » ───────────────────────────────────────────────── */
-  .ou{background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px 30px;margin:16px 0 0}
+  .ou{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin:8px 0 0}
   .ou h2{font-size:clamp(22px,3vw,29px);margin-bottom:6px}
   .ou > p{color:var(--body);margin-bottom:24px}
-  .qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .qa{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   .q{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--cream)}
   .q h3{font-size:15px;margin-bottom:5px;font-family:'DM Sans',sans-serif;font-weight:700}
   .q p{color:var(--body);font-size:14.5px}
   .q .k{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:999px;
     background:var(--app-coral);color:#fff;font-size:14px;font-weight:400;vertical-align:-5px;line-height:1}
 
-  footer{border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--muted);font-size:13.5px;margin-top:56px}
+  footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;color:var(--muted);font-size:13.5px;margin-top:56px}
   footer .brand{justify-content:center;font-size:18px;margin-bottom:10px;color:var(--ink)}
 
-  @media(max-width:640px){
-    .phone{width:230px;height:470px}
-    .etapes{gap:40px}
+  /* Le téléphone se met à l'échelle : plus de largeur figée qui déborde. */
+  @media(max-width:1080px){
+    .qa{grid-template-columns:repeat(2,1fr)}
+    .phone{width:230px;height:462px}
+  }
+  @media(max-width:860px){
+    .wrap{padding:0 20px}
+    .etapes{grid-template-columns:1fr;gap:30px}
+    .etape{flex-direction:row;align-items:flex-start;text-align:left;gap:18px}
+    .etape-cap{margin-top:0;padding-top:4px}
+    .etape-cap p{margin:0}
+    .phone{width:190px;height:382px;border-width:7px;border-radius:30px;font-size:9.5px}
+    .ph-tabs{bottom:9px;padding:5px 3px}
+    .ph-fab{width:36px;height:36px;bottom:60px;right:13px;font-size:19px}
+    section.parcours{padding:34px 0}
+  }
+  @media(max-width:560px){
+    .qa{grid-template-columns:1fr}
+    .etape{flex-direction:column;align-items:center;text-align:center}
+    .etape-cap{padding-top:0}
+    .etape-cap p{margin:0 auto}
+    .phone{width:215px;height:432px}
+    .jump a{font-size:13.5px;padding:9px 15px}
+  }
+
+  /* ══ ANIMATIONS (mêmes règles que la landing) ═══════════
+     Rien ne boucle · opacity/transform uniquement · coupé si
+     l'utilisateur a désactivé les animations · sans JS, tout
+     reste visible (le voile dépend de la classe .js). */
+  .js .etape:not(.vu), .js .q:not(.vu), .js .p-head:not(.vu), .js .p-intro:not(.vu){
+    opacity:0;transform:translateY(14px)}
+  .js .etape,.js .q,.js .p-head,.js .p-intro{
+    transition:opacity .5s ease, transform .5s cubic-bezier(.22,.8,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .js .hero>*{animation:rise .6s cubic-bezier(.22,.8,.3,1) both}
+  .jump a:active{transform:scale(.97)}
+  header{transition:box-shadow .25s}
+  header.scrolled{box-shadow:0 10px 30px -24px rgba(94,58,85,.6)}
+  /* Le téléphone se soulève au survol : on comprend qu'il est « vivant ». */
+  .phone{transition:transform .3s cubic-bezier(.22,.8,.3,1), box-shadow .3s}
+  .etape:hover .phone{transform:translateY(-5px)}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .js .etape,.js .q,.js .p-head,.js .p-intro{opacity:1!important;transform:none!important}
   }
 </style>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 
@@ -567,5 +616,36 @@
   </div>
 </footer>
 
+
+<script>
+(function(){
+  var cibles = document.querySelectorAll('.etape,.q,.p-head,.p-intro');
+  var reduit = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduit || !('IntersectionObserver' in window)) {
+    cibles.forEach(function(el){ el.classList.add('vu'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entrees){
+    entrees.forEach(function(e){
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      var rang = el.parentElement ? [].indexOf.call(el.parentElement.children, el) : 0;
+      el.style.transitionDelay = Math.min(rang * 70, 210) + 'ms';
+      el.classList.add('vu');
+      io.unobserve(el);
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+  cibles.forEach(function(el){ io.observe(el); });
+  setTimeout(function(){ cibles.forEach(function(el){ el.classList.add('vu'); }); }, 3000);
+})();
+(function(){
+  var h = document.querySelector('header'), tic = false;
+  if (!h) return;
+  addEventListener('scroll', function(){
+    if (tic) return; tic = true;
+    requestAnimationFrame(function(){ h.classList.toggle('scrolled', scrollY > 8); tic = false; });
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
