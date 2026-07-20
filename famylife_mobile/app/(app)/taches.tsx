@@ -33,13 +33,18 @@ import {
   Celebration,
   Checkbox,
   EmptyState,
+  Fab,
   Segmented,
   Stepper,
   Toggle,
   VisitorBanner,
 } from '../components/ui';
 import GageEffetsEditor from '../components/GageEffetsEditor';
-import { typography, spacing, borderRadius, shadows } from '../theme/designTokens';
+import { typography, spacing, borderRadius } from '../theme/designTokens';
+
+// La barre d'onglets flotte au-dessus du contenu (Tâches est un onglet
+// principal) : le FAB de création doit être posé au-dessus d'elle.
+const TAB_BAR_INSET = 140;
 
 const FREQUENCE_VARIANT: Record<FrequenceTache, 'neutral' | 'blue' | 'purple' | 'orange'> = {
   ponctuel: 'neutral',
@@ -514,13 +519,7 @@ export default function TachesScreen() {
           <Text style={[styles.headerTitle, { color: colors.text.dark }]} numberOfLines={1}>{t('taches.titre')}</Text>
           {streak > 0 ? <Badge label={`🔥 ${streak} ${t('streak.jourAbrev')}`} variant="orange" /> : null}
         </View>
-        {isGestion ? (
-          <Pressable onPress={openCreate} style={[styles.addButton, { backgroundColor: colors.primary.main }, shadows.candyPink]}>
-            <Plus size={20} color={colors.candy.white} />
-          </Pressable>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -577,6 +576,14 @@ export default function TachesScreen() {
           </>
         )}
       </ScrollView>
+
+      {isGestion ? (
+        <Fab
+          icon={<Plus size={24} color={colors.candy.white} />}
+          onPress={openCreate}
+          style={[styles.fab, { bottom: TAB_BAR_INSET - spacing.xl }]}
+        />
+      ) : null}
 
       <Celebration
         visible={celebrationVisible}
@@ -834,14 +841,8 @@ const styles = StyleSheet.create({
   },
   headerTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   headerTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  container: { padding: spacing.xl, paddingTop: 0, paddingBottom: spacing['4xl'] },
+  fab: { position: 'absolute', right: spacing.xl },
+  container: { padding: spacing.xl, paddingTop: 0, paddingBottom: TAB_BAR_INSET },
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   emptyInlineText: { fontWeight: typography.fontWeight.medium, textAlign: 'center' },
   card: { marginBottom: spacing.md },

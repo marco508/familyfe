@@ -6,35 +6,45 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { Home, ListChecks, CalendarDays, BarChart3, LayoutGrid } from 'lucide-react-native';
+// `Home` sert d'icône de repli si une route n'est pas dans ICONS (voir plus bas).
+import { Sun, ClipboardCheck, CalendarDays, LayoutGrid, Home } from 'lucide-react-native';
 import ScreenBackground from '../../components/ScreenBackground';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
 import { typography, spacing, borderRadius, shadows } from '../../theme/designTokens';
 
 const ICONS: Record<string, any> = {
-  index: Home,
-  activites: ListChecks,
+  index: Sun,
+  taches: ClipboardCheck,
   agenda: CalendarDays,
-  votes: BarChart3,
   plus: LayoutGrid,
 };
 
-// Onglets bonbon "principaux" affichés dans la barre — volontairement limités
-// à 5 pour ne pas la surcharger (voir ANNEXE V3 : "Regrouper les onglets
-// secondaires dans un menu Plus"). Les routes non listées ici (ex: "maison",
-// conservée comme fichier dans ce groupe pour son historique de navigation)
-// restent accessibles par navigation directe mais n'apparaissent pas ici.
-const TAB_ORDER = ['index', 'activites', 'agenda', 'votes', 'plus'];
+// Onglets principaux — ANNEXE V7 : la barre suit le cœur de l'app ("faire
+// tourner le foyer sans se disputer") et non l'historique des ajouts.
+// Auparavant "Votes" occupait un onglet pendant que Tâches était enterrée dans
+// le menu Plus : la hiérarchie était inversée, d'où les retours « je me perds ».
+//
+// ANNEXE V9 — on descend à 4 onglets. Un onglet se justifie par un geste
+// QUOTIDIEN ; l'équité, elle, se consulte une fois par semaine : c'est une prise
+// de recul, pas une destination. Pire, elle est VIDE pour un foyer neuf (aucun
+// historique) — on donnait l'emplacement le plus précieux de l'app à un écran
+// muet au démarrage, exactement l'erreur qu'on venait de corriger avec Votes.
+// Elle vit désormais dans la carte « Bilan de la semaine » d'Aujourd'hui, qui
+// porte son signal (déséquilibre + qui prend la suivante) et mène à l'écran
+// complet : plus vue là qu'en onglet que personne ne tape.
+//
+// Les routes non listées ici (equite, activites, votes, maison) restent
+// vivantes pour les liens directs, mais sortent de la barre.
+const TAB_ORDER = ['index', 'taches', 'agenda', 'plus'];
 
 function CandyTabBar({ state, descriptors, navigation }: any) {
   const { colors, gradients } = useTheme();
   const { t } = useT();
   const LABELS: Record<string, string> = {
     index: t('nav.accueil'),
-    activites: t('nav.activites'),
+    taches: t('nav.taches'),
     agenda: t('nav.agenda'),
-    votes: t('nav.votes'),
     plus: t('nav.plus'),
   };
   const visibleRoutes = TAB_ORDER
@@ -87,16 +97,25 @@ export default function TabsLayout() {
   const { t } = useT();
   return (
     <ScreenBackground>
+      {/* `sceneStyle` transparent est ce qui laisse voir ScreenBackground à
+          travers le navigateur (sans lui, le fond opaque du navigateur écrase
+          le thème sombre). L'ancienne prop `sceneContainerStyle` n'existe plus
+          sur Tabs en SDK 54 : elle était ignorée, `sceneStyle` la remplace. */}
       <Tabs
         tabBar={(props) => <CandyTabBar {...props} />}
-        sceneContainerStyle={{ backgroundColor: 'transparent' }}
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: 'transparent' } }}
       >
+        {/* Onglets visibles dans la barre (voir TAB_ORDER). */}
         <Tabs.Screen name="index" options={{ title: t('nav.accueil') }} />
-        <Tabs.Screen name="activites" options={{ title: t('nav.activites') }} />
+        <Tabs.Screen name="taches" options={{ title: t('nav.taches') }} />
         <Tabs.Screen name="agenda" options={{ title: t('nav.agenda') }} />
-        <Tabs.Screen name="votes" options={{ title: t('nav.votes') }} />
         <Tabs.Screen name="plus" options={{ title: t('nav.plus') }} />
+        {/* Routes du groupe conservées pour les liens directs, hors barre.
+            `equite` reste un écran plein (atteint depuis la carte « Bilan de la
+            semaine » d'Aujourd'hui) : seule sa place dans la barre disparaît. */}
+        <Tabs.Screen name="equite" options={{ title: t('nav.equite') }} />
+        <Tabs.Screen name="activites" options={{ title: t('nav.activites') }} />
+        <Tabs.Screen name="votes" options={{ title: t('nav.votes') }} />
         <Tabs.Screen name="maison" options={{ title: t('nav.maison') }} />
       </Tabs>
     </ScreenBackground>

@@ -29,7 +29,13 @@ export default function Checkbox({ checked, onToggle, size = 26, disabled }: Pro
 
   if (checked) {
     return (
-      <Pressable onPress={handlePress} disabled={disabled} hitSlop={8}>
+      <Pressable
+        onPress={handlePress}
+        disabled={disabled}
+        hitSlop={8}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked, disabled: !!disabled }}
+      >
         <LinearGradient colors={gradients.candyGreen} style={[dim, styles.center]}>
           <Check size={size * 0.6} color={colors.candy.white} strokeWidth={3} />
         </LinearGradient>
@@ -42,6 +48,8 @@ export default function Checkbox({ checked, onToggle, size = 26, disabled }: Pro
       onPress={handlePress}
       disabled={disabled}
       hitSlop={8}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked, disabled: !!disabled }}
       style={[dim, styles.center, styles.empty, { borderColor: colors.border }]}
     />
   );

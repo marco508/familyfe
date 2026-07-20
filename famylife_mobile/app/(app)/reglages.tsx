@@ -5,18 +5,36 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { ArrowLeft, Moon, Sun, Camera, LogOut, Cake, ShieldOff } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Moon,
+  Sun,
+  Camera,
+  LogOut,
+  Cake,
+  ShieldOff,
+  SlidersHorizontal,
+  ChevronRight,
+  Landmark,
+  BellRing,
+  Trash2,
+  AlertTriangle,
+} from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useMaison } from '../src/contexts/MaisonContext';
 import { useT } from '../src/i18n';
 import authService from '../src/services/authService';
-import { Avatar, CandyButton, CandyCard, CandyInput, SectionTitle, Segmented, Toggle } from '../components/ui';
+import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, SectionTitle, Segmented, Toggle } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function ReglagesScreen() {
-  const { user, logout, logoutAll, refreshProfile } = useAuth();
+  const { user, logout, logoutAll, deleteAccount, refreshProfile } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
+  // ANNEXE V9 — Portefeuille rapatrié du menu "Plus" : il faut ici le rôle et
+  // l'état du module pour reproduire exactement l'ancienne condition d'affichage.
+  const { isChef, isModuleActif } = useMaison();
   const { t, lang, setLang } = useT();
 
   const [nom, setNom] = useState('');
@@ -26,6 +44,12 @@ export default function ReglagesScreen() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // Suppression de compte — feuille de confirmation forte (geste destructeur).
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -103,6 +127,29 @@ export default function ReglagesScreen() {
     );
   };
 
+  const openDeleteSheet = () => {
+    setDeletePassword('');
+    setDeleteError('');
+    setDeleteSheetVisible(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim() || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    const res = await deleteAccount(deletePassword);
+    setDeleting(false);
+    if (!res.ok) {
+      // Mot de passe faux (403) → message dédié ; autre erreur → message brut.
+      setDeleteError(res.error || t('reglages.motDePasseIncorrect'));
+      return;
+    }
+    // Succès : l'état auth est déjà remis à zéro (user = null), la redirection
+    // vers /(auth)/login se fait toute seule via (app)/_layout.tsx. On ferme
+    // simplement la feuille.
+    setDeleteSheetVisible(false);
+  };
+
   return (
     <ScreenBackground>
       <View style={styles.header}>
@@ -170,6 +217,70 @@ export default function ReglagesScreen() {
           />
         </CandyCard>
 
+        {/* ANNEXE V9 — Réglages est désormais la porte UNIQUE du paramétrage :
+            le menu "Plus" ne duplique plus ces entrées (il n'y avait aucune
+            raison de proposer deux fois le même écran). C'est ici que
+            l'utilisateur vient chercher « comment j'active X ? ». */}
+        <Pressable onPress={() => router.push('/(app)/modules')}>
+          <CandyCard style={{ marginBottom: spacing.md }}>
+            <View style={styles.rowBetween}>
+              <View style={styles.rowStart}>
+                <SlidersHorizontal size={18} color={colors.primary.main} />
+                <View>
+                  <Text style={[styles.rowLabel, { color: colors.text.dark }]}>{t('modules.titre')}</Text>
+                  <Text style={[styles.rowSub, { color: colors.text.body }]}>{t('modules.sousTitre')}</Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color={colors.text.muted} />
+            </View>
+          </CandyCard>
+        </Pressable>
+
+        {/* ANNEXE V10 — Notifications : même rang que Modules, et pour la même
+            raison. « Qu'est-ce que mon foyer utilise ? » et « qu'est-ce que je
+            reçois ? » sont deux questions de paramétrage, et Réglages est leur
+            porte unique. Surtout PAS dans le menu "Plus" : on vient d'y
+            dédoublonner (V9), on ne va pas y remettre une entrée de réglage. */}
+        <Pressable onPress={() => router.push('/(app)/notifications-reglages')}>
+          <CandyCard style={{ marginBottom: spacing.md }}>
+            <View style={styles.rowBetween}>
+              <View style={styles.rowStart}>
+                <BellRing size={18} color={colors.primary.main} />
+                <View>
+                  <Text style={[styles.rowLabel, { color: colors.text.dark }]}>{t('notifsPrefs.titre')}</Text>
+                  <Text style={[styles.rowSub, { color: colors.text.body }]}>{t('notifsPrefs.sousTitre')}</Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color={colors.text.muted} />
+            </View>
+          </CandyCard>
+        </Pressable>
+
+        {/* ANNEXE V9 — Portefeuille : sorti du menu "Plus" (c'est de
+            l'administratif, pas une fonction du quotidien). Double condition,
+            reprise telle quelle de l'ancienne entrée : n'a de sens que pour qui
+            dirige un logement, ET il faut que le module soit activé. */}
+        {isChef && isModuleActif('portefeuille') ? (
+          <Pressable onPress={() => router.push('/(app)/portefeuille')}>
+            <CandyCard style={{ marginBottom: spacing.xl }}>
+              <View style={styles.rowBetween}>
+                <View style={styles.rowStart}>
+                  <Landmark size={18} color={colors.primary.main} />
+                  <View>
+                    <Text style={[styles.rowLabel, { color: colors.text.dark }]}>{t('plus.portefeuille')}</Text>
+                    <Text style={[styles.rowSub, { color: colors.text.body }]}>
+                      {t('modules.portefeuilleDesc')}
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={18} color={colors.text.muted} />
+              </View>
+            </CandyCard>
+          </Pressable>
+        ) : (
+          <View style={{ marginBottom: spacing.md }} />
+        )}
+
         <CandyButton
           label={t('common.deconnexion')}
           onPress={handleLogout}
@@ -180,7 +291,60 @@ export default function ReglagesScreen() {
           <ShieldOff size={16} color={colors.candy.red} />
           <Text style={[styles.logoutAllText, { color: colors.candy.red }]}>{t('reglages.deconnexionTous')}</Text>
         </Pressable>
+
+        {/* Zone de danger — actions irréversibles, visuellement distincte. */}
+        <View style={styles.dangerZone}>
+          <View style={styles.dangerHeader}>
+            <AlertTriangle size={16} color={colors.candy.red} />
+            <Text style={[styles.dangerZoneTitle, { color: colors.candy.red }]}>{t('reglages.zoneDanger')}</Text>
+          </View>
+          <Pressable onPress={openDeleteSheet}>
+            <CandyCard style={{ borderWidth: 1.5, borderColor: colors.candy.red }}>
+              <View style={styles.rowBetween}>
+                <View style={styles.rowStart}>
+                  <Trash2 size={18} color={colors.candy.red} />
+                  <Text style={[styles.rowLabel, { color: colors.candy.red }]}>{t('reglages.supprimerCompte')}</Text>
+                </View>
+                <ChevronRight size={18} color={colors.candy.red} />
+              </View>
+            </CandyCard>
+          </Pressable>
+        </View>
       </ScrollView>
+
+      <BottomSheet
+        visible={deleteSheetVisible}
+        onClose={() => {
+          if (!deleting) setDeleteSheetVisible(false);
+        }}
+        title={t('reglages.supprimerCompteTitre')}
+        emoji="⚠️"
+        footer={
+          <CandyButton
+            label={t('reglages.supprimerCompteConfirmer')}
+            onPress={handleDeleteAccount}
+            variant="danger"
+            loading={deleting}
+            disabled={!deletePassword.trim() || deleting}
+            icon={<Trash2 size={18} color={colors.candy.white} />}
+          />
+        }
+      >
+        <Text style={[styles.dangerWarning, { color: colors.text.body }]}>
+          {t('reglages.supprimerCompteAvertissement')}
+        </Text>
+        <CandyInput
+          label={t('reglages.motDePasseActuel')}
+          value={deletePassword}
+          onChangeText={(v) => {
+            setDeletePassword(v);
+            if (deleteError) setDeleteError('');
+          }}
+          secureTextEntry
+          autoCapitalize="none"
+          error={deleteError || undefined}
+        />
+      </BottomSheet>
     </ScreenBackground>
   );
 }
@@ -212,6 +376,7 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rowStart: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  rowSub: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },
   error: { fontWeight: typography.fontWeight.bold, textAlign: 'center', marginBottom: spacing.sm },
   logoutAllRow: {
     flexDirection: 'row',
@@ -221,4 +386,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   logoutAllText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
+  dangerZone: { marginTop: spacing['2xl'] },
+  dangerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+  dangerZoneTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.extrabold,
+    letterSpacing: typography.letterSpacing.wide,
+    textTransform: 'uppercase',
+  },
+  dangerWarning: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
+  },
 });

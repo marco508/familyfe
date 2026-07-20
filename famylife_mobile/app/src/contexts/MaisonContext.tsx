@@ -1,12 +1,13 @@
 // src/contexts/MaisonContext.tsx
 // Maison active de l'utilisateur (persistée sur l'appareil), liste des
 // maisons, membres de la maison active, et helpers (isChef, refresh).
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import maisonService, {
   Membre,
   MaisonCreateInput,
   MaisonListItem,
+  ModuleCle,
 } from '../services/maisonService';
 import { useAuth } from './AuthContext';
 import { appEvents, EVENTS } from '../utils/EventEmitter';
@@ -24,6 +25,12 @@ interface MaisonContextData {
   isGestion: boolean;
   // ANNEXE V4 — visiteur temporaire : lecture seule (masque les actions de création/gestion).
   isVisiteur: boolean;
+  // ANNEXE V8 — découverte progressive : modules optionnels actifs du logement
+  // courant. Toujours un tableau (jamais `undefined`) : le repli est fait ici,
+  // une seule fois, pour que les écrans n'aient pas à s'en soucier.
+  modules: ModuleCle[];
+  isModuleActif: (cle: string) => boolean;
+  updateModules: (modules: ModuleCle[]) => Promise<{ success: boolean; error?: string }>;
   hasMaison: boolean;
   // Un premier chargement réussi de la liste a eu lieu (sinon on affiche un loader,
   // on ne redirige pas vers l'onboarding).
@@ -179,6 +186,40 @@ export const MaisonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     maisonActive?.role === 'chef' || maisonActive?.role === 'co_chef' || maisonActive?.role === 'chef_temporaire';
   const isVisiteur = maisonActive?.role === 'visiteur';
 
+  // ANNEXE V8 — SEUL endroit qui tolère l'absence du champ `modules` : un
+  // serveur plus ancien ne le renvoie pas, on le lit alors comme « aucun module
+  // optionnel ». Les écrans ne voient jamais que `ModuleCle[]`.
+  const modules = useMemo<ModuleCle[]>(() => maisonActive?.modules ?? [], [maisonActive]);
+
+  const isModuleActif = useCallback((cle: string) => modules.includes(cle as ModuleCle), [modules]);
+
+  // Écriture optimiste : l'interrupteur bascule tout de suite (l'UI entière
+  // réagit dans la foulée), et on revient en arrière si l'API refuse.
+  const updateModules = useCallback(
+    async (next: ModuleCle[]) => {
+      if (!maisonActive) return { success: false, error: 'Aucun logement actif' };
+      const maisonId = maisonActive.id;
+      const precedent = modules;
+
+      const appliquer = (valeur: ModuleCle[]) => {
+        setMaisonActiveState((m) => (m && m.id === maisonId ? { ...m, modules: valeur } : m));
+        setMaisons((list) => list.map((m) => (m.id === maisonId ? { ...m, modules: valeur } : m)));
+      };
+
+      appliquer(next);
+      const response = await maisonService.update(maisonId, { modules: next });
+      if (response.error) {
+        appliquer(precedent);
+        return { success: false, error: response.error };
+      }
+      // Resynchronisation avec la source de vérité (sans loader : `initialized`
+      // est déjà vrai, `refresh` ne démonte donc pas l'arbre).
+      await refresh();
+      return { success: true };
+    },
+    [maisonActive, modules, refresh]
+  );
+
   return (
     <MaisonContext.Provider
       value={{
@@ -190,6 +231,9 @@ export const MaisonProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isChef,
         isGestion,
         isVisiteur,
+        modules,
+        isModuleActif,
+        updateModules,
         hasMaison: maisons.length > 0,
         initialized,
         selectMaison,

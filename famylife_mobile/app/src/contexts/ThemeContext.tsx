@@ -60,7 +60,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       mode,
       isDark: mode === 'dark',
       colors: mode === 'dark' ? (darkColors as typeof lightColors) : lightColors,
-      gradients: mode === 'dark' ? (darkGradients as typeof lightGradients) : lightGradients,
+      // Les deux palettes sont déclarées `as const` : leurs types sont des
+      // tuples de littéraux hex qui ne se recouvrent pas ('#1B1330' n'est pas
+      // assignable à '#FFE9F3'), d'où le passage par `unknown`. On garde
+      // `typeof lightGradients` comme type public : c'est lui qui donne aux
+      // écrans le tuple `readonly [string, string, ...]` attendu par
+      // LinearGradient. Les deux palettes ont bien les mêmes clés.
+      gradients: mode === 'dark' ? (darkGradients as unknown as typeof lightGradients) : lightGradients,
       setMode,
       toggleTheme,
     }),

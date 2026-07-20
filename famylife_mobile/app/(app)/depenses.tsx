@@ -11,21 +11,24 @@ import {
   Alert,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Trash2, ArrowRight } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
+import ModuleInactif from '../components/ModuleInactif';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import depensesService, { BilanDepenses, Depense } from '../src/services/depensesService';
-import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Segmented, VisitorBanner } from '../components/ui';
+import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Fab, Segmented, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DepensesScreen() {
-  const { maisonActive, membres, isVisiteur } = useMaison();
+  const { maisonActive, membres, isVisiteur, isModuleActif } = useMaison();
   const { user } = useAuth();
   const { colors } = useTheme();
   const { t, lang } = useT();
+  const insets = useSafeAreaInsets();
 
   const [tab, setTab] = useState<'depenses' | 'bilan'>('depenses');
   const [depenses, setDepenses] = useState<Depense[]>([]);
@@ -133,6 +136,12 @@ export default function DepensesScreen() {
   const totalDepenses = depenses.reduce((sum, d) => sum + d.montant, 0);
   const monSolde = bilan?.soldes.find((s) => s.utilisateur_id === user?.id)?.solde ?? 0;
 
+  // ANNEXE V8 — la route reste vivante ; on explique au lieu de rediriger. Le
+  // test est placé APRÈS tous les hooks (règle des hooks : un retour anticipé
+  // au-dessus d'un `useState`/`useFocusEffect` changerait leur nombre entre
+  // deux rendus quand le chef active le module).
+  if (!isModuleActif('depenses')) return <ModuleInactif cle="depenses" />;
+
   return (
     <View style={styles.flex}>
       <ScreenBackground>
@@ -141,13 +150,7 @@ export default function DepensesScreen() {
             <ArrowLeft size={22} color={colors.text.dark} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text.dark }]}>{t('depenses.titre')}</Text>
-          {!isVisiteur ? (
-            <Pressable onPress={openModal} hitSlop={10}>
-              <Plus size={22} color={colors.primary.main} />
-            </Pressable>
-          ) : (
-            <View style={{ width: 22 }} />
-          )}
+          <View style={{ width: 22 }} />
         </View>
 
         <View style={styles.segmentedWrap}>
@@ -194,7 +197,16 @@ export default function DepensesScreen() {
             <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.primary.main} />
           ) : tab === 'depenses' ? (
             depenses.length === 0 ? (
-              <EmptyState emoji="💸" title={t('depenses.vide')} />
+              <EmptyState
+                emoji="💸"
+                title={t('depenses.vide')}
+                message={!isVisiteur ? t('depenses.videMessage') : undefined}
+                action={
+                  !isVisiteur ? (
+                    <CandyButton label={t('depenses.ajouter')} onPress={openModal} variant="green" />
+                  ) : undefined
+                }
+              />
             ) : (
               depenses.map((d) => (
                 <CandyCard key={d.id} style={styles.card}>
@@ -259,6 +271,14 @@ export default function DepensesScreen() {
           )}
         </ScrollView>
       </ScreenBackground>
+
+      {!isVisiteur ? (
+        <Fab
+          icon={<Plus size={24} color={colors.candy.white} />}
+          onPress={openModal}
+          style={[styles.fab, { bottom: insets.bottom + spacing.xl }]}
+        />
+      ) : null}
 
       <BottomSheet
         visible={modalVisible}
@@ -328,6 +348,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
   segmentedWrap: { paddingHorizontal: spacing.xl, marginBottom: spacing.md },
   container: { padding: spacing.xl, paddingTop: 0, paddingBottom: spacing['4xl'] },
+  fab: { position: 'absolute', right: spacing.xl },
   summaryCard: { marginBottom: spacing.lg },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center' },

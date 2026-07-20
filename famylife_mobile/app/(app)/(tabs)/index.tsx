@@ -1,7 +1,23 @@
 // app/(app)/(tabs)/index.tsx
 // Accueil (V5) : en-tête léger, carte maison + mes points, bande d'indicateurs,
-// accès rapide, liste « aujourd'hui » unifiée (corvées en retard + tâches +
-// activités), puis « à venir » condensé (événements, votes, anniversaires).
+// accès rapide, puis « à venir » condensé (événements, votes, anniversaires).
+//
+// ANNEXE V10 — la confusion tâches / activités.
+// Retour utilisateur, mot pour mot : « les tâches sont les tâches ménagères et
+// les activités sont les trucs qu'on peut faire ensemble style un restau
+// ensemble un jour, un picnic, un barbecue ».
+//
+// Cet écran fusionnait « corvées en retard + tâches + activités » dans UNE
+// liste : un barbecue s'affichait juste sous « sortir les poubelles ». Deux
+// natures opposées se retrouvaient à égalité, dans le même ton, dans la même
+// carte — l'app enseignait elle-même la confusion.
+//
+// Désormais DEUX sections, et le ton suit la nature :
+//   · « Corvées du jour »       → un DEVOIR. Le ménage, réparti entre nous.
+//     (les corvées en retard y restent en tête, marquées en rouge : c'est le
+//      même travail, simplement déjà dû.) Vide = une récompense méritée.
+//   · « Ce qu'on fait ensemble » → une ENVIE. Un resto, un pique-nique.
+//     Vide = une invitation à proposer quelque chose, jamais un reproche.
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, Pressable, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
@@ -16,9 +32,8 @@ import {
   Star,
   ShoppingCart,
   Wallet,
-  UtensilsCrossed,
-  MessageCircle,
-  Gift,
+  Vote as VoteIcon,
+  Scale,
   Flame,
   Trophy,
   Users,
@@ -27,12 +42,11 @@ import {
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
-import activiteService, { Activite } from '../../src/services/activiteService';
 import evenementService, { Evenement } from '../../src/services/evenementService';
 import voteService, { Vote } from '../../src/services/voteService';
 import tacheService, { Tache } from '../../src/services/tacheService';
 import maisonService, { Anniversaire } from '../../src/services/maisonService';
-import statsService, { BilanSemaine } from '../../src/services/statsService';
+import statsService, { BilanSemaine, Equite } from '../../src/services/statsService';
 import { CandyCard, Badge, EmptyState, NotificationBell, Avatar, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -48,15 +62,10 @@ export default function DashboardScreen() {
   const { colors, gradients } = useTheme();
   const { t, lang } = useT();
   const locale = lang === 'en' ? 'en-US' : 'fr-FR';
-  const STATUT_LABEL: Record<string, string> = {
-    a_faire: t('statut.aFaire'),
-    en_cours: t('statut.enCours'),
-    termine: t('statut.termine'),
-  };
   const { user } = useAuth();
-  const { maisons, maisonActive, membres, selectMaison, loading: maisonLoading, isVisiteur } = useMaison();
+  const { maisons, maisonActive, membres, selectMaison, loading: maisonLoading, isVisiteur, isModuleActif } =
+    useMaison();
   const { unreadCount, refresh: refreshNotifCount } = useNotifications();
-  const [activites, setActivites] = useState<Activite[]>([]);
   const [taches, setTaches] = useState<Tache[]>([]);
   const [evenements, setEvenements] = useState<Evenement[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
@@ -67,37 +76,41 @@ export default function DashboardScreen() {
   // ANNEXE V6 — boucle magique : bilan de la semaine + série (streak) perso.
   const [bilan, setBilan] = useState<BilanSemaine | null>(null);
   const [streak, setStreak] = useState(0);
+  // ANNEXE V9 — l'équité n'a plus d'onglet (elle se consulte une fois par
+  // semaine, pas dix fois par jour). Son signal remonte ici, dans la carte
+  // bilan : c'est là qu'il est vu, et il y devient actionnable.
+  const [equite, setEquite] = useState<Equite | null>(null);
 
   const loadData = useCallback(async () => {
     if (!maisonActive) {
-      setActivites([]);
       setTaches([]);
       setEvenements([]);
       setVotes([]);
       setAnniversaires([]);
       setBilan(null);
       setStreak(0);
+      setEquite(null);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      const [actRes, tacheRes, evtRes, voteRes, anniRes, bilanRes, streakRes] = await Promise.all([
-        activiteService.list(maisonActive.id),
+      const [tacheRes, evtRes, voteRes, anniRes, bilanRes, streakRes, equiteRes] = await Promise.all([
         tacheService.list(maisonActive.id),
         evenementService.list(maisonActive.id),
         voteService.list(maisonActive.id),
         maisonService.anniversaires(maisonActive.id),
         statsService.bilanSemaine(maisonActive.id),
         statsService.streak(maisonActive.id),
+        statsService.equite(maisonActive.id, 'semaine'),
       ]);
-      setActivites(actRes.data ?? []);
       setTaches(tacheRes.data ?? []);
       setEvenements(evtRes.data ?? []);
       setVotes(voteRes.data ?? []);
       setAnniversaires(anniRes.data ?? []);
       setBilan(bilanRes.data ?? null);
       setStreak(streakRes.data?.streak ?? 0);
+      setEquite(equiteRes.data ?? null);
     } finally {
       setLoading(false);
     }
@@ -118,9 +131,13 @@ export default function DashboardScreen() {
   };
 
   const today = new Date();
-  const activitesDuJour = activites.filter(
-    (a) => a.statut !== 'termine' && a.date_echeance && isSameDay(a.date_echeance, today)
-  );
+  const startOfTomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  // ANNEXE V11 — fusion activité → événement. « Ce qu'on fait ensemble
+  // aujourd'hui » lit désormais les ÉVÉNEMENTS du jour (un resto, un
+  // pique-nique, un anniversaire…) : ce sont eux qui portent les moments
+  // partagés. On ne lit plus les activités ici.
+  const evenementsDuJour = evenements.filter((e) => isSameDay(e.date_debut, today));
+  // Les CORVÉES du jour : le ménage. Rien à voir avec ci-dessus.
   const tachesDuJour = taches.filter(
     (tc) =>
       tc.statut !== 'fait' &&
@@ -130,28 +147,47 @@ export default function DashboardScreen() {
   const corvees = taches
     .filter((tc) => (tc.gage_semaines_restantes ?? 0) > 0)
     .sort((a, b) => b.gage_semaines_restantes - a.gage_semaines_restantes);
+  // « À venir » = strictement APRÈS aujourd'hui, pour ne jamais répéter dans
+  // deux sections un événement déjà listé dans « Ce qu'on fait ensemble ».
   const prochainEvenements = evenements
-    .filter((e) => new Date(e.date_debut).getTime() >= today.getTime() - 1000 * 60 * 60 * 6)
+    .filter((e) => new Date(e.date_debut).getTime() >= startOfTomorrow.getTime())
     .slice(0, 3);
-  const votesOuverts = votes.filter((v) => v.statut === 'ouvert');
+  // ANNEXE V8 — un vote appartient au module "decisions". Éteint, il ne doit
+  // remonter ni dans les indicateurs ni dans « À venir » (la liste « À venir »
+  // renvoie sur `/(app)/votes/[id]`, un écran qu'on ne met plus en avant).
+  const votesOuverts = isModuleActif('decisions') ? votes.filter((v) => v.statut === 'ouvert') : [];
   const anniversairesAujourdhui = anniversaires.filter((a) => a.aujourdhui);
   const anniversairesAVenir = anniversaires.filter((a) => !a.aujourdhui).slice(0, 3);
 
   const mesPoints = membres.find((m) => m.id === user?.id)?.points ?? 0;
-  const aFaireCount = activitesDuJour.length + tachesDuJour.length;
-  const rienAujourdhui = corvees.length === 0 && aFaireCount === 0;
+  // ANNEXE V10 — on ne compte plus « corvées + activités » ensemble : additionner
+  // un barbecue et une poubelle ne veut rien dire. Cet indicateur mène à l'onglet
+  // Tâches : il ne compte donc QUE des corvées.
+  const aucuneCorvee = corvees.length === 0 && tachesDuJour.length === 0;
 
   const dateLabel = today.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
 
+  // ANNEXE V7 — l'accès rapide suit la nouvelle architecture : il pointe sur les
+  // destinations canoniques et non plus sur des écrans fusionnés (Menu,
+  // Boutique, Défis, Classement sont désormais des segments ; Chat sort des
+  // mises en avant). 8 tuiles qui criaient toutes pareil → 5 raccourcis utiles.
+  //
+  // ANNEXE V8 — découverte progressive : un raccourci vers un module éteint
+  // serait une promesse creuse. Tâches et Équité restent toujours là (cœur de
+  // l'app, jamais désactivables) : l'accès rapide n'est donc jamais vide.
   const QUICK_ACTIONS: { label: string; Icon: any; route: string }[] = [
-    { label: t('taches.titre'), Icon: ListChecks, route: '/(app)/taches' },
-    { label: t('courses.titre'), Icon: ShoppingCart, route: '/(app)/courses' },
-    { label: t('depenses.titre'), Icon: Wallet, route: '/(app)/depenses' },
-    { label: t('menu.titre'), Icon: UtensilsCrossed, route: '/(app)/menu' },
-    { label: t('chat.titre'), Icon: MessageCircle, route: '/(app)/chat' },
-    { label: t('boutique.titre'), Icon: Gift, route: '/(app)/boutique' },
-    { label: t('defis.titre'), Icon: Flame, route: '/(app)/defis' },
-    { label: t('classement.titre'), Icon: Trophy, route: '/(app)/classement' },
+    { label: t('taches.titre'), Icon: ListChecks, route: '/(app)/(tabs)/taches' },
+    ...(isModuleActif('courses')
+      ? [{ label: t('coursesRepas.titre'), Icon: ShoppingCart, route: '/(app)/courses' }]
+      : []),
+    ...(isModuleActif('depenses')
+      ? [{ label: t('depenses.titre'), Icon: Wallet, route: '/(app)/depenses' }]
+      : []),
+    ...(isModuleActif('decisions')
+      ? [{ label: t('decisions.titre'), Icon: VoteIcon, route: '/(app)/decisions' }]
+      : []),
+    // V9 — plus de raccourci « Équité » ici : la carte « Bilan de la semaine »
+    // juste en dessous y mène déjà, et de façon bien plus parlante qu'une tuile.
   ];
 
   const KpiCard = ({ Icon, value, label, tint, route }: any) => (
@@ -164,11 +200,18 @@ export default function DashboardScreen() {
     </Pressable>
   );
 
-  const SectionHeader = ({ Icon, title, route }: any) => (
-    <View style={styles.sectionHeader}>
+  // `subtitle` porte le TON de la section (devoir vs envie) : c'est là que se
+  // joue la distinction, plus encore que dans le titre.
+  const SectionHeader = ({ Icon, title, subtitle, route, style }: any) => (
+    <View style={[styles.sectionHeader, style]}>
       <View style={styles.sectionHeaderLeft}>
         <Icon size={16} color={colors.text.muted} />
-        <Text style={[styles.sectionTitle, { color: colors.text.dark }]}>{title}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.sectionTitle, { color: colors.text.dark }]}>{title}</Text>
+          {subtitle ? (
+            <Text style={[styles.sectionSubtitle, { color: colors.text.muted }]}>{subtitle}</Text>
+          ) : null}
+        </View>
       </View>
       {route ? (
         <Pressable onPress={() => router.push(route)} hitSlop={8}>
@@ -261,7 +304,7 @@ export default function DashboardScreen() {
             </View>
           </View>
           <View style={styles.pointsRow}>
-            <Pressable onPress={() => router.push('/(app)/classement')} style={[styles.pointsChip, { backgroundColor: colors.primary.subtle }]}>
+            <Pressable onPress={() => router.push('/(app)/(tabs)/equite')} style={[styles.pointsChip, { backgroundColor: colors.primary.subtle }]}>
               <Star size={14} color={colors.primary.main} />
               <Text style={[styles.pointsChipText, { color: colors.primary.main }]}>
                 {mesPoints} pts · {t('classement.titre')}
@@ -274,7 +317,7 @@ export default function DashboardScreen() {
 
       {/* ANNEXE V6 — boucle magique : carte visuelle « Bilan de la semaine ». */}
       {maisonActive && !loading && bilan && bilan.total_taches > 0 ? (
-        <Pressable onPress={() => router.push('/(app)/equite')}>
+        <Pressable onPress={() => router.push('/(app)/(tabs)/equite')}>
           <LinearGradient colors={gradients.candyYellow} style={styles.bilanCard}>
             <View style={styles.bilanHeaderRow}>
               <Trophy size={20} color={colors.candy.white} />
@@ -300,6 +343,20 @@ export default function DashboardScreen() {
                 </View>
               </View>
             ) : null}
+
+            {/* ANNEXE V9 — le signal d'équité, là où il est réellement vu.
+                On ne l'affiche QUE s'il y a un déséquilibre ET quelqu'un à
+                proposer : une carte qui répète « tout va bien » chaque jour
+                devient un meuble qu'on ne lit plus. Quand elle parle, elle dit
+                quelque chose d'actionnable — qui prend la prochaine corvée. */}
+            {equite?.desequilibre && equite.suggestion ? (
+              <View style={styles.equiteRow}>
+                <Scale size={15} color={colors.candy.white} />
+                <Text style={[styles.equiteText, { color: colors.candy.white }]} numberOfLines={2}>
+                  {t('bilan.equiteSuggestion').replace('{nom}', equite.suggestion.nom)}
+                </Text>
+              </View>
+            ) : null}
           </LinearGradient>
         </Pressable>
       ) : null}
@@ -307,9 +364,13 @@ export default function DashboardScreen() {
       {maisonActive && !loading ? (
         <>
           <View style={styles.kpiGrid}>
-            <KpiCard Icon={ListChecks} value={aFaireCount} label={t('accueil.aujourdhui')} tint={colors.text.dark} route="/(app)/taches" />
-            <KpiCard Icon={AlertTriangle} value={corvees.length} label={t('accueil.corveesEnRetard')} tint={colors.candy.red} route="/(app)/taches" />
-            <KpiCard Icon={BarChart3} value={votesOuverts.length} label={t('accueil.votesOuverts')} tint={colors.text.dark} route="/(app)/(tabs)/votes" />
+            <KpiCard Icon={ListChecks} value={tachesDuJour.length} label={t('accueil.corveesDuJour')} tint={colors.text.dark} route="/(app)/(tabs)/taches" />
+            <KpiCard Icon={AlertTriangle} value={corvees.length} label={t('accueil.corveesEnRetard')} tint={colors.candy.red} route="/(app)/(tabs)/taches" />
+            {/* ANNEXE V8 — module "decisions" éteint : afficher « 0 vote ouvert »
+                et renvoyer vers un écran désactivé n'apprend rien. */}
+            {isModuleActif('decisions') ? (
+              <KpiCard Icon={BarChart3} value={votesOuverts.length} label={t('accueil.votesOuverts')} tint={colors.text.dark} route="/(app)/decisions" />
+            ) : null}
             <KpiCard Icon={CalendarDays} value={prochainEvenements.length} label={t('accueil.prochainsEvenements')} tint={colors.text.dark} route="/(app)/(tabs)/agenda" />
           </View>
 
@@ -325,15 +386,24 @@ export default function DashboardScreen() {
             ))}
           </ScrollView>
 
-          <SectionHeader Icon={ListChecks} title={t('accueil.aujourdhui')} route="/(app)/taches" />
-          {rienAujourdhui ? (
+          {/* ─── SECTION 1 — LES CORVÉES. Un devoir : on le nomme, on le
+              répartit, on le coche. Ton neutre et factuel. ─────────────── */}
+          <SectionHeader
+            Icon={ListChecks}
+            title={t('accueil.corveesDuJour')}
+            subtitle={t('accueil.corveesSousTitre')}
+            route="/(app)/(tabs)/taches"
+          />
+          {aucuneCorvee ? (
             <CandyCard style={styles.emptyCard}>
-              <Text style={[styles.emptyText, { color: colors.text.body }]}>{t('accueil.aucuneActivite')}</Text>
+              <Text style={[styles.emptyText, { color: colors.text.body }]}>{t('accueil.aucuneCorvee')}</Text>
             </CandyCard>
           ) : (
             <>
+              {/* Les corvées en retard (gage en cours) d'abord : c'est la même
+                  nature — du ménage — simplement déjà dû. */}
               {corvees.map((tc) => (
-                <Pressable key={`c-${tc.id}`} onPress={() => router.push('/(app)/taches')}>
+                <Pressable key={`c-${tc.id}`} onPress={() => router.push('/(app)/(tabs)/taches')}>
                   <CandyCard style={styles.itemCard}>
                     <View style={styles.itemRow}>
                       <AlertTriangle size={18} color={colors.candy.red} />
@@ -349,7 +419,7 @@ export default function DashboardScreen() {
                 </Pressable>
               ))}
               {tachesDuJour.map((tc) => (
-                <Pressable key={`t-${tc.id}`} onPress={() => router.push('/(app)/taches')}>
+                <Pressable key={`t-${tc.id}`} onPress={() => router.push('/(app)/(tabs)/taches')}>
                   <CandyCard style={styles.itemCard}>
                     <View style={styles.itemRow}>
                       <ListChecks size={18} color={colors.candy.blueDark} />
@@ -363,18 +433,39 @@ export default function DashboardScreen() {
                   </CandyCard>
                 </Pressable>
               ))}
-              {activitesDuJour.map((a) => (
-                <Pressable key={`a-${a.id}`} onPress={() => router.push(`/(app)/activites/${a.id}`)}>
-                  <CandyCard style={styles.itemCard}>
-                    <View style={styles.itemRow}>
-                      <Users size={18} color={colors.candy.orangeDark} />
-                      <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={1}>{a.titre}</Text>
-                      <Badge label={STATUT_LABEL[a.statut]} variant={a.statut === 'en_cours' ? 'blue' : 'orange'} />
-                    </View>
-                  </CandyCard>
-                </Pressable>
-              ))}
             </>
+          )}
+
+          {/* ─── SECTION 2 — CE QU'ON FAIT ENSEMBLE. Une envie : on la propose,
+              on y participe. Vide, elle invite — elle ne réprimande pas.
+              Elle mène à l'Agenda, où ces moments se créent et se datent. ── */}
+          <SectionHeader
+            Icon={PartyPopper}
+            title={t('accueil.ensemble')}
+            subtitle={t('accueil.ensembleSousTitre')}
+            route="/(app)/(tabs)/agenda"
+            style={{ marginTop: spacing.lg }}
+          />
+          {evenementsDuJour.length === 0 ? (
+            <CandyCard style={styles.emptyCard}>
+              <Text style={[styles.emptyText, { color: colors.text.body }]}>{t('accueil.aucunEnsemble')}</Text>
+            </CandyCard>
+          ) : (
+            evenementsDuJour.map((e) => (
+              <Pressable key={`ej-${e.id}`} onPress={() => router.push(`/(app)/evenements/${e.id}`)}>
+                <CandyCard style={styles.itemCard}>
+                  <View style={styles.itemRow}>
+                    <Users size={18} color={colors.candy.orangeDark} />
+                    <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={1}>{e.titre}</Text>
+                    <Text style={[styles.aVenirMeta, { color: colors.text.muted }]}>
+                      {e.toute_la_journee
+                        ? t('agenda.touteLaJournee')
+                        : new Date(e.date_debut).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+                </CandyCard>
+              </Pressable>
+            ))
           )}
 
           {(prochainEvenements.length > 0 || votesOuverts.length > 0 || anniversairesAVenir.length > 0) ? (
@@ -456,6 +547,17 @@ const styles = StyleSheet.create({
   },
   bilanTopLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold, color: 'rgba(255,255,255,0.85)' },
   bilanTopNom: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  // V9 — ligne d'équité dans la carte bilan (séparée par un filet discret).
+  equiteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.35)',
+  },
+  equiteText: { flex: 1, fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
   birthdayBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: borderRadius.card, padding: spacing.lg, marginBottom: spacing.lg },
   birthdayBannerTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   birthdayBannerSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },
@@ -482,8 +584,10 @@ const styles = StyleSheet.create({
   quickIcon: { width: 56, height: 56, borderRadius: borderRadius.lg, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   quickLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 4 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm, marginTop: spacing.xs },
-  sectionHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  sectionHeaderLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   sectionTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  // Le sous-titre porte le ton de la section (devoir / envie) : discret mais lu.
+  sectionSubtitle: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 1 },
   emptyCard: { marginBottom: spacing.md, alignItems: 'center' },
   emptyText: { fontWeight: typography.fontWeight.medium },
   itemCard: { marginBottom: spacing.sm, paddingVertical: spacing.md },

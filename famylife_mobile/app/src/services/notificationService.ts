@@ -6,6 +6,30 @@ import apiClient, { ApiResponse } from './apiClient';
 
 export type NotificationType = 'activite' | 'evenement' | 'vote' | 'anniversaire' | 'rotation';
 
+// ANNEXE V10 — préférences de notification par catégorie.
+//
+// Contrat serveur (déjà implémenté et testé) :
+//   · GET  /me                → `notif_desactivees: string[]`  (les DÉSACTIVÉES)
+//   · GET  /me/notifications  → `{ categories: [...] }`        (taxonomie connue)
+//   · PUT  /me/notifications  → corps `{ desactivees: [...] }`, réponse
+//                               `{ desactivees: [...] }`. `[]` est légitime
+//                               (tout réactiver) ; catégorie inconnue → 400.
+//
+// Ce repli n'est utilisé que si `GET /me/notifications` échoue (réseau) : la
+// liste du serveur reste la source de vérité, on ne la double pas en dur.
+export const CATEGORIES_NOTIF_REPLI = [
+  'corvees',
+  'sorties',
+  'decisions',
+  'depenses',
+  'courses',
+  'chat',
+  'jeu',
+  'foyer',
+] as const;
+
+export type CategorieNotif = (typeof CATEGORIES_NOTIF_REPLI)[number];
+
 export interface AppNotification {
   id: number;
   type: NotificationType;
@@ -36,6 +60,21 @@ class NotificationService {
 
   async supprimer(id: number): Promise<ApiResponse<{ message: string }>> {
     return apiClient.delete(`/notifications/${id}`);
+  }
+
+  // ANNEXE V10 — la liste des catégories connues DU SERVEUR. On la préfère à
+  // une taxonomie codée en dur : le jour où le backend en ajoute une, l'écran
+  // l'affiche sans qu'on ait à repasser derrière.
+  async categories(): Promise<ApiResponse<{ categories: string[] }>> {
+    return apiClient.get('/me/notifications');
+  }
+
+  // Les catégories que l'utilisateur ne veut PAS recevoir. `[]` = tout
+  // réactiver, et c'est une valeur parfaitement légitime (pas un « rien à
+  // envoyer »). L'état des préférences se lit, lui, dans `GET /me`
+  // (`notif_desactivees`) — voir authService.
+  async setDesactivees(desactivees: string[]): Promise<ApiResponse<{ desactivees: string[] }>> {
+    return apiClient.put('/me/notifications', { desactivees });
   }
 }
 

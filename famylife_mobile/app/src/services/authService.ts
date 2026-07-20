@@ -27,6 +27,13 @@ export interface UserProfile {
   image: string | null;
   date_creation: string;
   date_naissance?: string | null;
+  // ANNEXE V10 — catégories de notification DÉSACTIVÉES (ex: `["chat"]`).
+  // Vide = tout est activé. Attention au sens : le serveur stocke la négation,
+  // pas la liste de ce qu'on reçoit. La conversion en « activé = je reçois » se
+  // fait dans l'écran (`(app)/notifications-reglages.tsx`), jamais dans la tête
+  // de l'utilisateur.
+  // Optionnel : un serveur plus ancien n'envoie pas le champ → lu comme `[]`.
+  notif_desactivees?: string[];
 }
 
 export interface UpdateProfileData {
@@ -93,6 +100,18 @@ class AuthService {
         status: 0,
       };
     }
+  }
+
+  // Suppression définitive du compte (POST /me/supprimer, corps { password }).
+  // Mot de passe faux → 403 (rien n'est supprimé). Succès → 200. En cas de
+  // succès uniquement, on efface le token local (comme `logout()`). On renvoie
+  // l'ApiResponse pour que l'appelant distingue succès / mot de passe faux.
+  async deleteAccount(password: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await apiClient.post<{ message: string }>('/me/supprimer', { password });
+    if (!response.error) {
+      await apiClient.clearToken();
+    }
+    return response;
   }
 
   async getProfile(): Promise<ApiResponse<UserProfile>> {

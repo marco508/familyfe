@@ -52,22 +52,39 @@ export default function AppLayout() {
         <Stack.Screen name="votes/[id]" />
         <Stack.Screen name="evenements/[id]" />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
+        {/* ANNEXE V10 — préférences de notification par catégorie. Écran plein
+            (et non modale) : c'est du paramétrage, atteint depuis Réglages, pas
+            une interruption du flux. `notifications` reste la modale du centre
+            de notifications : deux écrans distincts, deux rôles distincts. */}
+        <Stack.Screen name="notifications-reglages" />
         {/* ANNEXE V3 — écrans accessibles depuis l'onglet "Plus" */}
+        {/* "Courses & repas" : `courses` absorbe `menu` (segment "Repas"). */}
         <Stack.Screen name="courses" />
         <Stack.Screen name="depenses" />
-        <Stack.Screen name="menu" />
-        <Stack.Screen name="chat" />
-        <Stack.Screen name="boutique" />
-        <Stack.Screen name="defis" />
-        <Stack.Screen name="classement" />
         <Stack.Screen name="reglages" />
-        {/* ANNEXE V4 — Tâches, Règles, Portefeuille immobilier */}
+        {/* ANNEXE V8 — découverte progressive : activation des modules à la
+            demande (point d'entrée depuis "Plus" et "Réglages"). */}
+        <Stack.Screen name="modules" />
+        {/* ANNEXE V4 — Tâches, Portefeuille immobilier */}
         <Stack.Screen name="taches" />
-        <Stack.Screen name="regles" />
         <Stack.Screen name="portefeuille" />
-        {/* ANNEXE V6 — Invitation partageable, moteur d'équité */}
+        {/* ANNEXE V6 — Invitation partageable */}
         <Stack.Screen name="inviter" />
+        {/* ANNEXE V7 — "Décisions" : Votes + Règles réunis (voter une règle EST
+            un vote). */}
+        <Stack.Screen name="decisions" />
+        {/* ANNEXE V7 — routes fusionnées, conservées en redirection pour ne pas
+            casser les liens directs et les notifications existantes :
+            menu → courses ; regles → decisions ; equite/classement/defis/
+            boutique → onglet Équité ; chat n'est plus listé dans "Plus" mais
+            l'écran reste accessible. */}
+        <Stack.Screen name="menu" />
+        <Stack.Screen name="regles" />
         <Stack.Screen name="equite" />
+        <Stack.Screen name="classement" />
+        <Stack.Screen name="defis" />
+        <Stack.Screen name="boutique" />
+        <Stack.Screen name="chat" />
       </Stack>
       {/* ANNEXE V4 — rappel des règles à la connexion (modale non bloquante). */}
       <RulesReminderModal />

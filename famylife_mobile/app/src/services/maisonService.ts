@@ -14,6 +14,14 @@ export type RoleMembre = 'chef' | 'co_chef' | 'chef_temporaire' | 'membre' | 'vi
 export type LienFamille = 'pere' | 'mere' | 'enfant' | 'frere' | 'soeur' | 'conjoint' | 'autre';
 export type TypeLogement = 'maison' | 'appartement';
 
+// ANNEXE V8 — découverte progressive. Un foyer neuf démarre avec `modules: []`
+// et n'affiche que le cœur de l'app (Aujourd'hui, Tâches, Agenda, Équité,
+// Logement, Inviter, Réglages, Notifications) : ces briques-là ne sont JAMAIS
+// désactivables. Le reste s'active à la demande depuis `(app)/modules`.
+// Seules valeurs acceptées par l'API (un module inconnu → 400).
+export const MODULES_CLES = ['courses', 'depenses', 'decisions', 'jeu', 'portefeuille', 'chat'] as const;
+export type ModuleCle = (typeof MODULES_CLES)[number];
+
 export interface Membre extends PublicUser {
   role: RoleMembre;
   date_ajout: string;
@@ -58,6 +66,10 @@ export interface Maison {
   interphone: string | null;
   acces: string | null;
   surface: number | null;
+  // ANNEXE V8 — modules optionnels activés pour ce logement. `[]` = foyer neuf
+  // (rien d'optionnel n'est allumé). Les anciennes versions du serveur peuvent
+  // omettre le champ : le repli sur `[]` est centralisé dans MaisonContext.
+  modules: ModuleCle[];
 }
 
 export interface MaisonListItem extends Maison {
@@ -92,6 +104,8 @@ export interface MaisonUpdateInput extends Partial<MaisonCreateInput> {
   interphone?: string;
   acces?: string;
   surface?: number | null;
+  // ANNEXE V8 — `[]` est légitime (tout couper). Réservé chef/co-chef (403 sinon).
+  modules?: ModuleCle[];
 }
 
 class MaisonService {

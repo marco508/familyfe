@@ -54,11 +54,23 @@ from app.models.schemas import (
     TransfererChefInput,
     VisiteurInput,
 )
+from app.services.notifications import membres_ids, notifier, notifier_maison
 from app.services.regles_rappel import rappeler_regles
 from app.utils.codes import generate_unique_code_invitation
+from app.utils.datetimes import naive_utc
 from app.utils.formatting import public_user
 
 router = APIRouter(tags=["maisons"])
+
+# Libellés lisibles des rôles, pour les notifications (le code technique
+# 'co_chef' n'a rien à faire sous les yeux d'un utilisateur).
+ROLE_LABELS = {
+    "chef": "chef",
+    "co_chef": "co-chef",
+    "chef_temporaire": "chef temporaire",
+    "membre": "membre",
+    "visiteur": "visiteur",
+}
 
 VALID_ROLES_SET = {"co_chef", "chef_temporaire", "membre", "visiteur"}
 VALID_LIENS_FAMILLE = {"pere", "mere", "enfant", "frere", "soeur", "conjoint", "autre"}
@@ -75,6 +87,31 @@ def _serialize_membre(row: dict) -> dict:
     return d
 
 
+# ANNEXE V7 — Découverte progressive.
+# Modules optionnels activables par le foyer. Volontairement PAS dans cette
+# liste (donc toujours actifs, non désactivables) : Aujourd'hui, Tâches, Agenda,
+# Équité, Logement, Inviter, Réglages — c'est le cœur, sans eux l'app n'existe
+# pas.
+MODULES_CONNUS = ["courses", "depenses", "decisions", "jeu", "portefeuille", "chat"]
+
+
+def _serialize_maison(row) -> dict:
+    """Expose `modules` en LISTE (stocké en CSV côté base).
+
+    Le client lit `maison.modules` comme un tableau ; garder le CSV en base
+    évite une table de jointure pour une donnée aussi simple.
+    """
+    d = dict(row)
+    brut = d.get("modules")
+    if brut is None:
+        # Colonne absente du SELECT : on ne devine pas, on renvoie une liste
+        # vide plutôt qu'un `None` qui ferait planter le client.
+        d["modules"] = []
+    else:
+        d["modules"] = [m for m in str(brut).split(",") if m in MODULES_CONNUS]
+    return d
+
+
 @router.post("/maisons", status_code=status.HTTP_201_CREATED)
 async def create_maison(data: MaisonCreateInput, current_user: dict = Depends(get_current_user)):
     """Crée une maison. L'appelant devient chef + membre."""
@@ -86,6 +123,12 @@ async def create_maison(data: MaisonCreateInput, current_user: dict = Depends(ge
             chef_id=current_user["id"],
             emoji=data.emoji or "🏠",
             couleur=data.couleur or "#FF4E9B",
+            # ANNEXE V7 — découverte progressive : un foyer NEUF démarre sans
+            # aucun module optionnel (seuls Aujourd'hui, Tâches, Agenda et
+            # Équité existent). On écrit explicitement "" pour ne PAS hériter du
+            # server_default, qui vaut « tous les modules » et n'est là que pour
+            # préserver les foyers déjà en base lors de la migration.
+            modules="",
         )
     )
     await database.execute(
@@ -94,7 +137,7 @@ async def create_maison(data: MaisonCreateInput, current_user: dict = Depends(ge
         )
     )
     maison = await database.fetch_one(maisons.select().where(maisons.c.id == maison_id))
-    result = dict(maison)
+    result = _serialize_maison(maison)
     result["role"] = "chef"
     result["nb_membres"] = 1
     return result
@@ -107,6 +150,7 @@ async def list_maisons(current_user: dict = Depends(get_current_user)):
         SELECT m.id, m.nom, m.code_invitation, m.chef_id, m.emoji, m.couleur, m.date_creation,
                m.type_logement, m.adresse, m.complement, m.code_postal, m.ville, m.pays,
                m.etage, m.numero_appartement, m.digicode, m.interphone, m.acces, m.surface,
+               m.modules,
                mm.role AS role,
                (SELECT COUNT(*) FROM membres_maison WHERE maison_id = m.id) AS nb_membres
         FROM maisons m
@@ -115,7 +159,7 @@ async def list_maisons(current_user: dict = Depends(get_current_user)):
         ORDER BY m.date_creation DESC
     """
     rows = await database.fetch_all(query, values={"uid": current_user["id"]})
-    return [dict(r) for r in rows]
+    return [_serialize_maison(r) for r in rows]
 
 
 @router.get("/portefeuille")
@@ -167,7 +211,7 @@ async def get_maison(maison_id: int, current_user: dict = Depends(get_current_us
         "SELECT COUNT(*) AS n FROM pieces WHERE maison_id = :mid", values={"mid": maison_id}
     )
 
-    result = dict(maison)
+    result = _serialize_maison(maison)
     result["role"] = role
     result["nb_pieces"] = nb_pieces_row["n"] if nb_pieces_row else 0
     result["membres"] = [_serialize_membre(r) for r in membres_rows]
@@ -216,12 +260,23 @@ async def update_maison(
         values["acces"] = data.acces
     if data.surface is not None:
         values["surface"] = data.surface
+    # ANNEXE V7 — Découverte progressive : activation/désactivation des modules.
+    # `[]` (tout désactiver) est légitime, d'où le test sur `is not None`.
+    if data.modules is not None:
+        inconnus = [m for m in data.modules if m not in MODULES_CONNUS]
+        if inconnus:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Module(s) inconnu(s) : {', '.join(inconnus)}",
+            )
+        # dédoublonnage + ordre stable, pour un CSV déterministe en base.
+        values["modules"] = ",".join([m for m in MODULES_CONNUS if m in set(data.modules)])
 
     if values:
         await database.execute(maisons.update().where(maisons.c.id == maison_id).values(**values))
 
     maison = await database.fetch_one(maisons.select().where(maisons.c.id == maison_id))
-    return dict(maison)
+    return _serialize_maison(maison)
 
 
 @router.delete("/maisons/{maison_id}")
@@ -355,6 +410,17 @@ async def join_maison(
     # ANNEXE V4 — rappel des règles à quiconque rejoint la maison.
     await rappeler_regles(maison["id"], current_user["id"])
 
+    # ANNEXE V8 — le foyer apprend l'arrivée. `exclure` évite d'annoncer à
+    # l'arrivant qu'il vient d'arriver.
+    await notifier_maison(
+        maison["id"],
+        type="maison",
+        titre="👋 Nouveau membre",
+        message=f"{current_user['nom']} a rejoint {maison['nom']}",
+        lien=f"maison:{maison['id']}",
+        exclure=current_user["id"],
+    )
+
     result = dict(maison)
     result["role"] = "membre"
     return result
@@ -456,6 +522,22 @@ async def add_membre(
     )
     # ANNEXE V4 — rappel des règles à quiconque est ajouté à la maison.
     await rappeler_regles(maison_id, data.utilisateur_id)
+
+    # ANNEXE V8 — même événement que /maisons/join, par l'autre porte : ici
+    # quelqu'un ajoute un tiers. Deux exclusions différentes, donc `notifier`
+    # plutôt que `notifier_maison` : l'auteur (via `exclure`) et le nouvel
+    # arrivant lui-même (via le filtre), à qui « X a rejoint le foyer » quand X
+    # c'est lui n'apprendrait rien.
+    autres = [i for i in await membres_ids(maison_id) if i != data.utilisateur_id]
+    await notifier(
+        autres,
+        type="maison",
+        titre="👋 Nouveau membre",
+        message=f"{user['nom']} a rejoint le foyer",
+        maison_id=maison_id,
+        lien=f"maison:{maison_id}",
+        exclure=current_user["id"],
+    )
 
     return public_user(user)
 
@@ -567,11 +649,13 @@ async def set_role(
     if data.role is not None:
         values["role"] = data.role
         # Les champs d'expiration ne concernent que le rôle correspondant.
+        # naive_utc : colonnes TIMESTAMP naïves, le client peut envoyer de l'UTC
+        # aware (« Z ») — asyncpg refuserait un datetime aware ou une chaîne.
         if data.role == "chef_temporaire":
-            values["role_expire_le"] = data.expire_le
+            values["role_expire_le"] = naive_utc(data.expire_le)
             values["visite_expire_le"] = None
         elif data.role == "visiteur":
-            values["visite_expire_le"] = data.expire_le
+            values["visite_expire_le"] = naive_utc(data.expire_le)
             values["role_expire_le"] = None
         else:
             values["role_expire_le"] = None
@@ -591,6 +675,20 @@ async def set_role(
     # Passage au rôle visiteur : rappel des règles.
     if data.role == "visiteur":
         await rappeler_regles(maison_id, uid)
+
+    # ANNEXE V8 — l'intéressé (et lui seul) est prévenu : c'est SON pouvoir dans
+    # le foyer qui change. On ne notifie que sur un vrai changement de rôle, pas
+    # sur une retouche de lien familial ou du profil enfant.
+    if data.role is not None and data.role != role:
+        await notifier(
+            [uid],
+            type="maison",
+            titre="🔑 Ton rôle a changé",
+            message=f"Tu es maintenant {ROLE_LABELS.get(data.role, data.role)} de {maison['nom']}",
+            maison_id=maison_id,
+            lien=f"maison:{maison_id}",
+            exclure=current_user["id"],
+        )
 
     updated = await database.fetch_one(
         MEMBRE_FIELDS_SQL
@@ -625,7 +723,19 @@ async def set_chef_temporaire(
             (membres_maison.c.maison_id == maison_id)
             & (membres_maison.c.utilisateur_id == data.utilisateur_id)
         )
-        .values(role="chef_temporaire", role_expire_le=data.expire_le, visite_expire_le=None)
+        .values(role="chef_temporaire", role_expire_le=naive_utc(data.expire_le), visite_expire_le=None)
+    )
+
+    # ANNEXE V8 — changement de rôle par l'autre porte : on prévient l'intéressé,
+    # qui hérite de responsabilités sans forcément l'avoir demandé.
+    await notifier(
+        [data.utilisateur_id],
+        type="maison",
+        titre="🔑 Ton rôle a changé",
+        message=f"Tu es maintenant chef temporaire de {maison['nom']}",
+        maison_id=maison_id,
+        lien=f"maison:{maison_id}",
+        exclure=current_user["id"],
     )
 
     updated = await database.fetch_one(
@@ -659,7 +769,7 @@ async def set_visiteur(
                 maison_id=maison_id,
                 utilisateur_id=data.utilisateur_id,
                 role="visiteur",
-                visite_expire_le=data.expire_le,
+                visite_expire_le=naive_utc(data.expire_le),
             )
         )
     else:
@@ -672,7 +782,7 @@ async def set_visiteur(
                 (membres_maison.c.maison_id == maison_id)
                 & (membres_maison.c.utilisateur_id == data.utilisateur_id)
             )
-            .values(role="visiteur", visite_expire_le=data.expire_le, role_expire_le=None)
+            .values(role="visiteur", visite_expire_le=naive_utc(data.expire_le), role_expire_le=None)
         )
 
     # Rappel des règles (regles_vues_le=NULL + notification).
@@ -722,6 +832,21 @@ async def transferer_chef(
             .where((membres_maison.c.maison_id == maison_id) & (membres_maison.c.utilisateur_id == current_user["id"]))
             .values(role="membre")
         )
+
+    # ANNEXE V8 — TOUT le foyer est prévenu : savoir qui décide n'est pas une
+    # affaire privée entre l'ancien et le nouveau chef. Notifié hors transaction
+    # (une notification qui échoue ne doit pas annuler le transfert).
+    nouveau = await database.fetch_one(
+        "SELECT nom FROM utilisateurs WHERE id = :uid", values={"uid": data.utilisateur_id}
+    )
+    await notifier_maison(
+        maison_id,
+        type="maison",
+        titre="👑 Nouveau chef",
+        message=f"{nouveau['nom'] if nouveau else 'Un membre'} est désormais chef de {maison['nom']}",
+        lien=f"maison:{maison_id}",
+        exclure=current_user["id"],
+    )
 
     updated = await database.fetch_one(maisons.select().where(maisons.c.id == maison_id))
     result = dict(updated)

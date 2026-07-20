@@ -36,7 +36,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         raise credentials_exception
 
     query = """
-        SELECT id, nom, email, telephone, image, date_naissance, date_creation, token_version
+        SELECT id, nom, email, telephone, image, date_naissance, date_creation, token_version,
+               notif_desactivees
         FROM utilisateurs WHERE id = :uid
     """
     user = await database.fetch_one(query, values={"uid": uid})

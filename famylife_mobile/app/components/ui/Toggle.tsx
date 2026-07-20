@@ -27,7 +27,13 @@ export default function Toggle({ value, onValueChange, disabled }: Props) {
   const translateX = translate.interpolate({ inputRange: [0, 1], outputRange: [2, 22] });
 
   return (
-    <Pressable onPress={handlePress} disabled={disabled} hitSlop={8}>
+    <Pressable
+      onPress={handlePress}
+      disabled={disabled}
+      hitSlop={8}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value, disabled: !!disabled }}
+    >
       <Animated.View
         style={[
           styles.track,

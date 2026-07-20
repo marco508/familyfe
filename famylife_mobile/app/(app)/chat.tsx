@@ -16,6 +16,7 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
+import ModuleInactif from '../components/ModuleInactif';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
@@ -27,7 +28,8 @@ import { typography, spacing, borderRadius } from '../theme/designTokens';
 const POLL_INTERVAL_MS = 8000;
 
 export default function ChatScreen() {
-  const { maisonActive } = useMaison();
+  const { maisonActive, isModuleActif } = useMaison();
+  const chatActif = isModuleActif('chat');
   const { user } = useAuth();
   const { colors } = useTheme();
   const { t, lang } = useT();
@@ -63,11 +65,14 @@ export default function ChatScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // ANNEXE V8 — module éteint : ne pas lancer le polling (une requête
+      // toutes les 8 s pour un écran qui n'affiche qu'un état "désactivé").
+      if (!chatActif) return;
       load();
       const interval = setInterval(() => load(true), POLL_INTERVAL_MS);
       return () => clearInterval(interval);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [load])
+    }, [load, chatActif])
   );
 
   useEffect(() => {
@@ -90,6 +95,10 @@ export default function ChatScreen() {
 
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+
+  // ANNEXE V8 — après les hooks (règle des hooks). La route reste vivante ; on
+  // explique au lieu de rediriger.
+  if (!chatActif) return <ModuleInactif cle="chat" />;
 
   return (
     <ScreenBackground>

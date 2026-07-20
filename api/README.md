@@ -84,7 +84,8 @@ s'appuie sur les migrations.
 Certains effets de bord ne sont plus déclenchés à la lecture mais exécutés en
 arrière-plan par APScheduler (`app/services/scheduler.py`), démarré avec l'app :
 
-- rotations d'activités et gages de tâches en retard : toutes les 5 minutes ;
+- gages de tâches en retard : toutes les 5 minutes (les activités, elles, n'ont
+  pas de rotation : c'est un moment à vivre ensemble, pas une corvée) ;
 - notifications d'anniversaire : toutes les heures (idempotent).
 
 Ces jobs sont sûrs à rejouer (claims atomiques + clés d'idempotence).

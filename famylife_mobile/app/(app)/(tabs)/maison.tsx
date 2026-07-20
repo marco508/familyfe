@@ -675,7 +675,9 @@ export default function MaisonScreen() {
         <ActivityIndicator style={{ marginTop: spacing.md }} color={colors.primary.main} />
       ) : pieces.length === 0 ? (
         <CandyCard style={{ marginBottom: spacing.xl }}>
-          <Text style={[styles.emptyInlineText, { color: colors.text.body }]}>{t('pieces.aucunePiece')}</Text>
+          <Text style={[styles.emptyInlineText, { color: colors.text.body }]}>
+            {isGestion ? t('pieces.ajouterBouton') : t('pieces.aucunePiece')}
+          </Text>
         </CandyCard>
       ) : (
         <View style={{ marginBottom: spacing.xl }}>

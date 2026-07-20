@@ -21,7 +21,12 @@ async def list_notifications(
 ):
     query = "SELECT * FROM notifications WHERE utilisateur_id = :uid"
     if non_lues:
-        query += " AND lu = 0"
+        # `lu` est un vrai booléen en Postgres : « lu = 0 » y provoque
+        # « operator does not exist: boolean = integer ». On écrit FALSE/TRUE,
+        # que SQLite comprend aussi (alias de 0/1). SQLite n'avait jamais levé
+        # l'erreur car ses booléens SONT des entiers — d'où le bug invisible en
+        # dev et révélé seulement sur le VPS.
+        query += " AND lu = FALSE"
     query += " ORDER BY date_creation DESC, id DESC LIMIT :lim OFFSET :off"
     rows = await database.fetch_all(
         query, values={"uid": current_user["id"], "lim": limit, "off": offset}
@@ -37,7 +42,7 @@ async def list_notifications(
 @router.get("/notifications/compteur")
 async def compteur_non_lues(current_user: dict = Depends(get_current_user)):
     row = await database.fetch_one(
-        "SELECT COUNT(*) AS n FROM notifications WHERE utilisateur_id = :uid AND lu = 0",
+        "SELECT COUNT(*) AS n FROM notifications WHERE utilisateur_id = :uid AND lu = FALSE",
         values={"uid": current_user["id"]},
     )
     return {"non_lues": row["n"] if row else 0}
@@ -59,7 +64,7 @@ async def marquer_lu(notif_id: int, current_user: dict = Depends(get_current_use
 @router.post("/notifications/lu-tout")
 async def marquer_tout_lu(current_user: dict = Depends(get_current_user)):
     await database.execute(
-        "UPDATE notifications SET lu = 1 WHERE utilisateur_id = :uid",
+        "UPDATE notifications SET lu = TRUE WHERE utilisateur_id = :uid",
         values={"uid": current_user["id"]},
     )
     return {"message": "Toutes les notifications sont lues"}

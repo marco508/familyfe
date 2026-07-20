@@ -7,15 +7,106 @@ notifications) et planifie des rappels locaux pour les activités/événements d
 """
 import asyncio
 import logging
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Set
 
-from app.database.database import database, notifications
+from app.database.database import database, notifications, utilisateurs
 
 logger = logging.getLogger(__name__)
 
 # Garde une référence aux tâches push détachées le temps de leur exécution
 # (sinon le garbage collector peut les annuler prématurément).
 _background_tasks: set = set()
+
+
+# ==================== ANNEXE V8 — Catégories de notification ====================
+#
+# Source unique de vérité du mapping type → catégorie. Les `type` sont un détail
+# d'implémentation (une quinzaine, techniques) ; les CATÉGORIES sont ce que
+# l'utilisateur voit et coupe dans ses réglages (8, métier). Tout `type` émis
+# DOIT figurer ici, sinon il échappe silencieusement aux préférences.
+#
+# Distinction métier volontaire, à ne pas « simplifier » :
+#   - `tache` = corvée ménagère (vaisselle, poubelles)      → corvees
+#   - `activite` = moment à vivre ensemble (restau, ciné)   → sorties
+# Ce sont deux notions différentes : les fondre reviendrait à annoncer un
+# barbecue comme une corvée.
+
+CATEGORIES: List[str] = [
+    "corvees",
+    "sorties",
+    "decisions",
+    "depenses",
+    "courses",
+    "chat",
+    "jeu",
+    "foyer",
+]
+
+CATEGORIE_PAR_TYPE = {
+    # Corvées ménagères (et leur rotation entre membres).
+    "tache": "corvees",
+    # `rotation` n'est plus ÉMIS (les activités n'ont plus de rotation, et les
+    # tâches notifient en type `tache`), mais des notifications historiques de ce
+    # type existent déjà en base : on garde le mapping pour qu'elles restent
+    # classées dans la bonne catégorie au lieu de tomber en fail-open.
+    "rotation": "corvees",
+    # Moments à vivre ensemble + agenda.
+    "activite": "sorties",
+    "evenement": "sorties",
+    # Vie démocratique du foyer.
+    "vote": "decisions",
+    "regle": "decisions",
+    # Argent.
+    "depense": "depenses",
+    # Ravitaillement.
+    "course": "courses",
+    "repas": "courses",
+    # Discussion.
+    "chat": "chat",
+    # Ludique (points, récompenses, défis).
+    "boutique": "jeu",
+    "defi": "jeu",
+    # Vie du foyer lui-même (membres, rôles, pièces, anniversaires).
+    "maison": "foyer",
+    "piece": "foyer",
+    "anniversaire": "foyer",
+}
+
+
+def parse_categories(brut: Optional[str]) -> List[str]:
+    """CSV stocké en base → liste de catégories valides (ignore l'inconnu)."""
+    if not brut:
+        return []
+    return [c for c in str(brut).split(",") if c in CATEGORIES]
+
+
+def serialize_categories(valeurs: Iterable[str]) -> str:
+    """Liste → CSV déterministe (dédoublonné, ordre de CATEGORIES)."""
+    choisies = set(valeurs)
+    return ",".join([c for c in CATEGORIES if c in choisies])
+
+
+async def _retirer_desabonnes(cibles: Set[int], type: str) -> Set[int]:
+    """Retire les destinataires ayant désactivé la catégorie de ce `type`.
+
+    Filtrage CENTRAL : appelé par `notifier()`, donc valable pour tous les
+    routeurs et — c'est le point important — appliqué AVANT `_schedule_push`,
+    si bien qu'une catégorie coupée ne déclenche ni notification in-app ni push.
+
+    Un `type` non mappé n'est jamais filtré : on préfère une notification de trop
+    qu'une notification perdue en silence (fail-open assumé).
+    """
+    categorie = CATEGORIE_PAR_TYPE.get(type)
+    if not categorie or not cibles:
+        return cibles
+
+    rows = await database.fetch_all(
+        utilisateurs.select()
+        .with_only_columns(utilisateurs.c.id, utilisateurs.c.notif_desactivees)
+        .where(utilisateurs.c.id.in_(list(cibles))),
+    )
+    refus = {r["id"] for r in rows if categorie in parse_categories(r["notif_desactivees"])}
+    return cibles - refus
 
 
 async def membres_ids(maison_id: int) -> List[int]:
@@ -47,6 +138,12 @@ async def notifier(
     Expo best-effort (ANNEXE V3) — voir `app.services.push`.
     """
     cibles = {uid for uid in user_ids if not (exclure is not None and uid == exclure)}
+    if not cibles:
+        return
+
+    # Préférences par catégorie (ANNEXE V8) : appliquées ICI et nulle part
+    # ailleurs. Les routeurs n'ont pas à connaître les réglages de l'utilisateur.
+    cibles = await _retirer_desabonnes(cibles, type)
     if not cibles:
         return
 

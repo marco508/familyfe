@@ -11,6 +11,7 @@ interface AuthContextData {
   signup: (data: SignupData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<{ ok: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -98,6 +99,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  // Suppression définitive du compte. En cas de succès, on remet l'état à zéro
+  // EXACTEMENT comme `logout` (setUser(null)) : `(app)/_layout.tsx` bascule
+  // alors sur <Redirect href="/(auth)/login" /> puisque isAuthenticated = !!user.
+  // En cas d'échec (mot de passe faux / erreur), on NE touche PAS à l'état et on
+  // renvoie l'erreur à l'appelant : l'utilisateur reste connecté.
+  const deleteAccount = async (password: string) => {
+    const response = await authService.deleteAccount(password);
+    if (response.error) {
+      return { ok: false, error: response.error };
+    }
+    setUser(null);
+    return { ok: true };
+  };
+
   const refreshProfile = async () => {
     await loadUserProfile();
   };
@@ -112,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         logout,
         logoutAll,
+        deleteAccount,
         refreshProfile,
       }}
     >

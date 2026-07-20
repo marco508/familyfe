@@ -6,10 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.database.database import courses_items, database, repas
 from app.dependencies import get_current_user, require_membre, require_not_visiteur
 from app.models.schemas import RepasCreateInput, RepasUpdateInput, RepasVersCoursesInput
+from app.services.notifications import notifier_maison
 
 router = APIRouter(tags=["repas"])
 
 VALID_MOMENTS = {"petit_dej", "midi", "soir"}
+
+# Libellés lisibles des moments, pour les notifications.
+MOMENT_LABELS = {"petit_dej": "petit-déjeuner", "midi": "midi", "soir": "soir"}
 
 
 async def _get_or_404(repas_id: int) -> dict:
@@ -50,6 +54,19 @@ async def create_repas(maison_id: int, data: RepasCreateInput, current_user: dic
             maison_id=maison_id, date=data.date, moment=data.moment, titre=data.titre, notes=data.notes
         )
     )
+
+    # ANNEXE V8 — le menu concerne tout le foyer (savoir ce qu'on mange, et
+    # qu'on n'a pas à s'en occuper). Pas d'anti-spam ici, contrairement aux
+    # courses : on planifie un repas à la fois, pas par rafales de douze.
+    await notifier_maison(
+        maison_id,
+        type="repas",
+        titre="🍽️ Repas planifié",
+        message=f"{data.titre} — {data.date} ({MOMENT_LABELS.get(data.moment, data.moment)})",
+        lien=f"repas:{repas_id}",
+        exclure=current_user["id"],
+    )
+
     return await _get_or_404(repas_id)
 
 

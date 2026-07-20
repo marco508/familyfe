@@ -29,6 +29,15 @@ class UpdateMeInput(BaseModel):
     date_naissance: Optional[date] = None
 
 
+class DeleteAccountInput(BaseModel):
+    """Ré-authentification obligatoire avant suppression du compte (RGPD).
+
+    On demande le mot de passe en clair pour confirmer que c'est bien le
+    titulaire du compte (et non un token volé) qui déclenche l'effacement.
+    """
+    password: str
+
+
 # ==================== Users ====================
 
 class TelephonesInput(BaseModel):
@@ -60,6 +69,10 @@ class MaisonUpdateInput(BaseModel):
     interphone: Optional[str] = None
     acces: Optional[str] = None
     surface: Optional[float] = None
+    # ANNEXE V7 — Découverte progressive : liste des modules optionnels actifs
+    # (ex: ["courses", "depenses"]). Une liste VIDE est une valeur légitime
+    # (tout désactiver) — le routeur distingue donc « absent » de « vide ».
+    modules: Optional[List[str]] = None
 
 
 class MaisonJoinInput(BaseModel):
@@ -203,10 +216,10 @@ class ActiviteCreateInput(BaseModel):
     # Effets de gage paramétrables (appliqués à la résolution du gage).
     gage_effets_echec: Optional[List[Dict[str, Any]]] = None
     gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
-    # Rotation / relais de tours (optionnel, paramétrable)
-    rotation_active: Optional[bool] = False
-    rotation_ordre: Optional[List[int]] = None    # ordre des membres qui prennent le tour
-    rotation_delai_jours: Optional[int] = 0       # délai avant passage au suivant
+    # Pas de champs rotation_* ici : une activité est un moment à vivre ensemble,
+    # elle ne « tourne » pas entre les membres (la rotation reste sur les tâches).
+    # Un vieux client (APK déjà installé) peut encore en envoyer : Pydantic les
+    # ignore silencieusement par défaut (extra='ignore'), donc pas de 500.
     # Récurrence : 'aucune' | 'quotidien' | 'hebdo' | 'mensuel'
     recurrence: Optional[str] = "aucune"
     # ANNEXE V4 — activité sociale : visibilité restreinte à des participants
@@ -231,10 +244,8 @@ class ActiviteUpdateInput(BaseModel):
     points_recompense: Optional[int] = None
     gage_effets_echec: Optional[List[Dict[str, Any]]] = None
     gage_effets_reussite: Optional[List[Dict[str, Any]]] = None
-    # Rotation / relais de tours
-    rotation_active: Optional[bool] = None
-    rotation_ordre: Optional[List[int]] = None
-    rotation_delai_jours: Optional[int] = None
+    # Pas de champs rotation_* (voir ActiviteCreateInput) : ceux qu'un ancien
+    # client enverrait encore sont ignorés silencieusement.
     recurrence: Optional[str] = None
     # ANNEXE V4
     visibilite: Optional[str] = None
@@ -398,3 +409,15 @@ class DefiCreateInput(BaseModel):
 
 class PushTokenInput(BaseModel):
     token: str
+
+
+# ==================== ANNEXE V8 — Préférences de notification ====================
+
+class NotificationsPrefsInput(BaseModel):
+    """Catégories que l'utilisateur ne veut PLUS recevoir.
+
+    `None` (champ absent) et `[]` (liste vide) sont deux choses différentes :
+    le premier est une requête malformée, le second réactive tout. D'où le
+    défaut à None plutôt qu'à [].
+    """
+    desactivees: Optional[List[str]] = None

@@ -7,8 +7,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Users, DoorOpen, Ruler } from 'lucide-react-native';
 import ScreenBackground from '../components/ScreenBackground';
+import ModuleInactif from '../components/ModuleInactif';
 import { useT } from '../src/i18n';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useMaison } from '../src/contexts/MaisonContext';
 import portefeuilleService, { MaisonPortefeuille } from '../src/services/portefeuilleService';
 import { CandyCard, EmptyState } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
@@ -17,6 +19,7 @@ import { logementIcon, logementLabel } from '../src/utils/logement';
 export default function PortefeuilleScreen() {
   const { colors, gradients } = useTheme();
   const { t } = useT();
+  const { isModuleActif } = useMaison();
 
   const [maisons, setMaisons] = useState<MaisonPortefeuille[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +51,10 @@ export default function PortefeuilleScreen() {
     const parts = [m.ville, m.code_postal].filter(Boolean);
     return parts.length > 0 ? parts.join(' · ') : t('logement.nonRenseigne');
   };
+
+  // ANNEXE V8 — après les hooks (règle des hooks). La route reste vivante ; on
+  // explique au lieu de rediriger.
+  if (!isModuleActif('portefeuille')) return <ModuleInactif cle="portefeuille" />;
 
   return (
     <ScreenBackground>

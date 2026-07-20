@@ -27,11 +27,16 @@ const en: TranslationDict = {
     dejaCompte: 'Already have an account?',
   },
   nav: {
-    accueil: 'Home',
-    activites: 'Tasks',
+    // Main tabs, aligned with the core job: my day, the chores, what's coming,
+    // how the load is shared.
+    accueil: 'Today',
+    taches: 'Chores',
     agenda: 'Calendar',
-    votes: 'Polls',
+    equite: 'Balance',
     plus: 'More',
+    // Routes kept but removed from the tab bar.
+    activites: 'Activities',
+    votes: 'Polls',
     maison: 'Home',
   },
   gage: {
@@ -39,7 +44,8 @@ const en: TranslationDict = {
     siReussie: 'If completed (reward)',
     ajouterEffet: '+ effect',
     typePoints: 'Points',
-    typeTache: 'Task',
+    // ANNEXE V10 — a "tache" effect creates a household CHORE, not a generic task.
+    typeTache: 'Chore',
     typeAmende: 'Fine',
     typeNote: 'Note',
     pointsLabel: 'Points (negative = penalty)',
@@ -49,7 +55,7 @@ const en: TranslationDict = {
     amendeMontant: 'Fine amount (€) — paid to the kitty',
     noteMessage: 'Message',
     notePlaceholder: 'Silly hat all day',
-    effetTache: '+ task',
+    effetTache: '+ chore',
     effetNote: 'note',
     semainesCorvee: 'Weeks of chores on first miss',
     semainesCorveeAide:
@@ -70,6 +76,10 @@ const en: TranslationDict = {
     chargement: 'Loading…',
     erreur: 'Error',
     reessayer: 'Retry',
+    // CRITIQUE UX — error states: tell "empty" apart from "broken".
+    erreurChargement: 'Unable to load',
+    erreurReseau: 'Check your connection and try again.',
+    retour: 'Back',
     aucunResultat: 'No results',
     voirTout: 'See all',
     confirmer: 'Confirm',
@@ -94,6 +104,15 @@ const en: TranslationDict = {
     rienPrevu: 'Nothing planned for this day',
     ajouterEvenement: 'Add an event with the + button',
     nouvelEvenement: 'New event 🎈',
+    // ANNEXE V11 — activity → event merge: a single dated, shared concept. Only
+    // events are created now; legacy activities stay readable and shown with no
+    // type distinction. "Who's coming?" is handled afterwards, via the RSVP on
+    // the detail screen.
+    nouveau: 'New event',
+    aideEvenement: 'A moment to share: a birthday, an outing, an appointment…',
+    ajouterQuelqueChose: 'Add an event with the + button',
+    chaqueSemaine: 'Every week on this day',
+    sansDate: 'No date',
   },
   statut: {
     aFaire: 'Upcoming',
@@ -105,8 +124,15 @@ const en: TranslationDict = {
     corveesEnRetard: 'Overdue chores',
     accesRapide: 'Quick access',
     aVenir: 'Upcoming',
-    aujourdhui: 'Today',
-    aucuneActivite: 'No tasks planned for today 🎉',
+    // ANNEXE V10 — two opposite natures, two sections, two tones.
+    // A chore is a DUTY: you name it, you share it out, you tick it off.
+    // An activity is a WANT: you suggest it, you join in.
+    corveesDuJour: "Today's chores",
+    corveesSousTitre: 'The housework, shared between us',
+    aucuneCorvee: 'No chores today — well deserved 🎉',
+    ensemble: 'What we do together',
+    ensembleSousTitre: 'A dinner out, a picnic, a barbecue…',
+    aucunEnsemble: 'Nothing planned together today. How about suggesting something?',
     prochainsEvenements: 'Upcoming events',
     rienPrevu: 'Nothing planned yet 🗓️',
     votesOuverts: 'Open polls',
@@ -142,6 +168,64 @@ const en: TranslationDict = {
     portefeuille: 'Portfolio',
     equite: 'Fairness',
     inviter: 'Invite',
+    // ANNEXE V7 — sober grouped list (replaces the grid of 14 tiles)
+    groupeFoyer: 'The household',
+    groupeLogement: 'The home',
+    groupeReglages: 'Settings',
+    coursesRepas: 'Shopping & meals',
+    decisions: 'Decisions',
+    inviterMembres: 'Invite members',
+    // ANNEXE V8 — progressive discovery
+    modules: 'Modules',
+    activerAutres: 'Turn on more features',
+  },
+  // ANNEXE V8 — progressive discovery: a new household only sees the essentials
+  modules: {
+    titre: 'Modules',
+    sousTitre: 'Choose what your household uses',
+    intro:
+      'Turn on only what you need. You can change your mind at any time: nothing is lost, your data stays put and comes back as soon as you switch it on again.',
+    toujoursActifs: 'Today, Chores, Calendar, Fairness, Home, Invite and Settings are always available.',
+    lectureSeule: 'Only the head of the home can turn modules on or off.',
+    erreur: 'Could not save this change. Please try again.',
+    coursesTitre: 'Shopping & meals',
+    coursesDesc: 'The shared shopping list and the weekly menu.',
+    depensesTitre: 'Expenses',
+    depensesDesc: 'Who paid for what, and who owes whom.',
+    decisionsTitre: 'Decisions',
+    decisionsDesc: 'Vote as a family and agree on the house rules.',
+    jeuTitre: 'Points & rewards',
+    jeuDesc: 'Leaderboard, challenges and rewards: turning chores into a game.',
+    portefeuilleTitre: 'Portfolio',
+    portefeuilleDesc: 'Manage several homes you are the head of.',
+    chatTitre: 'Chat',
+    chatDesc: 'Chat inside the app (most families already use WhatsApp).',
+    // Shown on a disabled module's screen (the route stays alive: deep links,
+    // notifications).
+    inactifTitre: 'This module is not turned on',
+    inactifMessage: 'Turn it on to bring this feature back to the menu.',
+    inactifMessageMembre: 'Ask the head of the home to turn it on in Settings → Modules.',
+    inactifAction: 'Turn this module on',
+    // ANNEXE V10 — discoverability: "I turned an option on, where do I see it?".
+    // Every module can say where it lives. Shown permanently under each active
+    // module, and echoed in the confirmation when you switch one on.
+    ouCourses: 'More ▸ Shopping & meals',
+    ouDepenses: 'More ▸ Expenses',
+    ouDecisions: 'More ▸ Decisions',
+    ouChat: 'More ▸ Chat',
+    ouJeu: 'Today ▸ Weekly recap ▸ Fairness (Leaderboard, Challenges, Rewards)',
+    ouPortefeuille: 'Settings ▸ Portfolio (head of the home)',
+    activeConfirmation: '{module} is on — {ou}',
+  },
+  // ANNEXE V7 — "Decisions": Polls + Rules (voting on a rule IS a poll)
+  decisions: {
+    titre: 'Decisions',
+  },
+  // ANNEXE V7 — "Shopping & meals": shopping list + weekly menu
+  coursesRepas: {
+    titre: 'Shopping & meals',
+    segmentCourses: 'Shopping',
+    segmentRepas: 'Meals',
   },
   courses: {
     titre: 'Shopping list',
@@ -153,6 +237,14 @@ const en: TranslationDict = {
     vide: 'Your shopping list is empty',
     achete: 'purchased',
     achetes: 'purchased',
+    // ANNEXE V12 — order (universal sharing: French drive services don't open
+    // their cart to third-party apps).
+    commander: 'Order',
+    commanderTitre: 'Order groceries',
+    commanderIntro:
+      "French drive services don't allow auto-filling the cart. Share the list (the share sheet also offers \"Copy\"), open your store and paste it.",
+    partagerListe: 'Share the list',
+    ouvrirDrive: 'Open a store',
   },
   depenses: {
     titre: 'Expenses',
@@ -165,6 +257,8 @@ const en: TranslationDict = {
     quiDoitQui: 'Who owes what to whom',
     aucuneDette: 'Everyone is settled up, no debts 🎉',
     vide: 'No expenses',
+    videMessage: 'Add an expense with the + button',
+    ajouter: 'Add an expense',
     soldes: 'Balances',
     titrePlaceholder: 'e.g. Weekly groceries',
     categoriePlaceholder: 'e.g. Food',
@@ -199,9 +293,13 @@ const en: TranslationDict = {
     statutDemande: 'Requested',
     statutValide: 'Approved',
     statutRefuse: 'Declined',
+    nouvelleRecompense: 'New reward',
     inactif: 'Inactive',
     description: 'Description',
     active: 'Active',
+    aucuneRecompense: 'No rewards',
+    aucunEchange: 'No exchanges yet',
+    creerBouton: 'Create a reward with the + button',
   },
   defis: {
     titre: 'Challenges',
@@ -213,6 +311,8 @@ const en: TranslationDict = {
     ferme: 'Closed',
     fait: '✅ Done',
     points: 'Points',
+    aucun: 'No challenges',
+    creerBouton: 'Start a challenge with the + button',
   },
   votes: {
     aucunVote: 'No polls',
@@ -254,16 +354,18 @@ const en: TranslationDict = {
     preuve: 'Proof photo',
     ajouterPreuve: 'Add a photo',
     commentaires: 'Comments',
-    titre: 'Tasks',
+    // ANNEXE V10 — this whole block described activities as "tasks", which is
+    // exactly the confusion we are killing: an activity is a shared moment.
+    titre: 'Activities',
     toutes: 'All',
-    aucuneActivite: 'No tasks',
-    ajouterBouton: 'Add a task with the + button',
+    aucuneActivite: 'No activities',
+    ajouterBouton: 'Add an activity with the + button',
     a: 'at',
     reussi: '✅ Done',
     echoue: '❌ Failed',
-    nouvelleActivite: 'New task ✨',
+    nouvelleActivite: 'New activity ✨',
     titreChamp: 'Title',
-    titrePlaceholder: 'e.g. Take out the trash',
+    titrePlaceholder: 'e.g. Barbecue in the park',
     descriptionOptionnelle: 'Description (optional)',
     descriptionPlaceholder: 'Details...',
     echeanceOptionnelle: 'Due date (optional, YYYY-MM-DD)',
@@ -279,14 +381,10 @@ const en: TranslationDict = {
     penalitePlaceholder: 'e.g. Do the dishes for 3 days',
     pointsRecompense: 'Reward points',
     pointsPenalite: 'Penalty points',
-    rotation: 'Rotation',
-    rotationAide: "Tap members in turn order. If a turn isn't completed in time, it automatically moves to the next member.",
-    delaiJours: 'Delay (days)',
-    creerActivite: 'Create the task',
+    creerActivite: 'Create the activity',
     titreObligatoire: 'Title is required',
-    rotationMinMembres: 'Choose at least 2 members for the rotation (in order)',
-    detailTitre: 'Task',
-    introuvable: 'Task not found',
+    detailTitre: 'Activity',
+    introuvable: 'Activity not found',
     recompenseLigne: '🎁 Reward:',
     penaliteLigne: '⚠️ Penalty:',
     gageReussiBadge: '✅ Stakes completed',
@@ -294,11 +392,6 @@ const en: TranslationDict = {
     boutonReussi: 'Completed',
     boutonEchoue: 'Failed',
     enAttenteResolution: '⏳ Awaiting resolution',
-    tourDe: "Turn:",
-    aucunTitulaire: 'No one assigned yet',
-    delaiAvantRelais: 'Delay before automatic handoff:',
-    jourAbrev: 'day(s)',
-    tourSuivant: 'Next turn',
     creeePar: 'Created by',
     echeanceFormat: 'Due date (YYYY-MM-DD)',
     heureFormat: 'Time (HH:MM)',
@@ -307,12 +400,12 @@ const en: TranslationDict = {
     recompenseSiReussiCourt: 'Reward if completed',
     penaliteSiEchoueCourt: 'Penalty if failed',
     enregistreTitre: 'Saved',
-    miseAJour: 'Task updated ✅',
+    miseAJour: 'Activity updated ✅',
     confirmerGageReussi: 'Mark the stakes as completed?',
     confirmerGageEchoue: 'Mark the stakes as failed?',
     gageReussiMessage: 'Reward points will be given to the assignees.',
     gageEchoueMessage: 'Penalty points will be removed from the holder.',
-    supprimerConfirmTitre: 'Delete this task?',
+    supprimerConfirmTitre: 'Delete this activity?',
     permissionPreuveMessage: 'FamiLyfe needs access to your photos to add proof.',
     // ANNEXE V4 — visibility + participants
     visibilite: 'Visibility',
@@ -443,6 +536,32 @@ const en: TranslationDict = {
     heure: 'h ago',
     jour: 'd ago',
   },
+  // ANNEXE V10 — per-category notification preferences.
+  // The server stores the DISABLED categories (`notif_desactivees`); we never
+  // surface that negation: a switch that is on means "I get these".
+  notifsPrefs: {
+    titre: 'Notifications',
+    sousTitre: 'Choose what you receive',
+    intro:
+      'Everything is on by default. Turn off what does not concern you: this setting is yours alone, the other members of the home are not affected.',
+    erreur: 'Could not save this setting. Please try again.',
+    corveesTitre: 'Chores',
+    corveesDesc: "A chore lands on you, your turn is coming, a forfeit hits.",
+    sortiesTitre: 'Outings & calendar',
+    sortiesDesc: 'An activity or an event is planned.',
+    decisionsTitre: 'Decisions',
+    decisionsDesc: 'A vote is open, a rule is proposed.',
+    depensesTitre: 'Expenses',
+    depensesDesc: 'An expense is added, what you owe changes.',
+    coursesTitre: 'Shopping & meals',
+    coursesDesc: 'The shopping list or the menu changes.',
+    chatTitre: 'Chat',
+    chatDesc: 'New messages.',
+    jeuTitre: 'Points & rewards',
+    jeuDesc: 'Challenges, leaderboard, rewards.',
+    foyerTitre: 'Household',
+    foyerDesc: 'A member joins, a role changes, a birthday.',
+  },
   reglages: {
     titre: 'Settings',
     deconnexionTous: 'Log out of all devices',
@@ -454,6 +573,14 @@ const en: TranslationDict = {
     anglais: 'English',
     profil: 'Profile',
     dateNaissance: 'Date of birth',
+    zoneDanger: 'Danger zone',
+    supprimerCompte: 'Delete my account',
+    supprimerCompteTitre: 'Delete your account',
+    supprimerCompteAvertissement:
+      "This action is irreversible. Homes where you are the only member will be deleted along with all their data. If you lead a shared home, leadership will be transferred to another member. Your personal data will be permanently erased.\n\nTo confirm, enter your password.",
+    supprimerCompteConfirmer: 'Delete permanently',
+    motDePasseActuel: 'Your password',
+    motDePasseIncorrect: 'Incorrect password',
   },
   // ANNEXE V4 — Household chores
   taches: {
@@ -556,6 +683,7 @@ const en: TranslationDict = {
     affecterA: 'Assign to',
     personne: 'No one',
     aucunePiece: 'No rooms yet',
+    ajouterBouton: 'Add a room with the + button',
     supprimerConfirmTitre: 'Delete this room?',
   },
   // ANNEXE V4 — Real estate portfolio
@@ -579,6 +707,9 @@ const en: TranslationDict = {
     taches: 'chores',
     points: 'points',
     topLabel: 'Top contributor',
+    // ANNEXE V9 — fairness lost its tab: its signal lives here, and it is
+    // actionable (who takes the next one) rather than merely descriptive.
+    equiteSuggestion: 'The load is uneven — the next chore goes to {nom}',
   },
   // ANNEXE V6 — shareable invitation (adoption)
   inviter: {
@@ -607,6 +738,20 @@ const en: TranslationDict = {
     moyenneAttendue: 'Expected average',
     tache: 'chore',
     taches: 'chores',
+  },
+  // CRITIQUE UX — accessibility: VoiceOver/TalkBack labels for icon-only
+  // buttons (FAB, bell…). Grouped here to keep business namespaces clean.
+  a11y: {
+    nouvelEvenement: 'New event',
+    nouvelleTache: 'New chore',
+    nouvelleDepense: 'New expense',
+    nouveauVote: 'New poll',
+    nouvelleRegle: 'New rule',
+    nouveauDefi: 'New challenge',
+    nouvelleRecompense: 'New reward',
+    notifications: 'Notifications',
+    // {count} replaced in the component (t() does not interpolate).
+    notificationsAvecCompte: 'Notifications, {count} unread',
   },
 };
 

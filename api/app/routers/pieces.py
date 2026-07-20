@@ -4,11 +4,36 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.database.database import database, pieces, taches, tache_pieces, utilisateurs
 from app.dependencies import get_current_user, get_role_in_maison, require_gestion, require_membre
 from app.models.schemas import PieceAffecterInput, PieceCreateInput, PieceUpdateInput
+from app.services.notifications import notifier
 from app.utils.formatting import mini_user
 
 router = APIRouter(tags=["pieces"])
 
 VALID_TYPES = {"chambre", "salon", "cuisine", "salle_de_bain", "bureau", "garage", "autre"}
+
+
+async def _notifier_affectation(
+    piece_id: int, maison_id: int, nom_piece: str, affecte_a, acteur_id: int
+) -> None:
+    """ANNEXE V8 — prévient le SEUL intéressé qu'une pièce lui est confiée.
+
+    Le reste du foyer n'a pas besoin de savoir qui range le garage ; l'intéressé,
+    si : on vient de lui donner une responsabilité. `exclure` couvre le cas du
+    gestionnaire qui s'affecte une pièce à lui-même (il le sait déjà).
+    Une DÉSaffectation (`affecte_a` à None) ne notifie pas : on annonce une
+    responsabilité, pas son retrait.
+    """
+    if affecte_a is None:
+        return
+    await notifier(
+        [affecte_a],
+        type="piece",
+        titre="🚪 Une pièce t'est confiée",
+        message=f"Tu es responsable de « {nom_piece} »",
+        maison_id=maison_id,
+        lien=f"piece:{piece_id}",
+        exclure=acteur_id,
+    )
 
 
 async def _get_piece_or_404(piece_id: int) -> dict:
@@ -73,6 +98,8 @@ async def create_piece(
     piece_id = await database.execute(
         pieces.insert().values(maison_id=maison_id, nom=data.nom, type=type_, affecte_a=affecte_a)
     )
+    # Une pièce peut naître déjà affectée : c'est le même événement.
+    await _notifier_affectation(piece_id, maison_id, data.nom, affecte_a, current_user["id"])
     return await _serialize(await _get_piece_or_404(piece_id))
 
 
@@ -104,6 +131,17 @@ async def update_piece(
 
     if values:
         await database.execute(pieces.update().where(pieces.c.id == piece_id).values(**values))
+
+    # Uniquement sur un VRAI changement d'affectation : un PUT qui renvoie le
+    # même `affecte_a` (édition du nom, par ex.) ne doit pas re-notifier.
+    if "affecte_a" in fournis and data.affecte_a != row["affecte_a"]:
+        await _notifier_affectation(
+            piece_id,
+            row["maison_id"],
+            values.get("nom", row["nom"]),
+            data.affecte_a,
+            current_user["id"],
+        )
 
     return await _serialize(await _get_piece_or_404(piece_id))
 
@@ -141,4 +179,10 @@ async def affecter_piece(
     await database.execute(
         pieces.update().where(pieces.c.id == piece_id).values(affecte_a=data.utilisateur_id)
     )
+
+    if data.utilisateur_id != row["affecte_a"]:
+        await _notifier_affectation(
+            piece_id, row["maison_id"], row["nom"], data.utilisateur_id, current_user["id"]
+        )
+
     return await _serialize(await _get_piece_or_404(piece_id))

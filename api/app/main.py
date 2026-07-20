@@ -50,6 +50,12 @@ _COLUMN_MIGRATIONS = {
         ("push_token", "VARCHAR"),
         # ANNEXE V5 — invalidation des JWT
         ("token_version", "INTEGER NOT NULL DEFAULT 0"),
+        # ─── ANNEXE V8 — Préférences de notification ────────────────────────
+        # Contrairement à `maisons.modules` (dont le DEFAULT vaut « tout » pour
+        # préserver l'existant), ici on stocke les catégories DÉSACTIVÉES : le
+        # DEFAULT '' veut déjà dire « tout activé ». Aucun compte déjà en base ne
+        # perd de notification, et les nouveaux comptes ont le même réglage.
+        ("notif_desactivees", "TEXT NOT NULL DEFAULT ''"),
     ],
     "membres_maison": [
         ("points", "INTEGER NOT NULL DEFAULT 0"),
@@ -69,11 +75,11 @@ _COLUMN_MIGRATIONS = {
         ("gage_resultat", "VARCHAR NOT NULL DEFAULT 'en_attente'"),
         ("heure_echeance", "VARCHAR"),
         ("rappel", "INTEGER NOT NULL DEFAULT 1"),
-        ("rotation_active", "INTEGER NOT NULL DEFAULT 0"),
-        ("rotation_ordre", "TEXT"),
-        ("rotation_index", "INTEGER NOT NULL DEFAULT 0"),
-        ("rotation_delai_jours", "INTEGER NOT NULL DEFAULT 0"),
-        ("rotation_echeance", "TIMESTAMP"),
+        # Les colonnes rotation_* ont été retirées : la rotation n'a de sens que
+        # pour les corvées (table `taches`), pas pour un moment à vivre ensemble.
+        # On ne les ajoute plus aux bases neuves, et on ne joue volontairement
+        # AUCUN `DROP COLUMN` sur les bases existantes (mal supporté par SQLite,
+        # sans bénéfice) : elles y restent inertes. Voir database/tables.py.
         ("recurrence", "VARCHAR NOT NULL DEFAULT 'aucune'"),
         ("preuve_url", "VARCHAR"),
         # ANNEXE V4
@@ -109,6 +115,11 @@ _COLUMN_MIGRATIONS = {
         ("interphone", "VARCHAR"),
         ("acces", "TEXT"),
         ("surface", "FLOAT"),
+        # ─── ANNEXE V7 — Découverte progressive ─────────────────────────────
+        # Le DEFAULT vaut tous les modules : appliqué aux foyers DÉJÀ en base,
+        # il garantit qu'aucun d'eux ne perd de fonctionnalité à la migration.
+        # Les nouveaux foyers reçoivent le set minimal via create_maison.
+        ("modules", "TEXT NOT NULL DEFAULT 'courses,depenses,decisions,jeu,portefeuille,chat'"),
     ],
 }
 
@@ -154,7 +165,7 @@ async def lifespan(app: FastAPI):
     logger.info("Application démarrée en mode %s", settings.ENVIRONMENT)
     logger.info("Base de données connectée (%s)", settings.DATABASE_URL)
 
-    # Effets de bord (rotations, gages, anniversaires) : désormais planifiés en
+    # Effets de bord (gages de tâches, anniversaires) : désormais planifiés en
     # arrière-plan plutôt que déclenchés à la lecture. On les applique une fois
     # au démarrage puis on lance le scheduler pour les rejeux périodiques.
     from app.services.scheduler import (

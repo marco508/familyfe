@@ -27,11 +27,16 @@ const fr = {
     dejaCompte: 'Déjà un compte ?',
   },
   nav: {
-    accueil: 'Accueil',
-    activites: 'Activités',
+    // Onglets principaux, alignés sur le cœur de l'app : ma journée, les
+    // corvées, ce qui arrive, la répartition de la charge.
+    accueil: "Aujourd'hui",
+    taches: 'Tâches',
     agenda: 'Agenda',
-    votes: 'Votes',
+    equite: 'Équité',
     plus: 'Plus',
+    // Routes conservées mais retirées de la barre d'onglets.
+    activites: 'Activités',
+    votes: 'Votes',
     maison: 'Logement',
   },
   gage: {
@@ -70,6 +75,10 @@ const fr = {
     chargement: 'Chargement…',
     erreur: 'Erreur',
     reessayer: 'Réessayer',
+    // CRITIQUE UX — états d'erreur : distinguer « vide » de « cassé ».
+    erreurChargement: 'Impossible de charger',
+    erreurReseau: 'Vérifiez votre connexion et réessayez.',
+    retour: 'Retour',
     aucunResultat: 'Aucun résultat',
     voirTout: 'Voir tout',
     confirmer: 'Confirmer',
@@ -94,6 +103,15 @@ const fr = {
     rienPrevu: 'Rien de prévu ce jour',
     ajouterEvenement: 'Ajoutez un événement avec le bouton +',
     nouvelEvenement: 'Nouvel événement 🎈',
+    // ANNEXE V11 — fusion activité → événement : un seul concept daté et
+    // partagé. On ne crée plus que des événements ; les activités héritées
+    // restent lues et affichées sans distinction de type. « Qui vient ? » se
+    // règle après, via le RSVP de l'écran de détail.
+    nouveau: 'Nouvel événement',
+    aideEvenement: 'Un moment à partager : un anniversaire, une sortie, un rendez-vous…',
+    ajouterQuelqueChose: 'Ajoutez un événement avec le bouton +',
+    chaqueSemaine: 'Chaque semaine ce jour-là',
+    sansDate: 'Sans date',
   },
   statut: {
     aFaire: 'À venir',
@@ -105,8 +123,17 @@ const fr = {
     corveesEnRetard: 'Corvées en retard',
     accesRapide: 'Accès rapide',
     aVenir: 'À venir',
-    aujourdhui: "Aujourd'hui",
-    aucuneActivite: "Aucune activité prévue aujourd'hui 🎉",
+    // ANNEXE V10 — deux natures opposées, deux sections, deux tons.
+    // Une corvée est un DEVOIR : on la nomme, on la répartit, on la coche.
+    // Une activité est une ENVIE : on la propose, on y participe.
+    // (L'ancienne clé `aucuneActivite` disait « Aucune activité prévue » pour
+    // une liste de TÂCHES : c'était le cœur de la confusion.)
+    corveesDuJour: 'Corvées du jour',
+    corveesSousTitre: 'Le ménage, réparti entre nous',
+    aucuneCorvee: 'Aucune corvée aujourd’hui — c’est mérité 🎉',
+    ensemble: 'Ce qu’on fait ensemble',
+    ensembleSousTitre: 'Un resto, un pique-nique, un barbecue…',
+    aucunEnsemble: 'Rien de prévu ensemble aujourd’hui. Et si vous proposiez quelque chose ?',
     prochainsEvenements: 'Prochains événements',
     rienPrevu: 'Rien de prévu pour le moment 🗓️',
     votesOuverts: 'Votes ouverts',
@@ -142,6 +169,65 @@ const fr = {
     portefeuille: 'Portefeuille',
     equite: 'Équité',
     inviter: 'Inviter',
+    // ANNEXE V7 — liste sobre et groupée (remplace la grille de 14 tuiles)
+    groupeFoyer: 'Le foyer',
+    groupeLogement: 'Le logement',
+    groupeReglages: 'Réglages',
+    coursesRepas: 'Courses & repas',
+    decisions: 'Décisions',
+    inviterMembres: 'Inviter des membres',
+    // ANNEXE V8 — découverte progressive
+    modules: 'Modules',
+    activerAutres: 'Activer d’autres fonctions',
+  },
+  // ANNEXE V8 — découverte progressive : un foyer neuf ne voit que l'essentiel
+  modules: {
+    titre: 'Modules',
+    sousTitre: 'Choisissez ce que votre foyer utilise',
+    intro:
+      'Activez seulement ce dont vous avez besoin. Vous pouvez changer d’avis à tout moment : rien n’est perdu, vos données restent là et réapparaissent dès la réactivation.',
+    toujoursActifs:
+      'Aujourd’hui, Tâches, Agenda, Équité, Logement, Inviter et Réglages sont toujours disponibles.',
+    lectureSeule: 'Seul le chef du logement peut activer ou désactiver des modules.',
+    erreur: 'Impossible d’enregistrer ce changement. Réessayez.',
+    coursesTitre: 'Courses & repas',
+    coursesDesc: 'La liste de courses partagée et le menu de la semaine.',
+    depensesTitre: 'Dépenses',
+    depensesDesc: 'Qui a payé quoi, et qui doit combien à qui.',
+    decisionsTitre: 'Décisions',
+    decisionsDesc: 'Voter en famille et adopter les règles du logement.',
+    jeuTitre: 'Points & récompenses',
+    jeuDesc: 'Classement, défis et boutique : transformer les corvées en jeu.',
+    portefeuilleTitre: 'Portefeuille',
+    portefeuilleDesc: 'Gérer plusieurs logements dont vous êtes chef.',
+    chatTitre: 'Chat',
+    chatDesc: 'Discuter dans l’app (la plupart des familles utilisent déjà WhatsApp).',
+    // État affiché sur un écran de module désactivé (la route reste vivante :
+    // liens directs, notifications).
+    inactifTitre: 'Ce module n’est pas activé',
+    inactifMessage: 'Activez-le pour retrouver cette fonction dans le menu.',
+    inactifMessageMembre: 'Demandez au chef du logement de l’activer dans Réglages → Modules.',
+    inactifAction: 'Activer ce module',
+    // ANNEXE V10 — découvrabilité : « j'active une option, où est-ce que je la
+    // vois ? ». Chaque module sait dire où il vit. Affiché en permanence sous
+    // chaque module actif, et repris dans la confirmation à l'activation.
+    ouCourses: 'Plus ▸ Courses & repas',
+    ouDepenses: 'Plus ▸ Dépenses',
+    ouDecisions: 'Plus ▸ Décisions',
+    ouChat: 'Plus ▸ Chat',
+    ouJeu: 'Aujourd’hui ▸ Bilan de la semaine ▸ Équité (Classement, Défis, Boutique)',
+    ouPortefeuille: 'Réglages ▸ Portefeuille (chef du logement)',
+    activeConfirmation: '{module} est activé — {ou}',
+  },
+  // ANNEXE V7 — "Décisions" : Votes + Règles (voter une règle EST un vote)
+  decisions: {
+    titre: 'Décisions',
+  },
+  // ANNEXE V7 — "Courses & repas" : liste de courses + menu de la semaine
+  coursesRepas: {
+    titre: 'Courses & repas',
+    segmentCourses: 'Courses',
+    segmentRepas: 'Repas',
   },
   courses: {
     titre: 'Liste de courses',
@@ -153,6 +239,14 @@ const fr = {
     vide: 'Votre liste de courses est vide',
     achete: 'acheté',
     achetes: 'achetés',
+    // ANNEXE V12 — commander (partage universel : les drives français n'ouvrent
+    // pas leur panier aux apps tierces).
+    commander: 'Commander',
+    commanderTitre: 'Commander les courses',
+    commanderIntro:
+      "Les drives français ne permettent pas de remplir le panier automatiquement. Partagez la liste (le partage propose aussi « Copier »), ouvrez votre drive et collez-la.",
+    partagerListe: 'Partager la liste',
+    ouvrirDrive: 'Ouvrir un drive',
   },
   depenses: {
     titre: 'Dépenses',
@@ -165,6 +259,8 @@ const fr = {
     quiDoitQui: 'Qui doit combien à qui',
     aucuneDette: 'Tout le monde est à jour, aucune dette 🎉',
     vide: 'Aucune dépense',
+    videMessage: 'Ajoutez une dépense avec le bouton +',
+    ajouter: 'Ajouter une dépense',
     soldes: 'Soldes',
     titrePlaceholder: 'ex: Courses de la semaine',
     categoriePlaceholder: 'ex: Alimentation',
@@ -202,6 +298,10 @@ const fr = {
     inactif: 'Inactif',
     description: 'Description',
     active: 'Active',
+    nouvelleRecompense: 'Nouvelle récompense',
+    aucuneRecompense: 'Aucune récompense',
+    aucunEchange: 'Aucun échange pour le moment',
+    creerBouton: 'Créez une récompense avec le bouton +',
   },
   defis: {
     titre: 'Défis',
@@ -213,6 +313,8 @@ const fr = {
     ferme: 'Fermé',
     fait: '✅ Fait',
     points: 'Points',
+    aucun: 'Aucun défi',
+    creerBouton: 'Lancez un défi avec le bouton +',
   },
   votes: {
     aucunVote: 'Aucun vote',
@@ -263,7 +365,10 @@ const fr = {
     echoue: '❌ Échoué',
     nouvelleActivite: 'Nouvelle activité ✨',
     titreChamp: 'Titre',
-    titrePlaceholder: 'ex: Sortir les poubelles',
+    // ANNEXE V10 — « Sortir les poubelles » était l'exemple donné pour créer
+    // une ACTIVITÉ : l'app enseignait elle-même la confusion. Une activité,
+    // c'est un moment qu'on partage.
+    titrePlaceholder: 'ex: Barbecue au parc',
     descriptionOptionnelle: 'Description (optionnel)',
     descriptionPlaceholder: 'Détails...',
     echeanceOptionnelle: 'Échéance (optionnel, AAAA-MM-JJ)',
@@ -279,12 +384,8 @@ const fr = {
     penalitePlaceholder: 'ex: Faire la vaisselle 3 jours',
     pointsRecompense: 'Points récompense',
     pointsPenalite: 'Points pénalité',
-    rotation: 'Rotation',
-    rotationAide: "Touchez les membres dans l'ordre des tours. Si le tour n'est pas fait dans le délai, il passe automatiquement au membre suivant.",
-    delaiJours: 'Délai (jours)',
     creerActivite: "Créer l'activité",
     titreObligatoire: 'Le titre est obligatoire',
-    rotationMinMembres: "Choisissez au moins 2 membres pour la rotation (dans l'ordre)",
     detailTitre: 'Activité',
     introuvable: 'Activité introuvable',
     recompenseLigne: '🎁 Récompense :',
@@ -294,11 +395,6 @@ const fr = {
     boutonReussi: 'Réussi',
     boutonEchoue: 'Échoué',
     enAttenteResolution: '⏳ En attente de résolution',
-    tourDe: 'Tour de :',
-    aucunTitulaire: 'Aucun titulaire pour le moment',
-    delaiAvantRelais: 'Délai avant relais automatique :',
-    jourAbrev: 'jour(s)',
-    tourSuivant: 'Tour suivant',
     creeePar: 'Créée par',
     echeanceFormat: 'Échéance (AAAA-MM-JJ)',
     heureFormat: 'Heure (HH:MM)',
@@ -443,6 +539,33 @@ const fr = {
     heure: 'h',
     jour: 'j',
   },
+  // ANNEXE V10 — préférences de notification par catégorie.
+  // Le serveur stocke les catégories DÉSACTIVÉES (`notif_desactivees`) ; ici on
+  // n'affiche jamais cette négation : un interrupteur allumé = « je reçois ».
+  // La conversion se fait dans l'écran, pas dans la tête de l'utilisateur.
+  notifsPrefs: {
+    titre: 'Notifications',
+    sousTitre: 'Choisissez ce que vous recevez',
+    intro:
+      'Tout est activé par défaut. Coupez ce qui ne vous concerne pas : ce réglage n’est que le vôtre, les autres membres du logement ne sont pas affectés.',
+    erreur: 'Impossible d’enregistrer ce réglage. Réessayez.',
+    corveesTitre: 'Corvées',
+    corveesDesc: 'Une corvée t’est confiée, ton tour arrive, un gage tombe.',
+    sortiesTitre: 'Sorties & agenda',
+    sortiesDesc: 'Une activité ou un événement est prévu.',
+    decisionsTitre: 'Décisions',
+    decisionsDesc: 'Un vote est ouvert, une règle est proposée.',
+    depensesTitre: 'Dépenses',
+    depensesDesc: 'Une dépense est ajoutée, ce que tu dois change.',
+    coursesTitre: 'Courses & repas',
+    coursesDesc: 'La liste de courses ou le menu bouge.',
+    chatTitre: 'Chat',
+    chatDesc: 'De nouveaux messages.',
+    jeuTitre: 'Points & récompenses',
+    jeuDesc: 'Défis, classement, boutique.',
+    foyerTitre: 'Foyer',
+    foyerDesc: 'Un membre arrive, un rôle change, un anniversaire.',
+  },
   reglages: {
     titre: 'Réglages',
     deconnexionTous: 'Déconnexion de tous les appareils',
@@ -454,6 +577,14 @@ const fr = {
     anglais: 'Anglais',
     profil: 'Profil',
     dateNaissance: 'Date de naissance',
+    zoneDanger: 'Zone de danger',
+    supprimerCompte: 'Supprimer mon compte',
+    supprimerCompteTitre: 'Supprimer votre compte',
+    supprimerCompteAvertissement:
+      "Cette action est irréversible. Les logements dont vous êtes le seul membre seront supprimés avec toutes leurs données. Si vous dirigez un logement à plusieurs, la direction sera transférée à un autre membre. Vos données personnelles seront définitivement effacées.\n\nPour confirmer, saisissez votre mot de passe.",
+    supprimerCompteConfirmer: 'Supprimer définitivement',
+    motDePasseActuel: 'Votre mot de passe',
+    motDePasseIncorrect: 'Mot de passe incorrect',
   },
   // ANNEXE V4 — Tâches domestiques
   taches: {
@@ -556,6 +687,7 @@ const fr = {
     affecterA: 'Affecter à',
     personne: 'Personne',
     aucunePiece: 'Aucune pièce pour le moment',
+    ajouterBouton: 'Ajoutez une pièce avec le bouton +',
     supprimerConfirmTitre: 'Supprimer cette pièce ?',
   },
   // ANNEXE V4 — Portefeuille immobilier
@@ -579,6 +711,9 @@ const fr = {
     taches: 'tâches',
     points: 'points',
     topLabel: 'Top contributeur',
+    // ANNEXE V9 — l'équité n'a plus d'onglet : son signal vit ici, et il est
+    // actionnable (qui prend la suivante) plutôt que descriptif.
+    equiteSuggestion: 'La charge est déséquilibrée — la prochaine corvée revient à {nom}',
   },
   // ANNEXE V6 — invitation partageable (adoption)
   inviter: {
@@ -607,6 +742,21 @@ const fr = {
     moyenneAttendue: 'Moyenne attendue',
     tache: 'tâche',
     taches: 'tâches',
+  },
+  // CRITIQUE UX — accessibilité : libellés VoiceOver/TalkBack pour les boutons
+  // icône-seule (FAB, cloche…). Regroupés ici pour éviter d'alourdir les
+  // namespaces métier avec des chaînes purement d'a11y.
+  a11y: {
+    nouvelEvenement: 'Nouvel événement',
+    nouvelleTache: 'Nouvelle tâche',
+    nouvelleDepense: 'Nouvelle dépense',
+    nouveauVote: 'Nouveau vote',
+    nouvelleRegle: 'Nouvelle règle',
+    nouveauDefi: 'Nouveau défi',
+    nouvelleRecompense: 'Nouvelle récompense',
+    notifications: 'Notifications',
+    // {count} remplacé côté composant (le t() n'interpole pas).
+    notificationsAvecCompte: 'Notifications, {count} non lues',
   },
 };
 

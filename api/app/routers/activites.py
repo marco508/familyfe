@@ -1,6 +1,9 @@
 # app/routers/activites.py
-import json
-from datetime import date, datetime, timedelta
+#
+# Une activité est un moment à VIVRE ENSEMBLE (restau, pique-nique, barbecue).
+# Elle ne « tourne » donc pas entre les membres : aucune notion de rotation ici.
+# La rotation reste le propre des corvées ménagères → voir routers/taches.py.
+from datetime import date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
@@ -43,18 +46,6 @@ def _next_weekday(d: date, weekday: int) -> date:
     return d + timedelta(days=delta)
 
 
-def _parse_dt(value) -> Optional[datetime]:
-    """Parse une valeur TIMESTAMP (datetime ou str ISO) de façon tolérante."""
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "").split(".")[0])
-    except (ValueError, TypeError):
-        return None
-
-
 def _parse_date(value) -> Optional[date]:
     if value is None:
         return None
@@ -64,18 +55,6 @@ def _parse_date(value) -> Optional[date]:
         return date.fromisoformat(str(value)[:10])
     except (ValueError, TypeError):
         return None
-
-
-def _parse_ordre(value) -> List[int]:
-    if not value:
-        return []
-    if isinstance(value, list):
-        return [int(x) for x in value]
-    try:
-        parsed = json.loads(value)
-        return [int(x) for x in parsed] if isinstance(parsed, list) else []
-    except (ValueError, TypeError):
-        return []
 
 
 def _prochaine_echeance(d: Optional[date], recurrence: str) -> Optional[date]:
@@ -187,20 +166,12 @@ async def _serialize_activite(row: dict) -> dict:
     # SQLite stocke les booléens en 0/1 : on normalise pour le client.
     data["gage_actif"] = bool(data.get("gage_actif"))
     data["rappel"] = bool(data.get("rappel"))
-    data["rotation_active"] = bool(data.get("rotation_active"))
-    data["rotation_ordre"] = _parse_ordre(data.get("rotation_ordre"))
     data["recurrence"] = data.get("recurrence") or "aucune"
     data["visibilite"] = data.get("visibilite") or "maison"
     data["createur"] = await _createur_for(row["createur_id"])
     data["assignes"] = await _assignes_for(row["id"])
     data["participants"] = await _participants_for(row["id"])
     data["sous_taches"] = await _sous_taches_for(row["id"])
-    # Titulaire courant du tour (rotation) pour affichage direct côté client.
-    data["rotation_titulaire"] = None
-    if data["rotation_active"] and data["rotation_ordre"]:
-        idx = int(data.get("rotation_index") or 0) % len(data["rotation_ordre"])
-        holder_id = data["rotation_ordre"][idx]
-        data["rotation_titulaire"] = await _createur_for(holder_id)
     data["gage_effets_echec"] = parse_effets(data.get("gage_effets_echec"))
     data["gage_effets_reussite"] = parse_effets(data.get("gage_effets_reussite"))
     return data
@@ -209,7 +180,7 @@ async def _serialize_activite(row: dict) -> dict:
 async def _creer_occurrence_suivante(row: dict) -> Optional[int]:
     """Récurrence (ANNEXE V3) : quand une activité récurrente se termine, crée
     automatiquement la prochaine occurrence (échéance décalée, statut a_faire,
-    gage/rotation/récurrence conservés, résultat gage remis à en_attente)."""
+    gage/récurrence conservés, résultat gage remis à en_attente)."""
     recurrence = row.get("recurrence") or "aucune"
     if recurrence not in ("quotidien", "hebdo", "mensuel"):
         return None
@@ -245,11 +216,6 @@ async def _creer_occurrence_suivante(row: dict) -> Optional[int]:
             gage_resultat="en_attente",
             recurrence=recurrence,
             visibilite=row.get("visibilite") or "maison",
-            rotation_active=bool(row.get("rotation_active")),
-            rotation_ordre=row.get("rotation_ordre"),
-            rotation_index=int(row.get("rotation_index") or 0),
-            rotation_delai_jours=int(row.get("rotation_delai_jours") or 0),
-            rotation_echeance=None,
             createur_id=row["createur_id"],
         )
     )
@@ -322,96 +288,6 @@ async def _resoudre_gage(row: dict, resultat: str) -> dict:
     return updated
 
 
-async def _avancer_rotation(row: dict, manque: bool) -> dict:
-    """Passe le tour au membre suivant (relais).
-
-    - manque=True  : le titulaire n'a pas fait son tour à temps → pénalité (gage)
-                     éventuelle, puis passage au suivant.
-    - manque=False : le titulaire a terminé son tour → récompense (gage) éventuelle,
-                     puis passage au suivant.
-    Le nouveau titulaire est (ré)assigné, le statut repart à 'a_faire', une nouvelle
-    échéance est posée, et une notification est envoyée.
-    """
-    ordre = _parse_ordre(row.get("rotation_ordre"))
-    if len(ordre) < 1:
-        return await _get_activite_or_404(row["id"])
-
-    idx = int(row.get("rotation_index") or 0) % len(ordre)
-    titulaire = ordre[idx]
-    maison_id = row["maison_id"]
-
-    if row.get("gage_actif"):
-        if manque:
-            await ajuster_points(
-                maison_id, [titulaire], -int(row.get("points_penalite") or 0), motif="rotation:manque"
-            )
-        else:
-            await ajuster_points(
-                maison_id, [titulaire], int(row.get("points_recompense") or 0), motif="rotation:reussite"
-            )
-
-    if manque:
-        pen = row.get("penalite")
-        await notifier(
-            [titulaire],
-            type="rotation",
-            titre="⏰ Tour manqué",
-            message=(
-                f"Tu n'as pas fait « {row['titre']} » à temps."
-                + (f" Gage : {pen}" if pen else "")
-            ),
-            maison_id=maison_id,
-            lien=f"activite:{row['id']}",
-        )
-
-    new_idx = (idx + 1) % len(ordre)
-    new_titulaire = ordre[new_idx]
-    delai = int(row.get("rotation_delai_jours") or 0)
-    new_echeance = datetime.now() + timedelta(days=delai) if delai > 0 else None
-
-    await database.execute(
-        activites.update()
-        .where(activites.c.id == row["id"])
-        .values(rotation_index=new_idx, rotation_echeance=new_echeance, statut="a_faire")
-    )
-    await _set_assignations(maison_id, row["id"], [new_titulaire])
-    await notifier(
-        [new_titulaire],
-        type="rotation",
-        titre="🔄 C'est ton tour !",
-        message=f"À toi de t'occuper de « {row['titre']} ».",
-        maison_id=maison_id,
-        lien=f"activite:{row['id']}",
-    )
-    return await _get_activite_or_404(row["id"])
-
-
-async def _appliquer_rotations_dues(maison_id: int) -> None:
-    """Fait avancer automatiquement les rotations dont l'échéance est dépassée
-    (relais de tour non tenu). Appelé à la consultation de la liste des activités."""
-    rows = await database.fetch_all(
-        activites.select().where(
-            (activites.c.maison_id == maison_id)
-            & (activites.c.rotation_active == True)  # noqa: E712
-        )
-    )
-    now = datetime.now()
-    for r in rows:
-        row = dict(r)
-        if row.get("statut") == "termine":
-            continue
-        echeance = _parse_dt(row.get("rotation_echeance"))
-        ordre = _parse_ordre(row.get("rotation_ordre"))
-        if not echeance or len(ordre) < 1:
-            continue
-        # Avance d'un pas par échéance dépassée (borné pour éviter toute boucle).
-        garde = 0
-        while echeance and now > echeance and garde < len(ordre):
-            row = await _avancer_rotation(row, manque=True)
-            echeance = _parse_dt(row.get("rotation_echeance"))
-            garde += 1
-
-
 async def _set_assignations(maison_id: int, activite_id: int, user_ids: List[int]) -> None:
     await database.execute(
         activite_assignations.delete().where(activite_assignations.c.activite_id == activite_id)
@@ -440,9 +316,6 @@ async def list_activites(
 ):
     await require_membre(maison_id, current_user["id"])
 
-    # Les rotations échues sont désormais avancées par le scheduler
-    # (app/services/scheduler.py), plus à la lecture — évite les effets de bord
-    # et les races sur un simple GET.
     query = activites.select().where(activites.c.maison_id == maison_id)
     if statut:
         query = query.where(activites.c.statut == statut)
@@ -477,14 +350,6 @@ async def create_activite(
     if visibilite not in VALID_VISIBILITES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Visibilité invalide")
 
-    # Rotation : ordre des membres + première échéance (si un délai est fixé).
-    rotation_active = bool(data.rotation_active)
-    rotation_ordre = data.rotation_ordre or []
-    rotation_delai = int(data.rotation_delai_jours or 0)
-    rotation_echeance = None
-    if rotation_active and rotation_ordre and rotation_delai > 0:
-        rotation_echeance = datetime.now() + timedelta(days=rotation_delai)
-
     # Échéance : date explicite, ou calée sur un jour-seuil (echeance_jour_semaine).
     date_echeance = data.date_echeance
     if date_echeance is None and data.echeance_jour_semaine is not None:
@@ -509,19 +374,11 @@ async def create_activite(
             gage_effets_reussite=dumps_effets(data.gage_effets_reussite),
             recurrence=recurrence,
             visibilite=visibilite,
-            rotation_active=rotation_active,
-            rotation_ordre=json.dumps(rotation_ordre) if rotation_ordre else None,
-            rotation_index=0,
-            rotation_delai_jours=rotation_delai,
-            rotation_echeance=rotation_echeance,
             createur_id=current_user["id"],
         )
     )
 
-    # En rotation, le premier titulaire est l'assigné courant.
-    if rotation_active and rotation_ordre:
-        await _set_assignations(maison_id, activite_id, [rotation_ordre[0]])
-    elif data.assignes:
+    if data.assignes:
         await _set_assignations(maison_id, activite_id, data.assignes)
 
     # ANNEXE V4 : activité sociale à participants restreints.
@@ -540,9 +397,6 @@ async def create_activite(
         if visibilite == "participants":
             # ANNEXE V4 : ne notifier QUE les participants (jamais toute la maison).
             cibles = list(data.participants or [])
-        elif rotation_active and rotation_ordre:
-            cibles = [rotation_ordre[0]]
-            exclure = None
         elif data.assignes:
             cibles = list(data.assignes)
         else:
@@ -619,12 +473,6 @@ async def update_activite(
         values["gage_effets_echec"] = dumps_effets(data.gage_effets_echec)
     if data.gage_effets_reussite is not None:
         values["gage_effets_reussite"] = dumps_effets(data.gage_effets_reussite)
-    if data.rotation_active is not None:
-        values["rotation_active"] = bool(data.rotation_active)
-    if data.rotation_ordre is not None:
-        values["rotation_ordre"] = json.dumps(data.rotation_ordre) if data.rotation_ordre else None
-    if data.rotation_delai_jours is not None:
-        values["rotation_delai_jours"] = int(data.rotation_delai_jours)
     if data.recurrence is not None:
         if data.recurrence not in VALID_RECURRENCES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Récurrence invalide")
@@ -699,37 +547,6 @@ async def resoudre_gage(
         )
 
     updated = await _resoudre_gage(row, data.resultat)
-    return await _serialize_activite(updated)
-
-
-@router.post("/activites/{activite_id}/rotation/suivant")
-async def rotation_suivant(activite_id: int, current_user: dict = Depends(get_current_user)):
-    """Passe le tour au membre suivant (le titulaire courant a fait sa part).
-    Autorisé à la gestion (chef/co-chef), au créateur ou au titulaire courant. Applique
-    la récompense (gage) au titulaire sortant puis réassigne le suivant.
-    """
-    row = await _get_activite_or_404(activite_id)
-    role = await require_membre(row["maison_id"], current_user["id"])
-
-    if not row.get("rotation_active"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La rotation n'est pas activée sur cette activité",
-        )
-
-    ordre = _parse_ordre(row.get("rotation_ordre"))
-    titulaire = ordre[int(row.get("rotation_index") or 0) % len(ordre)] if ordre else None
-    if (
-        role not in ("chef", "co_chef")
-        and row["createur_id"] != current_user["id"]
-        and current_user["id"] != titulaire
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seul le gestionnaire, le créateur ou le titulaire du tour peut passer au suivant",
-        )
-
-    updated = await _avancer_rotation(row, manque=False)
     return await _serialize_activite(updated)
 
 

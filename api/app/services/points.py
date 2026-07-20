@@ -1,7 +1,7 @@
 """Ajustement des points d'un membre — écrit systématiquement une ligne dans
 `points_log` (ANNEXE V3) en plus de mettre à jour `membres_maison.points`.
 
-Utilisé par : gage d'activité, rotation, échanges boutique, défis.
+Utilisé par : gage d'activité, rotation des tâches, échanges boutique, défis.
 """
 from typing import Iterable
 

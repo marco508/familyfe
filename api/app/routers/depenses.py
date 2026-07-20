@@ -1,6 +1,8 @@
 # app/routers/depenses.py — Dépenses partagées + bilan (ANNEXE V3)
 from collections import defaultdict
 from datetime import datetime
+
+from app.utils.datetimes import naive_utc
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.database.database import database, depense_parts, depenses
 from app.dependencies import get_current_user, require_membre, require_not_visiteur
 from app.models.schemas import DepenseCreateInput, DepenseUpdateInput
+from app.services.notifications import notifier
 
 router = APIRouter(tags=["depenses"])
 
@@ -115,7 +118,8 @@ async def create_depense(
                 titre=data.titre,
                 montant=_to_decimal(data.montant),
                 paye_par=paye_par,
-                date=data.date or datetime.utcnow(),
+                # Colonne TIMESTAMP naïve : le client peut envoyer de l'UTC aware.
+                date=naive_utc(data.date) or datetime.utcnow(),
                 categorie=data.categorie,
                 description=data.description,
             )
@@ -124,6 +128,24 @@ async def create_depense(
             await database.execute(
                 depense_parts.insert().values(depense_id=depense_id, utilisateur_id=uid)
             )
+
+    # ANNEXE V8 — seuls les PARTICIPANTS sont notifiés : une dépense ne concerne
+    # que ceux qui la partagent, pas tout le foyer. Le montant et le payeur sont
+    # dans le message, pour décider d'ouvrir l'app sans avoir à le faire.
+    # Hors transaction : une notification ratée n'annule pas une dépense.
+    payeur = await database.fetch_one(
+        "SELECT nom FROM utilisateurs WHERE id = :uid", values={"uid": paye_par}
+    )
+    payeur_nom = payeur["nom"] if payeur else "quelqu'un"
+    await notifier(
+        set(participants),
+        type="depense",
+        titre="💶 Nouvelle dépense",
+        message=f"{data.titre} — {float(_to_decimal(data.montant)):.2f} € payés par {payeur_nom}",
+        maison_id=maison_id,
+        lien=f"depense:{depense_id}",
+        exclure=current_user["id"],
+    )
 
     return await _serialize(await _get_or_404(depense_id))
 
@@ -149,7 +171,7 @@ async def update_depense(
     if data.paye_par is not None:
         values["paye_par"] = data.paye_par
     if data.date is not None:
-        values["date"] = data.date
+        values["date"] = naive_utc(data.date)
     if data.categorie is not None:
         values["categorie"] = data.categorie
     if data.description is not None:

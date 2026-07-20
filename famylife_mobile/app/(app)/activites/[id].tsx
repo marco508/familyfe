@@ -1,6 +1,10 @@
 // app/(app)/activites/[id].tsx
 // Détail d'une activité : édition (titre, description, échéance/heure,
-// assignés, statut, gage, rotation) et suppression (chef ou créateur).
+// assignés, statut, gage) et suppression (chef ou créateur).
+//
+// ANNEXE V10 — une activité n'a plus de rotation : on ne fait pas « tourner »
+// un barbecue. La rotation reste le propre des TÂCHES (corvées), qui, elles,
+// se répartissent entre les membres.
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
@@ -13,7 +17,6 @@ import {
   Repeat,
   Check,
   X as XIcon,
-  ArrowRightCircle,
   ListChecks,
   Plus,
   ImagePlus,
@@ -68,10 +71,6 @@ export default function ActiviteDetailScreen() {
   const [pointsPenalite, setPointsPenalite] = useState(5);
   const [pointsRecompense, setPointsRecompense] = useState(5);
 
-  const [rotationActive, setRotationActive] = useState(false);
-  const [rotationOrdre, setRotationOrdre] = useState<number[]>([]);
-  const [rotationDelaiJours, setRotationDelaiJours] = useState(1);
-
   // ANNEXE V4 — visibilité (toute la maison / participants) + participants.
   const [visibilite, setVisibilite] = useState<Visibilite>('maison');
   const [participants, setParticipants] = useState<number[]>([]);
@@ -89,7 +88,6 @@ export default function ActiviteDetailScreen() {
 
   const [saving, setSaving] = useState(false);
   const [resolvingGage, setResolvingGage] = useState(false);
-  const [advancingRotation, setAdvancingRotation] = useState(false);
   const [error, setError] = useState('');
 
   const applyActivite = (data: Activite) => {
@@ -106,9 +104,6 @@ export default function ActiviteDetailScreen() {
     setRecompense(data.recompense || '');
     setPointsPenalite(data.points_penalite ?? 5);
     setPointsRecompense(data.points_recompense ?? 5);
-    setRotationActive(data.rotation_active);
-    setRotationOrdre(data.rotation_ordre || []);
-    setRotationDelaiJours(data.rotation_delai_jours || 1);
     setRecurrence(data.recurrence || 'aucune');
     setSousTaches(data.sous_taches || []);
     setVisibilite(data.visibilite || 'maison');
@@ -143,28 +138,18 @@ export default function ActiviteDetailScreen() {
     setAssignes((prev) => (prev.includes(mid) ? prev.filter((x) => x !== mid) : [...prev, mid]));
   };
 
-  const toggleRotationMembre = (mid: number) => {
-    setRotationOrdre((prev) => (prev.includes(mid) ? prev.filter((x) => x !== mid) : [...prev, mid]));
-  };
-
   const toggleParticipant = (mid: number) => {
     setParticipants((prev) => (prev.includes(mid) ? prev.filter((x) => x !== mid) : [...prev, mid]));
   };
 
-  // Backend (`activites.py::resoudre_gage` / `rotation_suivant`) autorise chef, co-chef
-  // ou créateur — `isGestion` (chef/co-chef/chef temporaire) est la valeur la plus proche
-  // exposée côté client (couvre aussi le co-chef, oublié par une vérification `isChef` seule).
+  // Backend (`activites.py::resoudre_gage`) autorise chef, co-chef ou créateur —
+  // `isGestion` (chef/co-chef/chef temporaire) est la valeur la plus proche exposée
+  // côté client (couvre aussi le co-chef, oublié par une vérification `isChef` seule).
   const peutGererGage = !!activite && !!user && (isGestion || activite.createur_id === user.id);
-  const peutAvancerRotation =
-    !!activite && !!user && (isGestion || activite.createur_id === user.id || activite.rotation_titulaire?.id === user.id);
 
   const handleSave = async () => {
     if (!titre.trim()) {
       setError(t('activite.titreObligatoire'));
-      return;
-    }
-    if (rotationActive && rotationOrdre.length < 2) {
-      setError(t('activite.rotationMinMembres'));
       return;
     }
     setSaving(true);
@@ -182,9 +167,6 @@ export default function ActiviteDetailScreen() {
       recompense: gageActif ? recompense.trim() || undefined : undefined,
       points_penalite: gageActif ? pointsPenalite : undefined,
       points_recompense: gageActif ? pointsRecompense : undefined,
-      rotation_active: rotationActive,
-      rotation_ordre: rotationActive ? rotationOrdre : undefined,
-      rotation_delai_jours: rotationActive ? rotationDelaiJours : undefined,
       recurrence,
       visibilite,
       participants: visibilite === 'participants' ? participants : undefined,
@@ -222,17 +204,6 @@ export default function ActiviteDetailScreen() {
         },
       ]
     );
-  };
-
-  const handleRotationSuivant = async () => {
-    setAdvancingRotation(true);
-    const res = await activiteService.rotationSuivant(activiteId);
-    setAdvancingRotation(false);
-    if (res.error) {
-      Alert.alert(t('common.erreur'), res.error);
-      return;
-    }
-    if (res.data) applyActivite(res.data);
   };
 
   const handleDelete = () => {
@@ -392,40 +363,6 @@ export default function ActiviteDetailScreen() {
             </CandyCard>
           ) : null}
 
-          {/* Rotation : titulaire courant */}
-          {activite.rotation_active ? (
-            <CandyCard style={styles.gageCard}>
-              <View style={styles.sectionCardTitleRow}>
-                <Repeat size={16} color={colors.secondary.main} />
-                <Text style={[styles.sectionCardTitle, { color: colors.text.dark }]}>{t('activite.rotation')}</Text>
-              </View>
-              {activite.rotation_titulaire ? (
-                <View style={styles.titulaireRow}>
-                  <Avatar name={activite.rotation_titulaire.nom} image={activite.rotation_titulaire.image} size={32} />
-                  <Text style={[styles.gageText, { color: colors.text.body }]}>
-                    {t('activite.tourDe')} {activite.rotation_titulaire.nom} 🔄
-                  </Text>
-                </View>
-              ) : (
-                <Text style={[styles.gageText, { color: colors.text.body }]}>{t('activite.aucunTitulaire')}</Text>
-              )}
-              <Text style={[styles.helperText, { color: colors.text.body }]}>
-                {t('activite.delaiAvantRelais')} {activite.rotation_delai_jours} {t('activite.jourAbrev')}
-              </Text>
-              {peutAvancerRotation ? (
-                <CandyButton
-                  label={t('activite.tourSuivant')}
-                  onPress={handleRotationSuivant}
-                  variant="purple"
-                  size="sm"
-                  loading={advancingRotation}
-                  icon={<ArrowRightCircle size={16} color={colors.candy.white} />}
-                  style={{ marginTop: spacing.sm }}
-                />
-              ) : null}
-            </CandyCard>
-          ) : null}
-
           <CandyCard style={{ marginBottom: spacing.lg }}>
             {activite.createur ? (
               <View style={styles.createurRow}>
@@ -534,52 +471,6 @@ export default function ActiviteDetailScreen() {
                     <Stepper label={t('activite.pointsRecompense')} value={pointsRecompense} onValueChange={setPointsRecompense} min={0} max={100} />
                     <Stepper label={t('activite.pointsPenalite')} value={pointsPenalite} onValueChange={setPointsPenalite} min={0} max={100} />
                   </View>
-                </>
-              ) : null}
-            </View>
-
-            <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
-              <View style={styles.toggleRow}>
-                <View style={styles.sectionCardTitleRow}>
-                  <Repeat size={16} color={colors.secondary.main} />
-                  <Text style={[styles.sectionCardTitle, { color: colors.text.dark }]}>{t('activite.rotation')}</Text>
-                </View>
-                <Toggle value={rotationActive} onValueChange={setRotationActive} />
-              </View>
-              {rotationActive ? (
-                <>
-                  <Text style={[styles.helperText, { color: colors.text.body }]}>{t('activite.rotationAide')}</Text>
-                  <View style={styles.membresList}>
-                    {membres.map((m) => {
-                      const order = rotationOrdre.indexOf(m.id);
-                      const active = order >= 0;
-                      return (
-                        <Pressable
-                          key={m.id}
-                          onPress={() => toggleRotationMembre(m.id)}
-                          style={[
-                            styles.membreChip,
-                            { backgroundColor: colors.surface, borderColor: colors.border },
-                            active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                          ]}
-                        >
-                          {active ? (
-                            <Text style={[styles.orderBadge, { color: colors.candy.white, backgroundColor: colors.secondary.main }]}>
-                              {order + 1}
-                            </Text>
-                          ) : null}
-                          <Avatar name={m.nom} image={m.image} size={24} />
-                          <Text
-                            style={[styles.membreChipText, { color: active ? colors.primary.main : colors.text.body }]}
-                            numberOfLines={1}
-                          >
-                            {m.nom}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                  <Stepper label={t('activite.delaiJours')} value={rotationDelaiJours} onValueChange={setRotationDelaiJours} min={1} max={30} />
                 </>
               ) : null}
             </View>
@@ -746,16 +637,6 @@ const styles = StyleSheet.create({
     maxWidth: 150,
   },
   membreChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
-  orderBadge: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.black,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    textAlign: 'center',
-    lineHeight: 16,
-    overflow: 'hidden',
-  },
   sectionCard: {
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
@@ -769,7 +650,6 @@ const styles = StyleSheet.create({
   gageCard: { marginBottom: spacing.lg },
   gageText: { fontWeight: typography.fontWeight.medium, fontSize: typography.fontSize.sm, marginTop: spacing.xs },
   gageButtonsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  titulaireRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   sousTacheRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   sousTacheText: { flex: 1, fontWeight: typography.fontWeight.medium, fontSize: typography.fontSize.sm },
   addSousTacheRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },

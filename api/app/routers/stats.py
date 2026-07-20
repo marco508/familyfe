@@ -15,12 +15,18 @@ from app.dependencies import get_current_user, require_membre
 router = APIRouter(tags=["stats"])
 
 
-def _cutoff_iso(periode: str) -> str | None:
-    """Retourne la borne basse ISO selon la période (None = depuis toujours)."""
+def _cutoff(periode: str) -> datetime | None:
+    """Borne basse selon la période (None = depuis toujours).
+
+    On renvoie un OBJET datetime, pas une chaîne ISO : comparé à la colonne
+    TIMESTAMP `date_creation`, un paramètre texte provoque sur Postgres
+    « operator does not exist: timestamp >= text ». asyncpg lie un datetime
+    comme timestamp (correct), et aiosqlite l'adapte en ISO (correct aussi).
+    """
     if periode == "semaine":
-        return (datetime.now() - timedelta(days=7)).isoformat()
+        return datetime.now() - timedelta(days=7)
     if periode == "mois":
-        return (datetime.now() - timedelta(days=30)).isoformat()
+        return datetime.now() - timedelta(days=30)
     return None
 
 
@@ -49,7 +55,7 @@ async def equite(
     période, moyenne attendue, déséquilibre éventuel, et suggestion du prochain
     volontaire (celui qui a le moins contribué)."""
     await require_membre(maison_id, current_user["id"])
-    cutoff = _cutoff_iso(periode)
+    cutoff = _cutoff(periode)
     membres = await _membres_actifs(maison_id)
 
     # Nombre de tâches validées par membre sur la période.
@@ -161,7 +167,8 @@ async def bilan_semaine(maison_id: int, current_user: dict = Depends(get_current
     """Bilan motivant des 7 derniers jours : total de tâches, top membre,
     répartition, points de la semaine."""
     await require_membre(maison_id, current_user["id"])
-    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+    # Objet datetime, pas ISO : cf. _cutoff (comparaison timestamp sur Postgres).
+    cutoff = datetime.now() - timedelta(days=7)
 
     membres = await _membres_actifs(maison_id)
     faites_rows = await database.fetch_all(

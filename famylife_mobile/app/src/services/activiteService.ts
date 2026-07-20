@@ -46,13 +46,6 @@ export interface Activite {
   // Effets de gage paramétrables (appliqués à la résolution du gage).
   gage_effets_echec: GageEffet[];
   gage_effets_reussite: GageEffet[];
-  // Rotation / relais de tours
-  rotation_active: boolean;
-  rotation_ordre: number[];
-  rotation_index: number;
-  rotation_delai_jours: number;
-  rotation_echeance: string | null;
-  rotation_titulaire: MiniUser | null;
   // ANNEXE V3 — récurrence, sous-tâches, photo preuve.
   recurrence: Recurrence;
   sous_taches: SousTache[];
@@ -79,10 +72,6 @@ export interface ActiviteCreateInput {
   points_recompense?: number;
   gage_effets_echec?: GageEffet[];
   gage_effets_reussite?: GageEffet[];
-  // Rotation
-  rotation_active?: boolean;
-  rotation_ordre?: number[];
-  rotation_delai_jours?: number;
   // Récurrence
   recurrence?: Recurrence;
   // ANNEXE V4 — visibilité + participants.
@@ -120,11 +109,6 @@ class ActiviteService {
   // Gage : chef ou créateur — réussi (+points_recompense, statut termine) ou échoué (-points_penalite).
   async resoudreGage(activiteId: number, resultat: 'reussi' | 'echoue'): Promise<ApiResponse<Activite>> {
     return apiClient.post(`/activites/${activiteId}/gage/resoudre`, { resultat });
-  }
-
-  // Rotation : chef, créateur ou titulaire courant — passe le tour au membre suivant.
-  async rotationSuivant(activiteId: number): Promise<ApiResponse<Activite>> {
-    return apiClient.post(`/activites/${activiteId}/rotation/suivant`, {});
   }
 
   // ANNEXE V3 — Sous-tâches (checklist).

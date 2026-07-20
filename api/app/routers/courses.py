@@ -1,9 +1,12 @@
 # app/routers/courses.py — Liste de courses (ANNEXE V3)
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database.database import courses_items, database
 from app.dependencies import get_current_user, require_membre, require_not_visiteur
 from app.models.schemas import CourseItemCreateInput, CourseItemUpdateInput
+from app.services.notifications import notifier_maison
 
 router = APIRouter(tags=["courses"])
 
@@ -54,6 +57,33 @@ async def create_course(
             ajoute_par=current_user["id"],
         )
     )
+
+    # ANNEXE V8 — ANTI-SPAM. On remplit une liste de courses par rafales (« lait,
+    # pain, œufs, café… ») : une notification par article, c'est 12 buzz en deux
+    # minutes, et l'utilisateur coupe la catégorie — donc zéro notification.
+    # Une notification par article serait pire que pas de notification du tout.
+    #
+    # D'où une clé d'idempotence à granularité JOUR + auteur + maison : le foyer
+    # est prévenu au PREMIER article qu'une personne ajoute dans la journée, les
+    # suivants sont silencieux (`notifier` voit la clé déjà posée et n'insère
+    # rien). Deux personnes qui remplissent la liste le même jour = deux
+    # notifications (c'est bien deux informations distinctes) ; une même personne
+    # qui ajoute 12 articles = une seule.
+    #
+    # Le compromis assumé : un ajout tardif le soir, après une rafale du matin,
+    # passe inaperçu. C'est le prix d'une liste de courses qui reste consultable
+    # (l'article est dans la liste, le foyer sait déjà qu'elle bouge aujourd'hui).
+    cle = f"course:{maison_id}:{current_user['id']}:{date.today().isoformat()}"
+    await notifier_maison(
+        maison_id,
+        type="course",
+        titre="🛒 Liste de courses",
+        message=f"{current_user['nom']} a ajouté des articles, dont « {data.nom} »",
+        lien=f"courses:{maison_id}",
+        cle=cle,
+        exclure=current_user["id"],
+    )
+
     return _serialize(await _get_item_or_404(item_id))
 
 

@@ -1,12 +1,12 @@
-// app/(app)/courses.tsx
-// ANNEXE V7 — "Courses & repas" : fusion de l'ancienne liste de courses et de
-// l'écran "Menu". Les deux traitent du même sujet (on planifie les repas → on en
-// déduit les courses, cf. l'action "vers courses" d'un repas) mais vivaient à
-// deux entrées distinctes du menu Plus, dont une — "Menu" — ne disait pas ce
-// qu'elle contenait. Ils deviennent deux segments.
+// app/(app)/decisions.tsx
+// ANNEXE V7 — "Décisions" : fusion de l'ancien onglet Votes et de l'écran
+// Règles. Voter une règle EST un vote : les deux écrans manipulaient le même
+// objet (`regleService` crée un vote quand on soumet une règle au vote) tout en
+// vivant à deux endroits différents du menu. Ils deviennent deux segments.
 //
-// Les corps vivent dans `components/sections/CoursesSection` et `RepasSection`.
-// `(app)/menu.tsx` redirige désormais ici.
+// Les corps vivent dans `components/sections/VotesSection` et `ReglesSection`
+// (extraits des anciens écrans, sans en-tête : il est fourni une seule fois ici).
+// `(tabs)/votes.tsx` et `(app)/regles.tsx` redirigent désormais vers cet écran.
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,23 +17,23 @@ import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import { useMaison } from '../src/contexts/MaisonContext';
 import { Segmented } from '../components/ui';
-import CoursesSection from '../components/sections/CoursesSection';
-import RepasSection from '../components/sections/RepasSection';
+import VotesSection from '../components/sections/VotesSection';
+import ReglesSection from '../components/sections/ReglesSection';
 import { typography, spacing } from '../theme/designTokens';
 
-type Segment = 'courses' | 'repas';
+type Segment = 'votes' | 'regles';
 
-export default function CoursesRepasScreen() {
+export default function DecisionsScreen() {
   const { colors } = useTheme();
   const { t } = useT();
   const { isModuleActif } = useMaison();
-  // `?segment=repas` permet aux anciens liens vers `(app)/menu` d'atterrir
+  // `?segment=regles` permet aux anciens liens vers `(app)/regles` d'atterrir
   // directement sur le bon segment.
   const params = useLocalSearchParams<{ segment?: string }>();
-  const [segment, setSegment] = useState<Segment>(params.segment === 'repas' ? 'repas' : 'courses');
+  const [segment, setSegment] = useState<Segment>(params.segment === 'regles' ? 'regles' : 'votes');
 
   // ANNEXE V8 — la route reste vivante ; on explique au lieu de rediriger.
-  if (!isModuleActif('courses')) return <ModuleInactif cle="courses" />;
+  if (!isModuleActif('decisions')) return <ModuleInactif cle="decisions" />;
 
   return (
     <ScreenBackground>
@@ -41,7 +41,7 @@ export default function CoursesRepasScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={22} color={colors.text.dark} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🛒 {t('coursesRepas.titre')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.dark }]}>🗳️ {t('decisions.titre')}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -50,14 +50,14 @@ export default function CoursesRepasScreen() {
           value={segment}
           onChange={setSegment}
           options={[
-            { value: 'courses', label: t('coursesRepas.segmentCourses') },
-            { value: 'repas', label: t('coursesRepas.segmentRepas') },
+            { value: 'votes', label: t('nav.votes') },
+            { value: 'regles', label: t('regles.titre') },
           ]}
         />
       </View>
 
       <View style={styles.flex}>
-        {segment === 'courses' ? <CoursesSection /> : <RepasSection />}
+        {segment === 'votes' ? <VotesSection /> : <ReglesSection />}
       </View>
     </ScreenBackground>
   );

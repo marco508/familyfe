@@ -1,7 +1,6 @@
 """Tâches planifiées en arrière-plan (APScheduler).
 
 Historiquement, plusieurs effets de bord étaient déclenchés *à la lecture* :
-- l'avancement des rotations d'activités (`GET /activites`),
 - l'application des gages de tâches en retard (`GET /taches`),
 - la génération des notifications d'anniversaire (`GET /notifications`).
 
@@ -22,25 +21,27 @@ logger = logging.getLogger(__name__)
 scheduler = None
 
 # Cadences (modifiables) :
-EFFETS_INTERVAL_MINUTES = 5   # rotations + gages de tâches
+EFFETS_INTERVAL_MINUTES = 5   # gages de tâches
 ANNIV_INTERVAL_HOURS = 1      # anniversaires (idempotent via clé jour)
 
 
 async def appliquer_effets_toutes_maisons() -> None:
-    """Fait avancer rotations et gages de tâches échus, pour toutes les maisons.
+    """Applique les gages de tâches échus, pour toutes les maisons.
 
-    Les fonctions appelées sont déjà protégées contre la concurrence (claim
-    atomique de l'échéance), donc rejouer ce job est sans danger.
+    Ne concerne que les TÂCHES (corvées ménagères) : leur rotation entre membres
+    et le gage associé. Les activités (moments à vivre ensemble) n'ont pas de
+    rotation, donc aucun effet périodique à leur appliquer.
+
+    La fonction appelée est déjà protégée contre la concurrence (claim atomique
+    de l'échéance), donc rejouer ce job est sans danger.
     """
-    # Imports différés : évite tout cycle d'import au chargement du module.
-    from app.routers.activites import _appliquer_rotations_dues
+    # Import différé : évite tout cycle d'import au chargement du module.
     from app.routers.taches import _appliquer_gage_taches_dues
 
     rows = await database.fetch_all("SELECT id FROM maisons")
     for r in rows:
         mid = r["id"]
         try:
-            await _appliquer_rotations_dues(mid)
             await _appliquer_gage_taches_dues(mid)
         except Exception as exc:  # noqa: BLE001 — un échec sur une maison ne bloque pas les autres
             logger.warning("Effets planifiés échoués pour la maison %s: %s", mid, exc)

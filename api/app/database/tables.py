@@ -28,6 +28,12 @@ utilisateurs = Table(
     # Version de session (ANNEXE V5) : incrémentée pour invalider tous les JWT
     # existants d'un utilisateur (déconnexion globale, mot de passe compromis…).
     Column("token_version", Integer, nullable=False, server_default="0"),
+    # ─── ANNEXE V8 — Préférences de notification ────────────────────────────
+    # Catégories DÉSACTIVÉES, en CSV (ex: "chat,courses"). On stocke le refus,
+    # pas le consentement : le défaut ("" = rien de désactivé) signifie « tout
+    # activé », donc aucun utilisateur ne perd de notification à la migration,
+    # et toute NOUVELLE catégorie est active d'office sans backfill.
+    Column("notif_desactivees", Text, nullable=False, server_default=""),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -56,6 +62,17 @@ maisons = Table(
     Column("interphone", String, nullable=True),
     Column("acces", Text, nullable=True),           # instructions d'accès (texte libre)
     Column("surface", Float, nullable=True),        # m²
+    # ─── ANNEXE V7 — Découverte progressive ─────────────────────────────────
+    # Modules optionnels activés par le foyer, en CSV (ex: "courses,depenses").
+    # Un foyer NEUF démarre sans aucun module optionnel : seuls Aujourd'hui,
+    # Tâches, Agenda et Équité existent — c'est le remède au « trop d'infos ».
+    # Le foyer active ensuite ce dont il a besoin (Réglages → Modules).
+    #
+    # ATTENTION au server_default : il s'applique aux lignes EXISTANTES lors de
+    # la migration. Il vaut donc TOUS les modules, pour qu'aucun foyer déjà en
+    # service ne perde de fonctionnalité du jour au lendemain. C'est la création
+    # (create_maison) qui écrit explicitement le set minimal pour les nouveaux.
+    Column("modules", Text, nullable=False, server_default="courses,depenses,decisions,jeu,portefeuille,chat"),
     Column("date_creation", TIMESTAMP, server_default=func.now()),
 )
 
@@ -97,14 +114,21 @@ activites = Table(
     # fixe (ex. « avant vendredi »). Voir routers/activites.py.
     Column("echeance_jour_semaine", Integer, nullable=True),
     Column("rappel", Boolean, nullable=False, server_default="1"),  # notifier les membres/assignés
-    # ─── Planning / rotation des tours (paramétrable) ──────────────────────
-    # Ex : le ménage tourne entre plusieurs membres ; si le tour n'est pas fait
-    # dans le délai, il passe automatiquement au membre suivant (relais).
-    Column("rotation_active", Boolean, nullable=False, server_default="0"),
-    Column("rotation_ordre", Text, nullable=True),          # JSON: [user_id, ...] ordre des tours
-    Column("rotation_index", Integer, nullable=False, server_default="0"),
-    Column("rotation_delai_jours", Integer, nullable=False, server_default="0"),
-    Column("rotation_echeance", TIMESTAMP, nullable=True),  # échéance du tour courant
+    # ─── Pas de rotation sur les activités ─────────────────────────────────
+    # Une activité est un moment à VIVRE ENSEMBLE (restau, pique-nique,
+    # barbecue) : on ne fait pas « tourner » un barbecue entre les membres.
+    # La rotation n'a de sens que pour les corvées ménagères → voir la table
+    # `taches` (colonnes rotation_ordre / rotation_index / rotation_conditions),
+    # qui reste inchangée.
+    #
+    # Les colonnes rotation_active / rotation_ordre / rotation_index /
+    # rotation_delai_jours / rotation_echeance ont été retirées de ce schéma.
+    # Volontairement AUCUN `DROP COLUMN` n'est joué sur les bases existantes :
+    # SQLite le supporte mal et ça n'apporte rien. Sur une base déjà en service
+    # les colonnes subsistent, simplement INERTES — plus jamais écrites, et plus
+    # jamais lues (les requêtes passent par SQLAlchemy Core, qui ne sélectionne
+    # que les colonnes présentes dans ce metadata). Une base NEUVE ne les crée
+    # plus du tout.
     # ─── Système de gage (optionnel, activable par activité) ───────────────
     # Si gage_actif : l'activité réussie octroie une récompense (+points_recompense)
     # aux assignés, l'échec applique un gage/pénalité (-points_penalite).

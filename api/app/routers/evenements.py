@@ -9,6 +9,7 @@ from app.database.database import database, evenement_reponses, evenements
 from app.dependencies import get_current_user, require_membre, require_not_visiteur
 from app.models.schemas import EvenementCreateInput, EvenementUpdateInput, ReponseEvenementInput
 from app.services.notifications import notifier_maison
+from app.utils.datetimes import naive_utc
 from app.utils.formatting import mini_user
 
 router = APIRouter(tags=["evenements"])
@@ -67,11 +68,17 @@ async def list_evenements(
 ):
     await require_membre(maison_id, current_user["id"])
 
+    # Les bornes arrivent en chaîne ISO (toISOString() du mobile, avec « Z ») :
+    # comparées telles quelles à la colonne TIMESTAMP, asyncpg refuse le texte.
+    # On les convertit en datetime naïf UTC (cf. app/utils/datetimes.py).
+    debut_dt = naive_utc(debut)
+    fin_dt = naive_utc(fin)
+
     query = evenements.select().where(evenements.c.maison_id == maison_id)
-    if debut:
-        query = query.where(evenements.c.date_debut >= debut)
-    if fin:
-        query = query.where(evenements.c.date_debut <= fin)
+    if debut_dt:
+        query = query.where(evenements.c.date_debut >= debut_dt)
+    if fin_dt:
+        query = query.where(evenements.c.date_debut <= fin_dt)
     query = query.order_by(evenements.c.date_debut.asc()).limit(limit).offset(offset)
 
     rows = await database.fetch_all(query)
@@ -93,8 +100,10 @@ async def create_evenement(
             maison_id=maison_id,
             titre=data.titre,
             description=data.description,
-            date_debut=data.date_debut,
-            date_fin=data.date_fin,
+            # Datetime naïf UTC : le client envoie de l'UTC aware (« Z »), la
+            # colonne est TIMESTAMP sans fuseau — asyncpg exige un datetime naïf.
+            date_debut=naive_utc(data.date_debut),
+            date_fin=naive_utc(data.date_fin),
             toute_la_journee=bool(data.toute_la_journee),
             lieu=data.lieu,
             couleur=data.couleur or "#7B5CFF",
@@ -134,6 +143,10 @@ async def update_evenement(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Récurrence invalide")
 
     values = {k: v for k, v in data.model_dump(exclude_unset=True).items() if v is not None}
+    # Mêmes colonnes TIMESTAMP naïves qu'à la création : on normalise les dates.
+    for champ in ("date_debut", "date_fin"):
+        if champ in values:
+            values[champ] = naive_utc(values[champ])
     if values:
         await database.execute(
             evenements.update().where(evenements.c.id == evenement_id).values(**values)
