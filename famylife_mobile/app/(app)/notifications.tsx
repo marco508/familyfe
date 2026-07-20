@@ -21,6 +21,16 @@ const TYPE_EMOJI: Record<NotificationType, string> = {
   rotation: '🔄',
 };
 
+// Code couleur par type : la tuile teintée fait reconnaître la nature d'un
+// coup d'œil, avant même de lire le titre.
+const TYPE_TINT: Record<NotificationType, string> = {
+  activite: 'rgba(58,154,158,0.16)',
+  evenement: 'rgba(94,58,85,0.14)',
+  vote: 'rgba(219,138,87,0.16)',
+  anniversaire: 'rgba(236,95,78,0.14)',
+  rotation: 'rgba(111,163,106,0.16)',
+};
+
 export default function NotificationsScreen() {
   const { colors } = useTheme();
   const { t, lang } = useT();
@@ -139,7 +149,9 @@ export default function NotificationsScreen() {
                 ])}
               >
                 <View style={styles.row}>
-                  <Text style={styles.emoji}>{TYPE_EMOJI[n.type] ?? '🔔'}</Text>
+                  <View style={[styles.iconTile, { backgroundColor: TYPE_TINT[n.type] ?? colors.surface }]}>
+                    <Text style={styles.emoji}>{TYPE_EMOJI[n.type] ?? '🔔'}</Text>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.titre, { color: colors.text.dark }]} numberOfLines={2}>{n.titre}</Text>
                     <Text style={[styles.message, { color: colors.text.body }]} numberOfLines={3}>{n.message}</Text>
@@ -173,7 +185,8 @@ const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingTop: 0, paddingBottom: spacing['4xl'] },
   card: { marginBottom: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  emoji: { fontSize: 24 },
+  iconTile: { width: 44, height: 44, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  emoji: { fontSize: 22 },
   titre: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   message: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: 2 },
   date: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 4 },

@@ -47,11 +47,12 @@ import voteService, { Vote } from '../../src/services/voteService';
 import tacheService, { Tache } from '../../src/services/tacheService';
 import maisonService, { Anniversaire } from '../../src/services/maisonService';
 import statsService, { BilanSemaine, Equite } from '../../src/services/statsService';
-import { CandyCard, Badge, EmptyState, NotificationBell, Avatar, VisitorBanner } from '../../components/ui';
+import { CandyCard, Badge, EmptyState, NotificationBell, Avatar, AvatarStack, ProgressRing, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
 import { logementIcon, logementLabel } from '../../src/utils/logement';
+import { tacheEmoji } from '../../src/utils/tacheVisuel';
 
 function isSameDay(iso: string, ref: Date): boolean {
   const d = new Date(iso);
@@ -160,6 +161,13 @@ export default function DashboardScreen() {
   const anniversairesAVenir = anniversaires.filter((a) => !a.aujourdhui).slice(0, 3);
 
   const mesPoints = membres.find((m) => m.id === user?.id)?.points ?? 0;
+  // ANNEXE V12 — « moins de texte, plus de visuel » : ma part des tâches de la
+  // semaine, affichée en anneau plutôt qu'en phrase. Dérivée du bilan (aucune
+  // dépendance à l'équité), donc toujours disponible quand la carte s'affiche.
+  const maPart =
+    bilan && bilan.total_taches > 0
+      ? Math.round(((bilan.par_membre.find((m) => m.utilisateur_id === user?.id)?.taches ?? 0) / bilan.total_taches) * 100)
+      : 0;
   // ANNEXE V10 — on ne compte plus « corvées + activités » ensemble : additionner
   // un barbecue et une poubelle ne veut rien dire. Cet indicateur mène à l'onglet
   // Tâches : il ne compte donc QUE des corvées.
@@ -298,9 +306,13 @@ export default function DashboardScreen() {
                 {maisonActive.role === 'chef' ? <Badge label={t('common.chef')} variant="yellow" /> : null}
               </View>
               <Text style={[styles.maisonMeta, { color: colors.text.body }]}>
-                {logementLabel(t, maisonActive.type_logement)} · {maisonActive.nb_membres}{' '}
-                {maisonActive.nb_membres > 1 ? t('accueil.membres') : t('accueil.membre')}
+                {logementLabel(t, maisonActive.type_logement)}
               </Text>
+              {membres.length > 0 ? (
+                <View style={styles.membresStack}>
+                  <AvatarStack people={membres} size={28} max={5} />
+                </View>
+              ) : null}
             </View>
           </View>
           <View style={styles.pointsRow}>
@@ -322,8 +334,25 @@ export default function DashboardScreen() {
             <View style={styles.bilanHeaderRow}>
               <Trophy size={20} color={colors.candy.white} />
               <Text style={[styles.bilanTitle, { color: colors.candy.white }]}>{t('bilan.titre')}</Text>
+              {bilan.par_membre.length > 0 ? (
+                <View style={{ marginLeft: 'auto' }}>
+                  <AvatarStack people={bilan.par_membre} size={26} max={4} ringColor="rgba(255,255,255,0.55)" />
+                </View>
+              ) : null}
             </View>
             <View style={styles.bilanStatsRow}>
+              <ProgressRing
+                percent={maPart}
+                size={78}
+                strokeWidth={9}
+                colors={['#FFFFFF', '#FFE9C7']}
+                trackColor="rgba(255,255,255,0.28)"
+              >
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={styles.bilanRingPct}>{maPart}%</Text>
+                  <Text style={styles.bilanRingLabel}>{t('bilan.taPart')}</Text>
+                </View>
+              </ProgressRing>
               <View style={styles.bilanStat}>
                 <Text style={[styles.bilanStatValue, { color: colors.candy.white }]}>{bilan.total_taches}</Text>
                 <Text style={styles.bilanStatLabel}>{t('bilan.taches')}</Text>
@@ -406,12 +435,17 @@ export default function DashboardScreen() {
                 <Pressable key={`c-${tc.id}`} onPress={() => router.push('/(app)/(tabs)/taches')}>
                   <CandyCard style={styles.itemCard}>
                     <View style={styles.itemRow}>
-                      <AlertTriangle size={18} color={colors.candy.red} />
+                      <View style={[styles.homeTile, styles.homeTileGage]}>
+                        <Text style={styles.homeTileEmoji}>{tacheEmoji(tc.titre)}</Text>
+                      </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={1}>{tc.titre}</Text>
-                        <Text style={[styles.itemMeta, { color: colors.candy.red }]} numberOfLines={1}>
-                          {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
-                        </Text>
+                        <View style={styles.homeMetaRow}>
+                          <Avatar name={tc.titulaire?.nom} image={tc.titulaire?.image ?? null} size={20} />
+                          <Text style={[styles.itemMeta, { color: colors.candy.red }]} numberOfLines={1}>
+                            {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
+                          </Text>
+                        </View>
                       </View>
                       <Badge label={`${tc.gage_semaines_restantes} sem.`} variant="pink" />
                     </View>
@@ -422,12 +456,17 @@ export default function DashboardScreen() {
                 <Pressable key={`t-${tc.id}`} onPress={() => router.push('/(app)/(tabs)/taches')}>
                   <CandyCard style={styles.itemCard}>
                     <View style={styles.itemRow}>
-                      <ListChecks size={18} color={colors.candy.blueDark} />
+                      <View style={[styles.homeTile, styles.homeTileTodo]}>
+                        <Text style={styles.homeTileEmoji}>{tacheEmoji(tc.titre)}</Text>
+                      </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={1}>{tc.titre}</Text>
-                        <Text style={[styles.itemMeta, { color: colors.text.muted }]} numberOfLines={1}>
-                          {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
-                        </Text>
+                        <View style={styles.homeMetaRow}>
+                          <Avatar name={tc.titulaire?.nom} image={tc.titulaire?.image ?? null} size={20} />
+                          <Text style={[styles.itemMeta, { color: colors.text.muted }]} numberOfLines={1}>
+                            {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </CandyCard>
@@ -532,7 +571,9 @@ const styles = StyleSheet.create({
   bilanCard: { borderRadius: borderRadius.card, padding: spacing.lg, marginBottom: spacing.lg },
   bilanHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   bilanTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
-  bilanStatsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  bilanStatsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
+  bilanRingPct: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.black, color: '#FFFFFF' },
+  bilanRingLabel: { fontSize: 9, fontWeight: typography.fontWeight.bold, color: 'rgba(255,255,255,0.9)', marginTop: -2 },
   bilanStat: { flex: 1, alignItems: 'center' },
   bilanStatDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.4)' },
   bilanStatValue: { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.black },
@@ -571,6 +612,7 @@ const styles = StyleSheet.create({
   maisonNomRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   maisonNom: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.extrabold },
   maisonMeta: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: 2 },
+  membresStack: { marginTop: spacing.sm },
   pointsRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   pointsChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderRadius: borderRadius.pill, paddingVertical: spacing.sm },
   pointsChipText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
@@ -591,7 +633,12 @@ const styles = StyleSheet.create({
   emptyCard: { marginBottom: spacing.md, alignItems: 'center' },
   emptyText: { fontWeight: typography.fontWeight.medium },
   itemCard: { marginBottom: spacing.sm, paddingVertical: spacing.md },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  homeTile: { width: 44, height: 44, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  homeTileEmoji: { fontSize: 22 },
+  homeTileTodo: { backgroundColor: 'rgba(219,138,87,0.16)' },
+  homeTileGage: { backgroundColor: 'rgba(214,64,44,0.14)' },
+  homeMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
   itemTitle: { flex: 1, fontWeight: typography.fontWeight.bold },
   itemMeta: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },
   aVenirRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },

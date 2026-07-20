@@ -41,17 +41,11 @@ import {
 } from '../components/ui';
 import GageEffetsEditor from '../components/GageEffetsEditor';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
+import { tacheEmoji } from '../src/utils/tacheVisuel';
 
 // La barre d'onglets flotte au-dessus du contenu (Tâches est un onglet
 // principal) : le FAB de création doit être posé au-dessus d'elle.
 const TAB_BAR_INSET = 140;
-
-const FREQUENCE_VARIANT: Record<FrequenceTache, 'neutral' | 'blue' | 'purple' | 'orange'> = {
-  ponctuel: 'neutral',
-  quotidien: 'blue',
-  hebdo: 'purple',
-  mensuel: 'orange',
-};
 
 function isSameDay(iso: string, ref: Date): boolean {
   const d = new Date(iso);
@@ -70,12 +64,6 @@ export default function TachesScreen() {
     { value: 'hebdo', label: t('taches.hebdo') },
     { value: 'mensuel', label: t('taches.mensuel') },
   ];
-  const FREQUENCE_LABEL: Record<FrequenceTache, string> = {
-    ponctuel: t('taches.ponctuel'),
-    quotidien: t('taches.quotidien'),
-    hebdo: t('taches.hebdo'),
-    mensuel: t('taches.mensuel'),
-  };
 
   const [taches, setTaches] = useState<Tache[]>([]);
   const [pieces, setPieces] = useState<Piece[]>([]);
@@ -457,40 +445,58 @@ export default function TachesScreen() {
 
   const renderTache = (tache: Tache) => {
     const canValidate = peutValider(tache);
+    const done = tache.fait_aujourdhui || tache.statut === 'fait';
+    const enGage = tache.gage_semaines_restantes > 0;
+    const tileStyle = done ? styles.vTileDone : enGage ? styles.vTileGage : styles.vTileTodo;
     return (
-      <CandyCard key={tache.id} style={styles.card}>
-        <View style={styles.cardTopRow}>
+      <CandyCard key={tache.id} style={[styles.card, done && styles.cardDone]}>
+        <View style={styles.vRow}>
+          {/* Icône de catégorie : l'image porte la reconnaissance, pas le texte. */}
+          <View style={[styles.vTile, tileStyle]}>
+            <Text style={styles.vTileEmoji}>{tacheEmoji(tache.titre)}</Text>
+          </View>
+
           <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: colors.text.dark }]} numberOfLines={2}>
+            <Text
+              style={[styles.vTitle, { color: colors.text.dark }, done && styles.vTitleDone]}
+              numberOfLines={1}
+            >
               {tache.titre}
             </Text>
-            <Text style={[styles.cardMeta, { color: colors.text.body }]} numberOfLines={1}>
-              {tache.titulaire
-                ? `${t('taches.aFaireParPrefix')} ${tache.titulaire.nom}`
-                : t('taches.personne')}
-            </Text>
-          </View>
-          <Checkbox
-            checked={tache.fait_aujourdhui || tache.statut === 'fait'}
-            onToggle={() => handleValider(tache)}
-            disabled={!canValidate || tache.fait_aujourdhui || tache.statut === 'fait' || validatingId === tache.id}
-          />
-        </View>
 
-        <View style={styles.badgesRow}>
-          <Badge label={FREQUENCE_LABEL[tache.frequence]} variant={FREQUENCE_VARIANT[tache.frequence]} />
-          {tache.assignation === 'rotation' ? <Badge label="🔄" variant="purple" /> : null}
-          {(tache.pieces ?? []).map((p) => (
-            <Badge key={p.id} label={`🚪 ${p.nom}`} variant="neutral" />
-          ))}
-          {tache.gage_actif ? <Badge label={tache.recompense ? `🎁 ${tache.recompense}` : '🎁'} variant="yellow" /> : null}
-          {tache.gage_actif && tache.penalite ? <Badge label={`⚠️ ${tache.penalite}`} variant="orange" /> : null}
-          {tache.gage_semaines_restantes > 0 ? (
-            <Badge label={`⛓️ ${tache.gage_semaines_restantes} ${t('gage.semCorvee')}`} variant="pink" />
-          ) : null}
-          {(tache.gage_effets_echec ?? []).slice(0, 3).map((e, i) => (
-            <Badge key={`ge-${i}`} label={effetLabel(e)} variant="orange" />
-          ))}
+            {/* Ligne visuelle : responsable en avatar + pastilles compactes. */}
+            <View style={styles.vMetaRow}>
+              {tache.titulaire ? (
+                <>
+                  <Avatar name={tache.titulaire.nom} image={tache.titulaire.image ?? null} size={22} />
+                  <Text style={[styles.vMetaName, { color: colors.text.body }]} numberOfLines={1}>
+                    {tache.titulaire.nom}
+                  </Text>
+                </>
+              ) : (
+                <Text style={[styles.vMetaName, { color: colors.text.muted }]} numberOfLines={1}>
+                  {t('taches.personne')}
+                </Text>
+              )}
+              {tache.assignation === 'rotation' ? <Text style={styles.vMini}>🔄</Text> : null}
+              {tache.gage_actif && tache.points_recompense ? (
+                <View style={[styles.vPill, { backgroundColor: 'rgba(221,162,76,0.18)' }]}>
+                  <Text style={[styles.vPillText, { color: colors.candy.yellowDark }]}>🎁 +{tache.points_recompense}</Text>
+                </View>
+              ) : null}
+              {enGage ? (
+                <View style={[styles.vPill, { backgroundColor: 'rgba(214,64,44,0.14)' }]}>
+                  <Text style={[styles.vPillText, { color: colors.candy.red }]}>⛓️ {tache.gage_semaines_restantes}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          <Checkbox
+            checked={done}
+            onToggle={() => handleValider(tache)}
+            disabled={!canValidate || done || validatingId === tache.id}
+          />
         </View>
 
         {isGestion ? (
@@ -846,6 +852,21 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   emptyInlineText: { fontWeight: typography.fontWeight.medium, textAlign: 'center' },
   card: { marginBottom: spacing.md },
+  cardDone: { opacity: 0.6 },
+  // Ligne de tâche « visuel d'abord » : icône de catégorie + titre + responsable.
+  vRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  vTile: { width: 54, height: 54, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  vTileEmoji: { fontSize: 26 },
+  vTileTodo: { backgroundColor: 'rgba(219,138,87,0.16)' },
+  vTileGage: { backgroundColor: 'rgba(214,64,44,0.14)' },
+  vTileDone: { backgroundColor: 'rgba(111,163,106,0.20)' },
+  vTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
+  vTitleDone: { textDecorationLine: 'line-through' },
+  vMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 6, flexWrap: 'wrap' },
+  vMetaName: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold, maxWidth: 110 },
+  vMini: { fontSize: 14 },
+  vPill: { borderRadius: borderRadius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  vPillText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.extrabold },
   gageItem: { marginBottom: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   gageTitulaire: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.extrabold },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

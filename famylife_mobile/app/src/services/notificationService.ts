@@ -2,9 +2,25 @@
 // Centre de notifications in-app (mécanisme principal — fonctionne sans push
 // distant, indisponible dans Expo Go SDK 54). Voir aussi reminderService.ts
 // pour les rappels locaux best-effort planifiés sur l'appareil.
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient, { ApiResponse } from './apiClient';
 
 export type NotificationType = 'activite' | 'evenement' | 'vote' | 'anniversaire' | 'rotation';
+
+// Clé de la maison active (posée par MaisonContext). Le centre de notifications
+// est scopé à cette maison : un utilisateur membre de plusieurs maisons ne voit
+// pas les flux mélangés. Les notifications sans maison (niveau compte) restent
+// visibles quelle que soit la maison active (filtre côté serveur).
+const STORAGE_KEY_MAISON_ACTIVE = '@maison_active';
+async function maisonActiveId(): Promise<number | undefined> {
+  try {
+    const v = await AsyncStorage.getItem(STORAGE_KEY_MAISON_ACTIVE);
+    const n = v ? Number(v) : NaN;
+    return Number.isFinite(n) ? n : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // ANNEXE V10 — préférences de notification par catégorie.
 //
@@ -43,11 +59,16 @@ export interface AppNotification {
 
 class NotificationService {
   async list(nonLues?: boolean, limit?: number): Promise<ApiResponse<AppNotification[]>> {
-    return apiClient.get('/notifications', { params: { non_lues: nonLues, limit } });
+    const params: Record<string, unknown> = { non_lues: nonLues, limit };
+    const maison_id = await maisonActiveId();
+    if (maison_id !== undefined) params.maison_id = maison_id;
+    return apiClient.get('/notifications', { params });
   }
 
   async compteur(): Promise<ApiResponse<{ non_lues: number }>> {
-    return apiClient.get('/notifications/compteur');
+    const maison_id = await maisonActiveId();
+    const params = maison_id !== undefined ? { maison_id } : undefined;
+    return apiClient.get('/notifications/compteur', params ? { params } : undefined);
   }
 
   async marquerLu(id: number): Promise<ApiResponse<{ message: string }>> {
@@ -55,7 +76,10 @@ class NotificationService {
   }
 
   async marquerToutLu(): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.post('/notifications/lu-tout', {});
+    // Scopé à la maison active (cohérent avec la liste/le badge).
+    const maison_id = await maisonActiveId();
+    const suffix = maison_id !== undefined ? `?maison_id=${maison_id}` : '';
+    return apiClient.post(`/notifications/lu-tout${suffix}`, {});
   }
 
   async supprimer(id: number): Promise<ApiResponse<{ message: string }>> {

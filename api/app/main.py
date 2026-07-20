@@ -101,6 +101,16 @@ _COLUMN_MIGRATIONS = {
     "evenements": [
         ("recurrence", "VARCHAR NOT NULL DEFAULT 'aucune'"),
     ],
+    # ─── ANNEXE V3 — Dépenses partagées ─────────────────────────────────────
+    # La migration légère ne couvrait pas cette table : une base créée avant
+    # l'ajout de `categorie` / `description` / `date` faisait planter (500) toute
+    # création de dépense. Colonnes nullables → sûres à ajouter sur l'existant.
+    "depenses": [
+        ("categorie", "VARCHAR"),
+        ("description", "TEXT"),
+        ("date", "TIMESTAMP"),
+        ("date_creation", "TIMESTAMP"),
+    ],
     # ─── ANNEXE V4 ──────────────────────────────────────────────────────────
     "maisons": [
         ("type_logement", "VARCHAR NOT NULL DEFAULT 'maison'"),

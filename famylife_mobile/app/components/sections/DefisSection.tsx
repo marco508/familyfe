@@ -179,10 +179,15 @@ export default function DefisSection({ bottomInset = spacing['4xl'] }: Props) {
           defis.map((d) => (
             <CandyCard key={d.id} style={styles.card}>
               <View style={styles.cardTopRow}>
+                <View style={styles.defiTile}>
+                  <Text style={styles.defiEmoji}>🏆</Text>
+                </View>
                 <Text style={[styles.cardTitle, { color: colors.text.dark }]} numberOfLines={2}>
                   {d.titre}
                 </Text>
-                <Badge label={`${d.points} pts`} variant="yellow" />
+                <View style={[styles.coin, { backgroundColor: 'rgba(221,162,76,0.18)' }]}>
+                  <Text style={[styles.coinText, { color: colors.candy.yellowDark }]}>🪙 {d.points}</Text>
+                </View>
               </View>
               {d.description ? <Text style={[styles.cardDesc, { color: colors.text.body }]}>{d.description}</Text> : null}
               <View style={styles.metaRow}>
@@ -274,7 +279,11 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   fab: { position: 'absolute', right: spacing.xl },
   card: { marginBottom: spacing.sm },
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  defiTile: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(221,162,76,0.16)' },
+  defiEmoji: { fontSize: 22 },
+  coin: { borderRadius: 999, paddingHorizontal: spacing.sm, paddingVertical: 4 },
+  coinText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.black },
   cardTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   cardDesc: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: spacing.xs },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },

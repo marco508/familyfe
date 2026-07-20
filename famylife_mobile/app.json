@@ -67,7 +67,13 @@
           "photosPermission": "FamiLyfe utilise vos photos pour changer votre avatar ou ajouter une photo preuve à une activité."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "FamiLyfe ajoute les événements de votre foyer à votre calendrier pour que vous les retrouviez directement dans l'app Calendrier de votre téléphone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -35,6 +35,33 @@ interface Props {
   bottomInset?: number;
 }
 
+// « Moins de texte, plus de visuel » : une icône par article, déduite de sa
+// catégorie ou de son nom, pour reconnaître la liste d'un coup d'œil.
+function courseEmoji(nom?: string | null, categorie?: string | null): string {
+  const s = `${categorie || ''} ${nom || ''}`.toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/fruit|pomme|banane|orange|fraise|raisin|citron|poire/, '🍎'],
+    [/légume|legume|carotte|tomate|salade|patate|pomme de terre|oignon|courgette|poireau/, '🥕'],
+    [/fromage/, '🧀'],
+    [/lait|yaourt|laitier|crème|creme|beurre/, '🥛'],
+    [/œuf|oeuf/, '🥚'],
+    [/pain|baguette|boulanger|viennois/, '🍞'],
+    [/viande|boeuf|bœuf|poulet|porc|steak|jambon|saucisse/, '🥩'],
+    [/poisson|saumon|thon|crevette|fruits de mer/, '🐟'],
+    [/pâte|\bpate|\briz\b|semoule|céréale|cereale/, '🍝'],
+    [/boisson|soda|\bjus\b|\beau\b|café|cafe|\bthé|\bvin\b|bière|biere/, '🥤'],
+    [/surgel|glace|congel/, '🧊'],
+    [/épice|epice|\bsel\b|poivre|sucre|farine|huile/, '🧂'],
+    [/hygiène|hygiene|savon|shampoing|dentifrice|papier|coton/, '🧴'],
+    [/ménage|menage|nettoyant|lessive|éponge|eponge|poubelle/, '🧽'],
+    [/bébé|bebe|couche/, '🍼'],
+    [/croquette|\bchat\b|\bchien\b|animal/, '🐾'],
+    [/chocolat|gâteau|gateau|biscuit|bonbon|snack|chips/, '🍫'],
+  ];
+  for (const [re, e] of rules) if (re.test(s)) return e;
+  return '🛒';
+}
+
 // Drives français les plus courants. On ouvre leur site/app en https :
 // l'OS route vers l'app installée si elle réclame le domaine, sinon le
 // navigateur. Aucun ne permet le pré-remplissage du panier (d'où le partage).
@@ -178,13 +205,16 @@ export default function CoursesSection({ bottomInset = spacing['4xl'] }: Props) 
     <CandyCard key={item.id} style={styles.itemCard}>
       <View style={styles.itemRow}>
         <Checkbox checked={item.achete} onToggle={() => toggleAchete(item)} />
+        <View style={[styles.catTile, item.achete && styles.catTileDone]}>
+          <Text style={styles.catEmoji}>{courseEmoji(item.nom, item.categorie)}</Text>
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.itemNom, { color: colors.text.dark }, item.achete && styles.itemNomDone]} numberOfLines={2}>
             {item.nom}
           </Text>
-          {item.quantite || item.categorie ? (
+          {item.quantite ? (
             <Text style={[styles.itemMeta, { color: colors.text.body }]} numberOfLines={1}>
-              {[item.quantite, item.categorie].filter(Boolean).join(' · ')}
+              {item.quantite}
             </Text>
           ) : null}
         </View>
@@ -307,6 +337,9 @@ const styles = StyleSheet.create({
   row2: { flexDirection: 'row', gap: spacing.sm },
   itemCard: { marginBottom: spacing.sm, paddingVertical: spacing.md },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  catTile: { width: 40, height: 40, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(111,163,106,0.14)' },
+  catTileDone: { opacity: 0.45 },
+  catEmoji: { fontSize: 20 },
   itemNom: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   itemNomDone: { textDecorationLine: 'line-through', opacity: 0.5 },
   itemMeta: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: 2 },

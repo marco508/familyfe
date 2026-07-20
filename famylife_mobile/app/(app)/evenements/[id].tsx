@@ -4,13 +4,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert, Share } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Trash2, MapPin, CalendarClock, ExternalLink, Check, X as XIcon, HelpCircle } from 'lucide-react-native';
+import { ArrowLeft, Trash2, MapPin, CalendarClock, ExternalLink, Check, X as XIcon, HelpCircle, CalendarPlus } from 'lucide-react-native';
 import ScreenBackground from '../../components/ScreenBackground';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
 import evenementService, { Evenement, RecurrenceEvenement, ReponseRsvp } from '../../src/services/evenementService';
+import { syncEvenement, retirerEvenement } from '../../src/services/calendarSync';
 import { Avatar, Badge, CandyButton, CandyCard, Segmented } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 
@@ -32,6 +33,7 @@ export default function EvenementDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [reponding, setReponding] = useState(false);
   const [savingRecurrence, setSavingRecurrence] = useState(false);
+  const [addingToCalendar, setAddingToCalendar] = useState(false);
 
   const load = useCallback(async () => {
     if (!evenementId) return;
@@ -84,10 +86,30 @@ export default function EvenementDetailScreen() {
             Alert.alert(t('common.erreur'), res.error);
             return;
           }
+          // Retire aussi la copie dans le calendrier du téléphone.
+          retirerEvenement(evenement.id).catch(() => {});
           router.back();
         },
       },
     ]);
+  };
+
+  const handleAddToCalendar = async () => {
+    if (!evenement) return;
+    setAddingToCalendar(true);
+    const ok = await syncEvenement(evenement);
+    setAddingToCalendar(false);
+    Alert.alert(
+      ok
+        ? t('evenement.ajouteCalendrierTitre', 'Ajouté à ton calendrier ✅')
+        : t('evenement.calendrierIndispoTitre', 'Impossible pour le moment'),
+      ok
+        ? t('evenement.ajouteCalendrierMsg', "Retrouve cet événement dans l'app Calendrier de ton téléphone.")
+        : t(
+            'evenement.calendrierIndispoMsg',
+            "Autorise l'accès au calendrier. Note : la synchro n'est pas disponible dans Expo Go, il faut un development build."
+          )
+    );
   };
 
   const handleExportIcal = async () => {
@@ -215,6 +237,16 @@ export default function EvenementDetailScreen() {
               <Text style={[styles.helperText, { color: colors.text.muted }]}>{t('evenement.reserveChefCreateur')}</Text>
             ) : null}
           </CandyCard>
+
+          {/* Ajout au calendrier natif du téléphone (dev build requis) */}
+          <CandyButton
+            label={t('evenement.ajouterCalendrier', 'Ajouter à mon calendrier')}
+            onPress={handleAddToCalendar}
+            loading={addingToCalendar}
+            variant="green"
+            icon={<CalendarPlus size={18} color={colors.candy.white} />}
+            style={{ marginBottom: spacing.sm }}
+          />
 
           {/* Export iCal */}
           <CandyButton

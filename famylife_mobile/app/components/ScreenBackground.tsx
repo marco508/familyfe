@@ -38,8 +38,8 @@ export default function ScreenBackground({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFE9F3' },
-  rootDark: { backgroundColor: '#1B1330' },
+  root: { flex: 1, backgroundColor: '#FFF8F0' },
+  rootDark: { backgroundColor: '#221820' },
   blobDark: { opacity: 0.12 },
   content: { flex: 1 },
   blob: {
@@ -50,14 +50,14 @@ const styles = StyleSheet.create({
   blobPink: {
     width: 220,
     height: 220,
-    backgroundColor: '#FF8FC4',
+    backgroundColor: '#F7C9AE',
     top: -60,
     right: -60,
   },
   blobBlue: {
     width: 180,
     height: 180,
-    backgroundColor: '#7ADBFF',
+    backgroundColor: '#C9DBC4',
     bottom: 40,
     left: -70,
   },

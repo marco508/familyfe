@@ -710,6 +710,7 @@ const fr = {
     titre: 'Bilan de la semaine',
     taches: 'tâches',
     points: 'points',
+    taPart: 'ma part',
     topLabel: 'Top contributeur',
     // ANNEXE V9 — l'équité n'a plus d'onglet : son signal vit ici, et il est
     // actionnable (qui prend la suivante) plutôt que descriptif.

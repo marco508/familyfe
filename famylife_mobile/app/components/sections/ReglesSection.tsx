@@ -144,6 +144,9 @@ export default function ReglesSection({ bottomInset = spacing['4xl'] }: Props) {
   const renderRegle = (r: Regle, showGestionActions: boolean) => (
     <CandyCard key={r.id} style={styles.card}>
       <View style={styles.cardTopRow}>
+        <View style={styles.regleTile}>
+          <Text style={styles.regleEmoji}>📜</Text>
+        </View>
         <Text style={[styles.cardTitle, { color: colors.text.dark }]} numberOfLines={2}>
           {r.titre}
         </Text>
@@ -294,7 +297,9 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   emptyInlineText: { fontWeight: typography.fontWeight.medium, textAlign: 'center' },
   card: { marginBottom: spacing.sm },
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  regleTile: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(94,58,85,0.12)' },
+  regleEmoji: { fontSize: 20 },
   cardTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   cardContenu: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: spacing.xs },
   voteResults: { marginTop: spacing.sm, gap: 4 },

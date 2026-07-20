@@ -38,7 +38,7 @@ const GRADIENTS: Record<string, readonly [string, string, ...string[]]> = {
   green: gradients.candyGreen,
   orange: gradients.candyOrange,
   yellow: gradients.candyYellow,
-  danger: ['#FF8A9B', '#FF5B6E'],
+  danger: ['#E8735E', '#D6402C'],
 };
 
 const SHADOWS: Record<string, any> = {

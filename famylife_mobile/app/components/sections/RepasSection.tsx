@@ -177,6 +177,8 @@ export default function RepasSection({ bottomInset = spacing['4xl'] }: Props) {
 
   const momentLabel = (m: MomentRepas) =>
     m === 'petit_dej' ? t('menu.petitDej') : m === 'midi' ? t('menu.midi') : t('menu.soir');
+  // « Moins de texte, plus de visuel » : un pictogramme par moment de la journée.
+  const momentEmoji = (m: MomentRepas) => (m === 'petit_dej' ? '🥐' : m === 'midi' ? '🍽️' : '🌙');
 
   return (
     <View style={styles.flex}>
@@ -209,7 +211,7 @@ export default function RepasSection({ bottomInset = spacing['4xl'] }: Props) {
                   const items = dayRepas.filter((r) => r.moment === m);
                   return (
                     <View key={m} style={styles.momentRow}>
-                      <Text style={[styles.momentLabel, { color: colors.text.muted }]}>{momentLabel(m)}</Text>
+                      <Text style={styles.momentEmojiCol} accessibilityLabel={momentLabel(m)}>{momentEmoji(m)}</Text>
                       <View style={{ flex: 1 }}>
                         {items.length === 0 ? (
                           <Pressable onPress={() => openModal(d, m)} style={styles.addMealButton}>
@@ -308,6 +310,7 @@ const styles = StyleSheet.create({
   dayTitle: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black, marginBottom: spacing.sm, textTransform: 'capitalize' },
   momentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.sm },
   momentLabel: { width: 64, fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.extrabold, marginTop: spacing.xs },
+  momentEmojiCol: { width: 40, fontSize: 20, textAlign: 'center', marginTop: 2 },
   addMealButton: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: spacing.xs },
   addMealText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
   mealChip: {

@@ -684,7 +684,9 @@ export default function MaisonScreen() {
           {pieces.map((p) => (
             <CandyCard key={p.id} style={styles.leaderboardCard}>
               <View style={styles.membreRow}>
-                <Text style={styles.pieceTypeEmoji}>{pieceTypeEmoji(p.type)}</Text>
+                <View style={styles.pieceTile}>
+                  <Text style={styles.pieceTileEmoji}>{pieceTypeEmoji(p.type)}</Text>
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.membreNom, { color: colors.text.dark }]}>{p.nom}</Text>
                   <Text style={[styles.membreEmail, { color: colors.text.body }]}>
@@ -1134,6 +1136,8 @@ const styles = StyleSheet.create({
   logementDetail: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, marginTop: spacing.xs },
   pieceActionsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   pieceTypeEmoji: { fontSize: 20, width: 22, textAlign: 'center' },
+  pieceTile: { width: 44, height: 44, borderRadius: borderRadius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(58,154,158,0.14)' },
+  pieceTileEmoji: { fontSize: 22 },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.pill, borderWidth: 1.5 },

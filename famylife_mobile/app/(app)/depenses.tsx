@@ -135,6 +135,8 @@ export default function DepensesScreen() {
 
   const totalDepenses = depenses.reduce((sum, d) => sum + d.montant, 0);
   const monSolde = bilan?.soldes.find((s) => s.utilisateur_id === user?.id)?.solde ?? 0;
+  // Base des barres « qui a payé » : le plus gros payeur = barre pleine.
+  const maxPaye = Math.max(1, ...(bilan?.soldes ?? []).map((s) => s.paye));
 
   // ANNEXE V8 — la route reste vivante ; on explique au lieu de rediriger. Le
   // test est placé APRÈS tous les hooks (règle des hooks : un retour anticipé
@@ -243,11 +245,22 @@ export default function DepensesScreen() {
               <Text style={[styles.sectionLabel, { color: colors.text.dark }]}>{t('depenses.quiDoitQui')}</Text>
               {(bilan?.reglements ?? []).map((r, idx) => (
                 <CandyCard key={idx} style={styles.reglementCard}>
-                  <View style={styles.reglementRow}>
-                    <Text style={[styles.reglementNom, { color: colors.text.dark }]}>{r.de_nom}</Text>
-                    <ArrowRight size={16} color={colors.text.muted} />
-                    <Text style={[styles.reglementNom, { color: colors.text.dark }]}>{r.vers_nom}</Text>
-                    <Text style={[styles.reglementMontant, { color: colors.candy.pinkDark }]}>{r.montant.toFixed(2)} €</Text>
+                  <View style={styles.debtRow}>
+                    <View style={styles.debtParty}>
+                      <Avatar name={r.de_nom} image={imageFor(r.de)} size={40} />
+                      <Text style={[styles.debtNom, { color: colors.text.body }]} numberOfLines={1}>{r.de_nom}</Text>
+                    </View>
+                    <View style={styles.debtMid}>
+                      <Text style={[styles.debtAmount, { color: colors.primary.dark }]}>{r.montant.toFixed(2)} €</Text>
+                      <View style={styles.debtLine}>
+                        <View style={[styles.debtLineFill, { backgroundColor: colors.primary.main }]} />
+                        <ArrowRight size={16} color={colors.primary.main} />
+                      </View>
+                    </View>
+                    <View style={styles.debtParty}>
+                      <Avatar name={r.vers_nom} image={imageFor(r.vers)} size={40} />
+                      <Text style={[styles.debtNom, { color: colors.text.body }]} numberOfLines={1}>{r.vers_nom}</Text>
+                    </View>
                   </View>
                 </CandyCard>
               ))}
@@ -256,10 +269,16 @@ export default function DepensesScreen() {
               {(bilan?.soldes ?? []).map((s) => (
                 <CandyCard key={s.utilisateur_id} style={styles.reglementCard}>
                   <View style={styles.soldeRow}>
-                    <Avatar name={s.nom} image={imageFor(s.utilisateur_id)} size={28} />
-                    <Text style={[styles.reglementNom, { color: colors.text.dark, flex: 1 }]} numberOfLines={1}>
-                      {s.nom}
-                    </Text>
+                    <Avatar name={s.nom} image={imageFor(s.utilisateur_id)} size={30} />
+                    <View style={styles.soldeMid}>
+                      <View style={styles.soldeTopRow}>
+                        <Text style={[styles.reglementNom, { color: colors.text.dark, flex: 1 }]} numberOfLines={1}>{s.nom}</Text>
+                        <Text style={[styles.soldePaye, { color: colors.text.muted }]}>{s.paye.toFixed(2)} €</Text>
+                      </View>
+                      <View style={[styles.bar, { backgroundColor: colors.surface }]}>
+                        <View style={[styles.barFill, { width: `${Math.round((s.paye / maxPaye) * 100)}%`, backgroundColor: colors.secondary.main }]} />
+                      </View>
+                    </View>
                     <Text style={[styles.reglementMontant, { color: s.solde >= 0 ? colors.candy.greenDark : colors.candy.red }]}>
                       {s.solde >= 0 ? '+' : ''}
                       {s.solde.toFixed(2)} €
@@ -365,7 +384,21 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.sm },
   reglementCard: { marginBottom: spacing.sm },
   reglementRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  soldeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  soldeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  // Flux de dette : avatar → montant + flèche → avatar.
+  debtRow: { flexDirection: 'row', alignItems: 'center' },
+  debtParty: { width: 64, alignItems: 'center' },
+  debtNom: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold, marginTop: 4 },
+  debtMid: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
+  debtAmount: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black, marginBottom: 4 },
+  debtLine: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', justifyContent: 'center', gap: 2 },
+  debtLineFill: { height: 2, flex: 1, maxWidth: 56, borderRadius: 2 },
+  // Barre « qui a payé ».
+  soldeMid: { flex: 1 },
+  soldeTopRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 5 },
+  soldePaye: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
+  bar: { height: 9, borderRadius: borderRadius.pill, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: borderRadius.pill },
   reglementNom: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
   reglementMontant: { marginLeft: 'auto', fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
   label: { fontWeight: typography.fontWeight.bold, fontSize: typography.fontSize.sm, marginBottom: spacing.sm },

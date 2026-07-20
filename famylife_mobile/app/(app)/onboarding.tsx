@@ -16,7 +16,7 @@ import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 
 const EMOJIS = ['🏠', '🏡', '🏘️', '🌈', '🧸', '🍬'];
-const COULEURS = ['#FF4E9B', '#7B5CFF', '#3AC8FF', '#3FD98B', '#FFD23F', '#FF8A3D'];
+const COULEURS = ['#EC5F4E', '#6B4460', '#3E9A9E', '#6FA36A', '#DDA24C', '#DB8A57'];
 
 // Pièces courantes pré-proposées à la création (icône + type backend).
 const PIECES_COURANTES: { type: TypePiece; emoji: string }[] = [

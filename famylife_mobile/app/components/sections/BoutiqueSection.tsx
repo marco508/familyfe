@@ -185,11 +185,16 @@ export default function BoutiqueSection({ bottomInset = spacing['4xl'] }: Props)
     const disabled = mesPoints < r.cout_points || !r.actif;
     return (
       <CandyCard key={r.id} style={styles.card}>
-        <View style={styles.cardTopRow}>
+        <View style={styles.recTopRow}>
+          <View style={styles.giftTile}>
+            <Text style={styles.giftEmoji}>🎁</Text>
+          </View>
           <Text style={[styles.cardTitle, { color: colors.text.dark }]} numberOfLines={2}>
             {r.nom}
           </Text>
-          <Badge label={`${r.cout_points} pts`} variant="yellow" />
+          <View style={[styles.coin, { backgroundColor: 'rgba(221,162,76,0.18)' }]}>
+            <Text style={[styles.coinText, { color: colors.candy.yellowDark }]}>🪙 {r.cout_points}</Text>
+          </View>
         </View>
         {r.description ? <Text style={[styles.cardDesc, { color: colors.text.body }]}>{r.description}</Text> : null}
         {!r.actif ? <Badge label={t('boutique.inactif')} variant="neutral" style={{ marginTop: spacing.xs }} /> : null}
@@ -223,7 +228,9 @@ export default function BoutiqueSection({ bottomInset = spacing['4xl'] }: Props)
         {/* Solde de points : il était dans l'en-tête de l'ancien écran, il vit
             désormais dans le segment (l'en-tête appartient au hub). */}
         <View style={styles.soldeRow}>
-          <Badge label={`${mesPoints} pts`} variant="yellow" />
+          <View style={[styles.soldeCoin, { backgroundColor: 'rgba(221,162,76,0.20)' }]}>
+            <Text style={[styles.soldeCoinText, { color: colors.candy.yellowDark }]}>🪙 {mesPoints} pts</Text>
+          </View>
         </View>
 
         <View style={styles.sousOngletWrap}>
@@ -357,9 +364,16 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   fab: { position: 'absolute', right: spacing.xl },
   soldeRow: { alignItems: 'flex-end', marginBottom: spacing.sm },
+  soldeCoin: { borderRadius: 999, paddingHorizontal: spacing.md, paddingVertical: 6 },
+  soldeCoinText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.black },
   sousOngletWrap: { marginBottom: spacing.lg },
   card: { marginBottom: spacing.sm },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
+  recTopRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  giftTile: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(94,58,85,0.12)' },
+  giftEmoji: { fontSize: 22 },
+  coin: { borderRadius: 999, paddingHorizontal: spacing.sm, paddingVertical: 4 },
+  coinText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.black },
   cardTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   cardDesc: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, marginTop: spacing.xs },
   editRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm },

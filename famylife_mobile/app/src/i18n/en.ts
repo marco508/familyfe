@@ -706,6 +706,7 @@ const en: TranslationDict = {
     titre: 'Weekly recap',
     taches: 'chores',
     points: 'points',
+    taPart: 'my share',
     topLabel: 'Top contributor',
     // ANNEXE V9 — fairness lost its tab: its signal lives here, and it is
     // actionable (who takes the next one) rather than merely descriptive.

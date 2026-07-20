@@ -3,6 +3,8 @@ export { default as CandyButton } from './CandyButton';
 export { default as CandyCard } from './CandyCard';
 export { default as CandyInput } from './CandyInput';
 export { default as Avatar } from './Avatar';
+export { default as AvatarStack } from './AvatarStack';
+export { default as ProgressRing } from './ProgressRing';
 export { default as Badge } from './Badge';
 export { default as SectionTitle } from './SectionTitle';
 export { default as EmptyState } from './EmptyState';

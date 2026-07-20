@@ -64,6 +64,9 @@ export default function ClassementSection({ bottomInset = spacing['4xl'] }: Prop
     setRefreshing(false);
   };
 
+  // Points du meneur = barre pleine ; les autres se comparent visuellement à lui.
+  const maxPoints = Math.max(1, ...entries.map((e) => e.points));
+
   return (
     <ScrollView
       contentContainerStyle={[styles.container, { paddingBottom: bottomInset }]}
@@ -86,20 +89,28 @@ export default function ClassementSection({ bottomInset = spacing['4xl'] }: Prop
       ) : entries.length === 0 ? (
         <EmptyState emoji="🥇" title={t('common.aucunResultat')} />
       ) : (
-        entries.map((e, idx) => (
-          <CandyCard key={e.utilisateur_id} style={styles.rankCard}>
-            <View style={styles.rankRow}>
-              <Text style={styles.rankMedal}>{MEDALS[idx] ?? `#${idx + 1}`}</Text>
-              <Avatar name={e.nom} image={e.image} size={40} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.rankNom, { color: colors.text.dark }]} numberOfLines={1}>
-                  {e.nom}{e.utilisateur_id === user?.id ? ` ${t('maison.vous')}` : ''}
-                </Text>
+        entries.map((e, idx) => {
+          const barColor = idx === 0 ? colors.candy.yellowDark : idx === 1 ? colors.secondary.main : colors.primary.main;
+          return (
+            <CandyCard key={e.utilisateur_id} style={styles.rankCard}>
+              <View style={styles.rankRow}>
+                <Text style={styles.rankMedal}>{MEDALS[idx] ?? `#${idx + 1}`}</Text>
+                <Avatar name={e.nom} image={e.image} size={42} ringColor={idx === 0 ? colors.candy.yellowDark : undefined} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.rankNom, { color: colors.text.dark }]} numberOfLines={1}>
+                    {e.nom}{e.utilisateur_id === user?.id ? ` ${t('maison.vous')}` : ''}
+                  </Text>
+                  <View style={[styles.pointsBar, { backgroundColor: colors.surface }]}>
+                    <View style={[styles.pointsBarFill, { width: `${Math.round((e.points / maxPoints) * 100)}%`, backgroundColor: barColor }]} />
+                  </View>
+                </View>
+                <View style={[styles.coin, { backgroundColor: 'rgba(221,162,76,0.18)' }]}>
+                  <Text style={[styles.coinText, { color: colors.candy.yellowDark }]}>🪙 {e.points}</Text>
+                </View>
               </View>
-              <Text style={[styles.rankPoints, { color: colors.candy.pinkDark }]}>{e.points} pts</Text>
-            </View>
-          </CandyCard>
-        ))
+            </CandyCard>
+          );
+        })
       )}
 
       {badges.length > 0 ? (
@@ -140,6 +151,10 @@ const styles = StyleSheet.create({
   rankMedal: { fontSize: 22, width: 32, textAlign: 'center' },
   rankNom: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold },
   rankPoints: { fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.black },
+  pointsBar: { height: 8, borderRadius: borderRadius.pill, overflow: 'hidden', marginTop: 6 },
+  pointsBarFill: { height: '100%', borderRadius: borderRadius.pill },
+  coin: { borderRadius: borderRadius.pill, paddingHorizontal: spacing.sm, paddingVertical: 4 },
+  coinText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.black },
   badgeCard: { marginBottom: spacing.sm },
   badgeChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   badgeChip: { borderRadius: borderRadius.pill, borderWidth: 1.5, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },

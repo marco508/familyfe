@@ -43,8 +43,10 @@ import { useMaison } from '../../src/contexts/MaisonContext';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import evenementService, { Evenement } from '../../src/services/evenementService';
 import activiteService, { Activite, StatutActivite } from '../../src/services/activiteService';
-import { GageEffet } from '../../src/services/tacheService';
+import tacheService, { GageEffet, Tache } from '../../src/services/tacheService';
+import maisonService, { Anniversaire } from '../../src/services/maisonService';
 import { planifierRappelEvenement } from '../../src/services/reminderService';
+import { syncEvenement } from '../../src/services/calendarSync';
 import {
   BottomSheet,
   CandyButton,
@@ -72,7 +74,7 @@ const MOIS_LABEL_EN = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-const COULEURS = ['#7B5CFF', '#FF4E9B', '#3AC8FF', '#3FD98B', '#FFD23F', '#FF8A3D'];
+const COULEURS = ['#6B4460', '#EC5F4E', '#3E9A9E', '#6FA36A', '#DDA24C', '#DB8A57'];
 
 // La barre d'onglets flotte au-dessus du contenu (voir (tabs)/_layout.tsx) :
 // le FAB doit être posé au-dessus d'elle. Même marge que les sections du hub.
@@ -92,6 +94,16 @@ const STATUT_VARIANT: Record<StatutActivite, 'orange' | 'blue' | 'green'> = {
 type AgendaItem =
   | { kind: 'evenement'; key: string; minutes: number; evenement: Evenement }
   | { kind: 'activite'; key: string; minutes: number; hebdo: boolean; activite: Activite };
+
+// Filtre du calendrier : n'afficher qu'un seul type (ou tout).
+type CalFilterKey = 'all' | 'tache' | 'evenement' | 'activite' | 'anniversaire';
+const CAL_FILTERS: { key: CalFilterKey; emoji: string }[] = [
+  { key: 'all', emoji: '' },
+  { key: 'tache', emoji: '🧹' },
+  { key: 'evenement', emoji: '🎈' },
+  { key: 'activite', emoji: '👥' },
+  { key: 'anniversaire', emoji: '🎂' },
+];
 
 function gageEffetBadge(e: GageEffet): string {
   if (e.type === 'points') return `${(e.valeur ?? 0) > 0 ? '+' : ''}${e.valeur} pts`;
@@ -142,6 +154,9 @@ export default function AgendaScreen() {
   const [selectedDay, setSelectedDay] = useState(new Date());
   const [evenements, setEvenements] = useState<Evenement[]>([]);
   const [activites, setActivites] = useState<Activite[]>([]);
+  const [taches, setTaches] = useState<Tache[]>([]);
+  const [anniversaires, setAnniversaires] = useState<Anniversaire[]>([]);
+  const [filter, setFilter] = useState<CalFilterKey>('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -161,6 +176,8 @@ export default function AgendaScreen() {
     if (!maisonActive) {
       setEvenements([]);
       setActivites([]);
+      setTaches([]);
+      setAnniversaires([]);
       setLoading(false);
       return;
     }
@@ -170,12 +187,16 @@ export default function AgendaScreen() {
       const fin = endOfMonth(currentMonth).toISOString();
       // Les événements sont bornés au mois affiché ; les activités n'ont pas de
       // filtre de période côté API, on les charge toutes et on trie ici.
-      const [resEv, resAc] = await Promise.all([
+      const [resEv, resAc, resTa, resAn] = await Promise.all([
         evenementService.list(maisonActive.id, debut, fin),
         activiteService.list(maisonActive.id),
+        tacheService.list(maisonActive.id),
+        maisonService.anniversaires(maisonActive.id),
       ]);
       setEvenements(resEv.data ?? []);
       setActivites(resAc.data ?? []);
+      setTaches(resTa.data ?? []);
+      setAnniversaires(resAn.data ?? []);
     } finally {
       setLoading(false);
     }
@@ -253,6 +274,52 @@ export default function AgendaScreen() {
     [evenementsByDay, activitesDatees, activitesHebdo]
   );
 
+  // ── Marqueurs de calendrier : on distingue les TYPES (anniversaire,
+  //    événement, activité, corvée) au lieu d'un point neutre, pour qu'on sache
+  //    d'un coup d'œil ce qui se passe ce jour-là. ────────────────────────────
+  const tachesForDay = useCallback(
+    (day: Date): Tache[] => {
+      const key = toDateKey(day);
+      const dow = jourSemaineLundi(day);
+      // Corvées DATÉES (échéance précise) ou HEBDOMADAIRES (jour de semaine).
+      // On n'inclut pas les corvées quotidiennes : elles marqueraient tous les
+      // jours et noieraient l'information.
+      return taches.filter(
+        (tc) =>
+          (!!tc.echeance_date && tc.echeance_date.slice(0, 10) === key) ||
+          (tc.echeance_jour_semaine != null && tc.echeance_jour_semaine === dow)
+      );
+    },
+    [taches]
+  );
+
+  const anniversairesForDay = useCallback(
+    (day: Date): Anniversaire[] => {
+      const mm = day.getMonth() + 1;
+      const dd = day.getDate();
+      return anniversaires.filter((a) => {
+        const p = (a.date_naissance || '').split('-');
+        return Number(p[1]) === mm && Number(p[2]) === dd;
+      });
+    },
+    [anniversaires]
+  );
+
+  // Emojis de type présents ce jour-là (dédupliqués, max 3), par priorité.
+  const dayMarkers = useCallback(
+    (day: Date): string[] => {
+      const voit = (k: CalFilterKey) => filter === 'all' || filter === k;
+      const m: string[] = [];
+      if (voit('anniversaire') && anniversairesForDay(day).length) m.push('🎂');
+      const its = itemsForDay(day);
+      if (voit('evenement') && its.some((i) => i.kind === 'evenement')) m.push('🎈');
+      if (voit('activite') && its.some((i) => i.kind === 'activite')) m.push('👥');
+      if (voit('tache') && tachesForDay(day).length) m.push('🧹');
+      return m.slice(0, 3);
+    },
+    [anniversairesForDay, itemsForDay, tachesForDay, filter]
+  );
+
   const grid = useMemo(() => {
     const first = startOfMonth(currentMonth);
     const startOffset = jourSemaineLundi(first); // lundi = 0
@@ -268,6 +335,26 @@ export default function AgendaScreen() {
   const goNextMonth = () => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
   const selectedDayItems = itemsForDay(selectedDay);
+  const selectedBirthdays = anniversairesForDay(selectedDay);
+  const selectedTasks = tachesForDay(selectedDay);
+
+  // Application du filtre à la liste du jour sélectionné.
+  const filtreVoit = (k: CalFilterKey) => filter === 'all' || filter === k;
+  const filterLabel = (k: CalFilterKey) =>
+    k === 'all'
+      ? t('agenda.filtreTout', 'Tout')
+      : k === 'tache'
+        ? t('agenda.legTache', 'corvées')
+        : k === 'evenement'
+          ? t('agenda.legEvent', 'événements')
+          : k === 'activite'
+            ? t('agenda.legActivite', 'activités')
+            : t('agenda.legAnniv', 'anniv.');
+  const visBirthdays = filtreVoit('anniversaire') ? selectedBirthdays : [];
+  const visDayItems = selectedDayItems.filter((i) =>
+    i.kind === 'evenement' ? filtreVoit('evenement') : filtreVoit('activite')
+  );
+  const visTasks = filtreVoit('tache') ? selectedTasks : [];
 
   const resetForm = () => {
     setTitre('');
@@ -308,7 +395,11 @@ export default function AgendaScreen() {
       couleur,
     });
     if (res.error) return res.error;
-    if (res.data) planifierRappelEvenement(res.data).catch(() => {});
+    if (res.data) {
+      planifierRappelEvenement(res.data).catch(() => {});
+      // Ajoute l'événement au calendrier natif du tel (silencieux dans Expo Go).
+      syncEvenement(res.data).catch(() => {});
+    }
     return null;
   };
 
@@ -432,6 +523,34 @@ export default function AgendaScreen() {
   const renderItem = (item: AgendaItem) =>
     item.kind === 'evenement' ? renderEvenement(item.evenement) : renderActivite(item.activite, item.hebdo);
 
+  const renderAnniversaire = (a: Anniversaire) => (
+    <CandyCard key={`b-${a.id}`} style={[styles.itemCard, { borderLeftColor: colors.candy.pink, borderLeftWidth: 5 }]}>
+      <View style={styles.itemHeaderRow}>
+        <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={1}>🎂 {a.nom}</Text>
+      </View>
+      <View style={styles.itemMetaRow}>
+        <Text style={[styles.itemMeta, { color: colors.text.body }]}>
+          {a.aujourdhui ? t('maison.cestAujourdhui', "C'est aujourd'hui ! 🎉") : `${a.age_a_venir} ${t('accueil.ans', 'ans')}`}
+        </Text>
+      </View>
+    </CandyCard>
+  );
+
+  const renderTacheAgenda = (tc: Tache) => (
+    <CandyCard key={`t-${tc.id}`} style={[styles.itemCard, { borderLeftColor: colors.primary.main, borderLeftWidth: 5 }]}>
+      <Pressable onPress={() => router.push('/(app)/(tabs)/taches')}>
+        <View style={styles.itemHeaderRow}>
+          <Text style={[styles.itemTitle, { color: colors.text.dark }]} numberOfLines={2}>🧹 {tc.titre}</Text>
+        </View>
+        <View style={styles.itemMetaRow}>
+          <Text style={[styles.itemMeta, { color: colors.text.body }]} numberOfLines={1}>
+            {tc.titulaire ? tc.titulaire.nom : t('taches.personne')}
+          </Text>
+        </View>
+      </Pressable>
+    </CandyCard>
+  );
+
   return (
     <View style={styles.flex}>
       <ScrollView
@@ -471,8 +590,7 @@ export default function AgendaScreen() {
           <View style={styles.grid}>
             {grid.map((day, idx) => {
               if (!day) return <View key={idx} style={styles.dayCell} />;
-              const dayItems = itemsForDay(day);
-              const hasItems = dayItems.length > 0;
+              const markers = dayMarkers(day);
               const isSelected = isSameDay(day, selectedDay);
               const isToday = isSameDay(day, new Date());
               return (
@@ -488,16 +606,41 @@ export default function AgendaScreen() {
                       </Text>
                     </View>
                   )}
-                  {/* Une seule pastille de présence : un jour a « quelque chose »
-                      ou non — on ne distingue plus les types. */}
-                  <View style={styles.dotsRow}>
-                    {hasItems ? <View style={[styles.dot, { backgroundColor: colors.primary.main }]} /> : null}
+                  {/* Marqueurs par TYPE (🎂 anniv · 🎈 événement · 👥 activité ·
+                      🧹 corvée) : on voit d'un coup d'œil ce qu'il y a ce jour-là. */}
+                  <View style={styles.markersRow}>
+                    {markers.map((emoji, i) => (
+                      <Text key={i} style={styles.markerEmoji}>{emoji}</Text>
+                    ))}
                   </View>
                 </Pressable>
               );
             })}
           </View>
         </CandyCard>
+
+        {/* Filtre : n'afficher qu'un type (corvées, événements, activités,
+            anniversaires) — ou tout. Agit sur les marqueurs ET la liste. */}
+        <View style={styles.filterRow}>
+          {CAL_FILTERS.map((f) => {
+            const active = filter === f.key;
+            return (
+              <Pressable
+                key={f.key}
+                onPress={() => setFilter(f.key)}
+                style={[
+                  styles.filterChip,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                  active && { backgroundColor: colors.secondary.main, borderColor: colors.secondary.main },
+                ]}
+              >
+                <Text style={[styles.filterChipText, { color: active ? colors.candy.white : colors.text.body }]}>
+                  {f.emoji ? `${f.emoji} ` : ''}{filterLabel(f.key)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <SectionTitle
           title={selectedDay.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -507,10 +650,14 @@ export default function AgendaScreen() {
 
         {loading ? (
           <ActivityIndicator style={{ marginTop: spacing.md }} color={colors.primary.main} />
-        ) : selectedDayItems.length === 0 ? (
+        ) : visBirthdays.length === 0 && visDayItems.length === 0 && visTasks.length === 0 ? (
           <EmptyState emoji="🌤️" title={t('agenda.rienPrevu')} message={t('agenda.ajouterQuelqueChose')} />
         ) : (
-          selectedDayItems.map(renderItem)
+          <>
+            {visBirthdays.map(renderAnniversaire)}
+            {visDayItems.map(renderItem)}
+            {visTasks.map(renderTacheAgenda)}
+          </>
         )}
 
         {/* Activités héritées sans aucune date : sinon elles disparaîtraient de
@@ -628,6 +775,22 @@ const styles = StyleSheet.create({
   dayNumberSelected: { fontWeight: typography.fontWeight.extrabold, fontSize: typography.fontSize.sm },
   dotsRow: { flexDirection: 'row', gap: 3, height: 5 },
   dot: { width: 5, height: 5, borderRadius: 3 },
+  markersRow: { flexDirection: 'row', gap: 1, height: 14, alignItems: 'center', justifyContent: 'center' },
+  markerEmoji: { fontSize: 10, lineHeight: 13 },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    columnGap: spacing.md,
+    rowGap: 2,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  legendItem: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  filterChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: borderRadius.pill, borderWidth: 1.5 },
+  filterChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.bold },
   itemCard: { marginBottom: spacing.sm },
   itemHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
   itemTitle: { flex: 1, fontSize: typography.fontSize.md, fontWeight: typography.fontWeight.extrabold, marginBottom: spacing.xs },

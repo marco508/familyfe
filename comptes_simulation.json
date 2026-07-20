@@ -1,0 +1,85 @@
+{
+  "password": "Familyfe2026!",
+  "foyers": [
+    {
+      "nom": "Maison des Martin",
+      "type": "maison",
+      "code": "DEW8AJY9",
+      "membres": [
+        [
+          "Paul Martin (chef)",
+          "paul.martin@sim.familyfe"
+        ],
+        [
+          "Sophie Martin (co-chef, conjointe)",
+          "sophie.martin@sim.familyfe"
+        ],
+        [
+          "Lucas Martin (enfant)",
+          "lucas.martin@sim.familyfe"
+        ],
+        [
+          "Emma Martin (enfant)",
+          "emma.martin@sim.familyfe"
+        ]
+      ]
+    },
+    {
+      "nom": "Chez Léa & Tom",
+      "type": "appartement",
+      "code": "LJTRMALB",
+      "membres": [
+        [
+          "Léa Dubois (chef)",
+          "lea.dubois@sim.familyfe"
+        ],
+        [
+          "Tom Bernard (conjoint)",
+          "tom.bernard@sim.familyfe"
+        ]
+      ]
+    },
+    {
+      "nom": "Coloc du 12 Rivoli",
+      "type": "appartement",
+      "code": "5FVE4MN7",
+      "membres": [
+        [
+          "Marc Petit (chef)",
+          "marc.petit@sim.familyfe"
+        ],
+        [
+          "Julie Roche (co-chef)",
+          "julie.roche@sim.familyfe"
+        ],
+        [
+          "Karim Aziz",
+          "karim.aziz@sim.familyfe"
+        ],
+        [
+          "Nadia Sow",
+          "nadia.sow@sim.familyfe"
+        ],
+        [
+          "Hugo (visiteur temporaire)",
+          "hugo.invite@sim.familyfe"
+        ]
+      ]
+    },
+    {
+      "nom": "Villa Rossi",
+      "type": "maison",
+      "code": "4XB4L2K7",
+      "membres": [
+        [
+          "Antonio Rossi (chef)",
+          "antonio.rossi@sim.familyfe"
+        ],
+        [
+          "Chiara Rossi (co-chef, conjointe)",
+          "chiara.rossi@sim.familyfe"
+        ]
+      ]
+    }
+  ]
+}
