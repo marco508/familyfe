@@ -92,6 +92,9 @@ const en: TranslationDict = {
     chef: 'Leader',
     titre: 'Title',
     actionIrreversible: 'This action cannot be undone.',
+    aide: 'Help',
+    // Progressive disclosure: fine-tuning fields are collapsed by default.
+    plusOptions: 'More options',
   },
   agenda: {
     lieuOptionnel: 'Location (optional)',
@@ -265,6 +268,10 @@ const en: TranslationDict = {
     titreMontantRequis: 'Valid title and amount required',
     participant: 'participant',
     participants2: 'participants',
+    // Summary shown when the participant picker is collapsed: the split
+    // decides who owes what, it must never become invisible.
+    partageEntreTous: 'Split between everyone',
+    partageEntre: 'Split between',
   },
   menu: {
     titre: 'Weekly menu',

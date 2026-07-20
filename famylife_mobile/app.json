@@ -82,6 +82,7 @@
       "router": {},
       "apiUrlLocal": "http://localhost:8005",
       "apiUrlRemote": "https://familyfe.dkpsolution.tech/api",
+      "helpUrl": "https://familyfe.dkpsolution.tech/aide.html",
       "eas": {
         "projectId": "8c1b84cf-8afe-4a38-95f4-f7a0d97e515a"
       }

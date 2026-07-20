@@ -22,7 +22,7 @@ import { router } from 'expo-router';
 import { useT } from '../../src/i18n';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import { useMaison } from '../../src/contexts/MaisonContext';
-import { NotificationBell, SectionTitle, Segmented } from '../../components/ui';
+import { HelpButton, NotificationBell, SectionTitle, Segmented } from '../../components/ui';
 import EquiteSection from '../../components/sections/EquiteSection';
 import ClassementSection from '../../components/sections/ClassementSection';
 import DefisSection from '../../components/sections/DefisSection';
@@ -67,13 +67,16 @@ export default function EquiteHubScreen() {
           title={t('equite.titre')}
           emoji="⚖️"
           right={
-            <NotificationBell
-              count={unreadCount}
-              onPress={() => {
-                refreshNotifCount();
-                router.push('/(app)/notifications');
-              }}
-            />
+            <View style={styles.headerActions}>
+              <HelpButton />
+              <NotificationBell
+                count={unreadCount}
+                onPress={() => {
+                  refreshNotifCount();
+                  router.push('/(app)/notifications');
+                }}
+              />
+            </View>
           }
         />
         {/* Une barre à un seul onglet ne propose aucun choix : on la masque. */}
@@ -100,4 +103,6 @@ export default function EquiteHubScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: { paddingHorizontal: spacing.xl, paddingTop: spacing['2xl'] },
+  // Aide + cloche côte à côte, dans l'emplacement « right » du SectionTitle.
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

@@ -47,7 +47,7 @@ import voteService, { Vote } from '../../src/services/voteService';
 import tacheService, { Tache } from '../../src/services/tacheService';
 import maisonService, { Anniversaire } from '../../src/services/maisonService';
 import statsService, { BilanSemaine, Equite } from '../../src/services/statsService';
-import { CandyCard, Badge, EmptyState, NotificationBell, Avatar, AvatarStack, ProgressRing, VisitorBanner } from '../../components/ui';
+import { CandyCard, Badge, EmptyState, HelpButton, NotificationBell, Avatar, AvatarStack, ProgressRing, VisitorBanner } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -257,7 +257,10 @@ export default function DashboardScreen() {
           </View>
           <Text style={[styles.dateText, { color: colors.text.muted }]}>{dateLabel}</Text>
         </View>
-        <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />
+        <View style={styles.headerActions}>
+          <HelpButton />
+          <NotificationBell count={unreadCount} onPress={() => router.push('/(app)/notifications')} />
+        </View>
       </View>
 
       {isVisiteur ? <VisitorBanner /> : null}
@@ -564,6 +567,8 @@ const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingTop: spacing['2xl'], paddingBottom: 140 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg },
   greetingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  // Aide + cloche côte à côte, à droite de l'en-tête.
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   greeting: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.black },
   streakChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: borderRadius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
   streakChipText: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.black },

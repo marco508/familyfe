@@ -20,7 +20,7 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useT } from '../src/i18n';
 import depensesService, { BilanDepenses, Depense } from '../src/services/depensesService';
-import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Fab, Segmented, VisitorBanner } from '../components/ui';
+import { Avatar, BottomSheet, CandyButton, CandyCard, CandyInput, EmptyState, Fab, Repliable, Segmented, VisitorBanner } from '../components/ui';
 import { typography, spacing, borderRadius } from '../theme/designTokens';
 
 export default function DepensesScreen() {
@@ -137,6 +137,20 @@ export default function DepensesScreen() {
   const monSolde = bilan?.soldes.find((s) => s.utilisateur_id === user?.id)?.solde ?? 0;
   // Base des barres « qui a payé » : le plus gros payeur = barre pleine.
   const maxPaye = Math.max(1, ...(bilan?.soldes ?? []).map((s) => s.paye));
+
+  // Divulgation progressive : catégorie + participants sont repliés. Le partage
+  // décide QUI DOIT COMBIEN : on le résume donc dans l'en-tête du dépliant, et
+  // on ouvre d'office dès que la sélection s'écarte du défaut (« tout le
+  // monde ») ou qu'une catégorie est déjà saisie.
+  const partageParDefaut =
+    membres.length === 0 ||
+    (participants.length === membres.length && membres.every((m) => participants.includes(m.id)));
+  const resumeParticipants = partageParDefaut
+    ? t('depenses.partageEntreTous')
+    : `${t('depenses.partageEntre')} ${participants.length} ${
+        participants.length > 1 ? t('depenses.participants2') : t('depenses.participant')
+      }`;
+  const optionsAvancees = categorie.trim() !== '' || !partageParDefaut;
 
   // ANNEXE V8 — la route reste vivante ; on explique au lieu de rediriger. Le
   // test est placé APRÈS tous les hooks (règle des hooks : un retour anticipé
@@ -314,8 +328,6 @@ export default function DepensesScreen() {
           onChangeText={setMontant}
           keyboardType="decimal-pad"
         />
-        <CandyInput label={t('courses.categorie')} placeholder={t('depenses.categoriePlaceholder')} value={categorie} onChangeText={setCategorie} />
-
         <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.payePar')}</Text>
         <View style={styles.chipsRow}>
           {membres.map((m) => (
@@ -332,21 +344,27 @@ export default function DepensesScreen() {
           ))}
         </View>
 
-        <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.participants')}</Text>
-        <View style={styles.chipsRow}>
-          {membres.map((m) => (
-            <Pressable
-              key={m.id}
-              onPress={() => toggleParticipant(m.id)}
-              style={[styles.membreChip, { borderColor: colors.border }, participants.includes(m.id) && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
-            >
-              <Avatar name={m.nom} image={m.image} size={22} />
-              <Text style={[styles.membreChipText, { color: participants.includes(m.id) ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
-                {m.nom}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* Le résumé du partage reste lisible même replié : sinon on pourrait
+            valider un partage inattendu sans le savoir. */}
+        <Repliable titre={t('common.plusOptions')} sousTitre={resumeParticipants} ouvertParDefaut={optionsAvancees}>
+          <CandyInput label={t('courses.categorie')} placeholder={t('depenses.categoriePlaceholder')} value={categorie} onChangeText={setCategorie} />
+
+          <Text style={[styles.label, { color: colors.text.dark }]}>{t('depenses.participants')}</Text>
+          <View style={styles.chipsRow}>
+            {membres.map((m) => (
+              <Pressable
+                key={m.id}
+                onPress={() => toggleParticipant(m.id)}
+                style={[styles.membreChip, { borderColor: colors.border }, participants.includes(m.id) && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle }]}
+              >
+                <Avatar name={m.nom} image={m.image} size={22} />
+                <Text style={[styles.membreChipText, { color: participants.includes(m.id) ? colors.primary.main : colors.text.body }]} numberOfLines={1}>
+                  {m.nom}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Repliable>
 
         {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
       </BottomSheet>

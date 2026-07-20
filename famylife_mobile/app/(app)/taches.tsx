@@ -34,6 +34,8 @@ import {
   Checkbox,
   EmptyState,
   Fab,
+  HelpButton,
+  Repliable,
   Segmented,
   Stepper,
   Toggle,
@@ -431,6 +433,18 @@ export default function TachesScreen() {
 
   const peutValider = (tache: Tache) => isGestion || (!!user && tache.titulaire?.id === user.id);
 
+  // Divulgation progressive : le réglage fin est replié derrière « Plus
+  // d'options ». MAIS en modification, si un de ces champs porte déjà une
+  // valeur, le replier le rendrait invisible — on ouvre alors d'emblée.
+  const optionsAvancees =
+    description.trim() !== '' ||
+    pieceIds.length > 0 ||
+    echeanceDate.trim() !== '' ||
+    echeanceHeure.trim() !== '' ||
+    echeanceJour !== null ||
+    rotationConditions.trim() !== '' ||
+    gageActif;
+
   const today = new Date();
   const tachesDuJour = taches.filter(
     (tc) => tc.frequence === 'quotidien' || (tc.echeance_date && isSameDay(tc.echeance_date, today))
@@ -525,7 +539,10 @@ export default function TachesScreen() {
           <Text style={[styles.headerTitle, { color: colors.text.dark }]} numberOfLines={1}>{t('taches.titre')}</Text>
           {streak > 0 ? <Badge label={`🔥 ${streak} ${t('streak.jourAbrev')}`} variant="orange" /> : null}
         </View>
-        <View style={{ width: 40 }} />
+        {/* L'en-tête est symétrique (retour à gauche / espace de 40 à droite) :
+            le bouton d'aide fait justement 40 de large et vient combler cet
+            espace, sans décaler le titre centré. */}
+        <HelpButton />
       </View>
 
       <ScrollView
@@ -622,213 +639,222 @@ export default function TachesScreen() {
           </View>
         }
       >
+        {/* ── ESSENTIEL : de quoi créer « sortir les poubelles » en 3 champs ── */}
         <CandyInput label={t('taches.titreChamp')} placeholder={t('taches.titrePlaceholder')} value={titre} onChangeText={setTitre} />
-              <CandyInput
-                label={t('taches.descriptionOptionnelle')}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-              />
 
-              <Text style={[styles.label, { color: colors.text.dark }]}>
-                {t('taches.pieceOptionnelle')} {pieceIds.length > 0 ? `(${pieceIds.length})` : ''}
-              </Text>
-              {pieces.length === 0 ? (
-                <Text style={[styles.helperText, { color: colors.text.body }]}>Aucune pièce dans le logement pour l’instant.</Text>
-              ) : (
-                <View style={styles.chipsRow}>
-                  {pieces.map((p) => {
-                    const active = pieceIds.includes(p.id);
-                    return (
-                      <Pressable
-                        key={p.id}
-                        onPress={() => togglePiece(p.id)}
-                        style={[
-                          styles.chip,
-                          { backgroundColor: colors.card, borderColor: colors.border },
-                          active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                        ]}
-                      >
-                        <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
-                          {active ? '✓ ' : ''}{p.nom}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              )}
+        <Text style={[styles.label, { color: colors.text.dark }]}>{t('taches.assignation')}</Text>
+        <Segmented
+          value={assignation}
+          onChange={setAssignation}
+          options={[
+            { value: 'fixe', label: t('taches.fixe') },
+            { value: 'rotation', label: t('taches.rotation') },
+          ]}
+        />
 
-              <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>{t('taches.frequence')}</Text>
-              <Segmented value={frequence} onChange={setFrequence} options={FREQUENCES} />
-
-              <CandyInput
-                label={t('taches.echeanceOptionnelle')}
-                placeholder="2026-07-15"
-                value={echeanceDate}
-                onChangeText={setEcheanceDate}
-                style={{ marginTop: spacing.lg }}
-              />
-              <CandyInput
-                label={t('taches.heureOptionnelle')}
-                placeholder="18:30"
-                value={echeanceHeure}
-                onChangeText={setEcheanceHeure}
-              />
-
-              <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>
-                Ou avant un jour (récurrent)
-              </Text>
-              <Text style={[styles.helperText, { color: colors.text.body }]}>
-                L’échéance se cale sur ce jour chaque période (ex. « avant mercredi »).
-              </Text>
-              <View style={styles.chipsRow}>
-                {JOURS_SEMAINE.map((label, idx) => {
-                  const active = echeanceJour === idx;
-                  return (
-                    <Pressable
-                      key={label}
-                      onPress={() => setEcheanceJour(active ? null : idx)}
-                      style={[
-                        styles.chip,
-                        { backgroundColor: colors.card, borderColor: colors.border },
-                        active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                      ]}
-                    >
-                      <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
-                        {label}
+        {assignation === 'fixe' ? (
+          <View style={[styles.membresList, { marginTop: spacing.lg }]}>
+            {membres.map((m) => {
+              const active = assigneId === m.id;
+              return (
+                <Pressable
+                  key={m.id}
+                  onPress={() => setAssigneId(m.id)}
+                  style={[
+                    styles.membreChip,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                    active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                  ]}
+                >
+                  <Avatar name={m.nom} image={m.image} size={24} />
+                  <Text
+                    style={[styles.membreChipText, { color: active ? colors.primary.main : colors.text.body }]}
+                    numberOfLines={1}
+                  >
+                    {m.nom}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : (
+          // L'ordre de rotation découle du choix « rotation » : il reste visible.
+          <View style={{ marginTop: spacing.lg }}>
+            <Text style={[styles.helperText, { color: colors.text.body }]}>{t('taches.ordreRotation')}</Text>
+            <View style={styles.membresList}>
+              {membres.map((m) => {
+                const order = rotationOrdre.indexOf(m.id);
+                const active = order >= 0;
+                return (
+                  <Pressable
+                    key={m.id}
+                    onPress={() => toggleRotationMembre(m.id)}
+                    style={[
+                      styles.membreChip,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                    ]}
+                  >
+                    {active ? (
+                      <Text style={[styles.orderBadge, { color: colors.candy.white, backgroundColor: colors.secondary.main }]}>
+                        {order + 1}
                       </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <Text style={[styles.label, { color: colors.text.dark }]}>{t('taches.assignation')}</Text>
-              <Segmented
-                value={assignation}
-                onChange={setAssignation}
-                options={[
-                  { value: 'fixe', label: t('taches.fixe') },
-                  { value: 'rotation', label: t('taches.rotation') },
-                ]}
-              />
-
-              {assignation === 'fixe' ? (
-                <View style={[styles.membresList, { marginTop: spacing.lg }]}>
-                  {membres.map((m) => {
-                    const active = assigneId === m.id;
-                    return (
-                      <Pressable
-                        key={m.id}
-                        onPress={() => setAssigneId(m.id)}
-                        style={[
-                          styles.membreChip,
-                          { backgroundColor: colors.card, borderColor: colors.border },
-                          active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                        ]}
-                      >
-                        <Avatar name={m.nom} image={m.image} size={24} />
-                        <Text
-                          style={[styles.membreChipText, { color: active ? colors.primary.main : colors.text.body }]}
-                          numberOfLines={1}
-                        >
-                          {m.nom}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              ) : (
-                <View style={{ marginTop: spacing.lg }}>
-                  <Text style={[styles.helperText, { color: colors.text.body }]}>{t('taches.ordreRotation')}</Text>
-                  <View style={styles.membresList}>
-                    {membres.map((m) => {
-                      const order = rotationOrdre.indexOf(m.id);
-                      const active = order >= 0;
-                      return (
-                        <Pressable
-                          key={m.id}
-                          onPress={() => toggleRotationMembre(m.id)}
-                          style={[
-                            styles.membreChip,
-                            { backgroundColor: colors.card, borderColor: colors.border },
-                            active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
-                          ]}
-                        >
-                          {active ? (
-                            <Text style={[styles.orderBadge, { color: colors.candy.white, backgroundColor: colors.secondary.main }]}>
-                              {order + 1}
-                            </Text>
-                          ) : null}
-                          <Avatar name={m.nom} image={m.image} size={24} />
-                          <Text
-                            style={[styles.membreChipText, { color: active ? colors.primary.main : colors.text.body }]}
-                            numberOfLines={1}
-                          >
-                            {m.nom}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                  <CandyInput
-                    label={t('taches.conditionsRotation')}
-                    placeholder={t('taches.conditionsPlaceholder')}
-                    value={rotationConditions}
-                    onChangeText={setRotationConditions}
-                  />
-                </View>
-              )}
-
-              <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
-                <View style={styles.toggleRow}>
-                  <View style={styles.sectionCardTitleRow}>
-                    <Gift size={16} color={colors.candy.orangeDark} />
-                    <Text style={[styles.sectionCardTitle, { color: colors.text.dark }]}>{t('taches.gage')}</Text>
-                  </View>
-                  <Toggle value={gageActif} onValueChange={setGageActif} />
-                </View>
-                {gageActif ? (
-                  <>
-                    <CandyInput
-                      label={t('activite.recompenseSiReussi')}
-                      placeholder={t('activite.recompensePlaceholder')}
-                      value={recompense}
-                      onChangeText={setRecompense}
-                    />
-                    <CandyInput
-                      label={t('activite.penaliteSiEchoue')}
-                      placeholder={t('activite.penalitePlaceholder')}
-                      value={penalite}
-                      onChangeText={setPenalite}
-                    />
-                    <View style={styles.stepperRow}>
-                      <Stepper label={t('activite.pointsRecompense')} value={pointsRecompense} onValueChange={setPointsRecompense} min={0} max={100} />
-                      <Stepper label={t('activite.pointsPenalite')} value={pointsPenalite} onValueChange={setPointsPenalite} min={0} max={100} />
-                    </View>
-                    {assignation === 'rotation' ? (
-                      <View style={{ marginTop: spacing.md }}>
-                        <Stepper
-                          label={t('gage.semainesCorvee')}
-                          value={gageSemaines}
-                          onValueChange={setGageSemaines}
-                          min={1}
-                          max={12}
-                        />
-                        <Text style={[styles.helperText, { color: colors.text.body, marginTop: spacing.sm }]}>
-                          {t('gage.semainesCorveeAide')}
-                        </Text>
-                      </View>
                     ) : null}
+                    <Avatar name={m.nom} image={m.image} size={24} />
+                    <Text
+                      style={[styles.membreChipText, { color: active ? colors.primary.main : colors.text.body }]}
+                      numberOfLines={1}
+                    >
+                      {m.nom}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
-                    <GageEffetsEditor
-                      effetsEchec={effetsEchec}
-                      effetsReussite={effetsReussite}
-                      onChangeEchec={setEffetsEchec}
-                      onChangeReussite={setEffetsReussite}
-                    />
-                  </>
-                ) : null}
+        <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>{t('taches.frequence')}</Text>
+        <Segmented value={frequence} onChange={setFrequence} options={FREQUENCES} />
+
+        {/* ── RÉGLAGE FIN : replié par défaut, ouvert d'office en modification
+            si un de ces champs porte déjà une valeur. ─────────────────────── */}
+        <Repliable titre={t('common.plusOptions')} ouvertParDefaut={optionsAvancees}>
+          <CandyInput
+            label={t('taches.descriptionOptionnelle')}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+
+          <Text style={[styles.label, { color: colors.text.dark }]}>
+            {t('taches.pieceOptionnelle')} {pieceIds.length > 0 ? `(${pieceIds.length})` : ''}
+          </Text>
+          {pieces.length === 0 ? (
+            <Text style={[styles.helperText, { color: colors.text.body }]}>Aucune pièce dans le logement pour l’instant.</Text>
+          ) : (
+            <View style={styles.chipsRow}>
+              {pieces.map((p) => {
+                const active = pieceIds.includes(p.id);
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => togglePiece(p.id)}
+                    style={[
+                      styles.chip,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                    ]}
+                  >
+                    <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                      {active ? '✓ ' : ''}{p.nom}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          <CandyInput
+            label={t('taches.echeanceOptionnelle')}
+            placeholder="2026-07-15"
+            value={echeanceDate}
+            onChangeText={setEcheanceDate}
+          />
+          <CandyInput
+            label={t('taches.heureOptionnelle')}
+            placeholder="18:30"
+            value={echeanceHeure}
+            onChangeText={setEcheanceHeure}
+          />
+
+          <Text style={[styles.label, { color: colors.text.dark, marginTop: spacing.md }]}>
+            Ou avant un jour (récurrent)
+          </Text>
+          <Text style={[styles.helperText, { color: colors.text.body }]}>
+            L’échéance se cale sur ce jour chaque période (ex. « avant mercredi »).
+          </Text>
+          <View style={styles.chipsRow}>
+            {JOURS_SEMAINE.map((label, idx) => {
+              const active = echeanceJour === idx;
+              return (
+                <Pressable
+                  key={label}
+                  onPress={() => setEcheanceJour(active ? null : idx)}
+                  style={[
+                    styles.chip,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                    active && { borderColor: colors.primary.main, backgroundColor: colors.primary.subtle },
+                  ]}
+                >
+                  <Text style={[styles.chipText, { color: active ? colors.primary.main : colors.text.body }]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {assignation === 'rotation' ? (
+            <CandyInput
+              label={t('taches.conditionsRotation')}
+              placeholder={t('taches.conditionsPlaceholder')}
+              value={rotationConditions}
+              onChangeText={setRotationConditions}
+            />
+          ) : null}
+
+          <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.toggleRow}>
+              <View style={styles.sectionCardTitleRow}>
+                <Gift size={16} color={colors.candy.orangeDark} />
+                <Text style={[styles.sectionCardTitle, { color: colors.text.dark }]}>{t('taches.gage')}</Text>
               </View>
+              <Toggle value={gageActif} onValueChange={setGageActif} />
+            </View>
+            {gageActif ? (
+              <>
+                <CandyInput
+                  label={t('activite.recompenseSiReussi')}
+                  placeholder={t('activite.recompensePlaceholder')}
+                  value={recompense}
+                  onChangeText={setRecompense}
+                />
+                <CandyInput
+                  label={t('activite.penaliteSiEchoue')}
+                  placeholder={t('activite.penalitePlaceholder')}
+                  value={penalite}
+                  onChangeText={setPenalite}
+                />
+                <View style={styles.stepperRow}>
+                  <Stepper label={t('activite.pointsRecompense')} value={pointsRecompense} onValueChange={setPointsRecompense} min={0} max={100} />
+                  <Stepper label={t('activite.pointsPenalite')} value={pointsPenalite} onValueChange={setPointsPenalite} min={0} max={100} />
+                </View>
+                {assignation === 'rotation' ? (
+                  <View style={{ marginTop: spacing.md }}>
+                    <Stepper
+                      label={t('gage.semainesCorvee')}
+                      value={gageSemaines}
+                      onValueChange={setGageSemaines}
+                      min={1}
+                      max={12}
+                    />
+                    <Text style={[styles.helperText, { color: colors.text.body, marginTop: spacing.sm }]}>
+                      {t('gage.semainesCorveeAide')}
+                    </Text>
+                  </View>
+                ) : null}
+
+                <GageEffetsEditor
+                  effetsEchec={effetsEchec}
+                  effetsReussite={effetsReussite}
+                  onChangeEchec={setEffetsEchec}
+                  onChangeReussite={setEffetsReussite}
+                />
+              </>
+            ) : null}
+          </View>
+        </Repliable>
 
         {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
       </BottomSheet>

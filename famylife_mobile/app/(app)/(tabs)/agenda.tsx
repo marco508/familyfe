@@ -57,7 +57,9 @@ import {
   Avatar,
   EmptyState,
   Fab,
+  HelpButton,
   NotificationBell,
+  Repliable,
   VisitorBanner,
 } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
@@ -371,6 +373,12 @@ export default function AgendaScreen() {
     setModalVisible(true);
   };
 
+  // Divulgation progressive : lieu / couleur / description sont repliés. Si un
+  // de ces champs porte déjà une valeur (pré-remplissage, reprise d'une saisie
+  // en cours), on ouvre le bloc pour ne pas cacher un réglage actif.
+  const optionsAvancees =
+    description.trim() !== '' || lieu.trim() !== '' || couleur !== COULEURS[0];
+
   const createEvenement = async () => {
     if (!maisonActive) return;
     let dateDebut: Date;
@@ -560,7 +568,10 @@ export default function AgendaScreen() {
         <SectionTitle
           title={t('nav.agenda')}
           right={
-            <NotificationBell count={unreadCount} onPress={() => { refreshNotifCount(); router.push('/(app)/notifications'); }} />
+            <View style={styles.headerActions}>
+              <HelpButton />
+              <NotificationBell count={unreadCount} onPress={() => { refreshNotifCount(); router.push('/(app)/notifications'); }} />
+            </View>
           }
         />
 
@@ -708,14 +719,6 @@ export default function AgendaScreen() {
           value={titre}
           onChangeText={setTitre}
         />
-        <CandyInput
-          label={t('activite.descriptionOptionnelle')}
-          placeholder={t('activite.descriptionPlaceholder')}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-
         <Pressable style={styles.toggleRowInline} onPress={() => setTouteLaJournee((v) => !v)}>
           <View
             style={[
@@ -731,18 +734,29 @@ export default function AgendaScreen() {
           <CandyInput label={t('agenda.heureLabel')} placeholder="18:00" value={heure} onChangeText={setHeure} />
         ) : null}
 
-        <CandyInput label={t('agenda.lieuOptionnel')} placeholder={t('agenda.lieuPlaceholder')} value={lieu} onChangeText={setLieu} />
+        {/* Réglage fin replié : lieu, couleur, description. */}
+        <Repliable titre={t('common.plusOptions')} ouvertParDefaut={optionsAvancees}>
+          <CandyInput label={t('agenda.lieuOptionnel')} placeholder={t('agenda.lieuPlaceholder')} value={lieu} onChangeText={setLieu} />
 
-        <Text style={[styles.label, { color: colors.text.dark }]}>{t('agenda.couleur')}</Text>
-        <View style={styles.chipsRow}>
-          {COULEURS.map((c) => (
-            <Pressable
-              key={c}
-              onPress={() => setCouleur(c)}
-              style={[styles.colorChip, { backgroundColor: c }, couleur === c && { borderColor: colors.text.dark }]}
-            />
-          ))}
-        </View>
+          <CandyInput
+            label={t('activite.descriptionOptionnelle')}
+            placeholder={t('activite.descriptionPlaceholder')}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+
+          <Text style={[styles.label, { color: colors.text.dark }]}>{t('agenda.couleur')}</Text>
+          <View style={styles.chipsRow}>
+            {COULEURS.map((c) => (
+              <Pressable
+                key={c}
+                onPress={() => setCouleur(c)}
+                style={[styles.colorChip, { backgroundColor: c }, couleur === c && { borderColor: colors.text.dark }]}
+              />
+            ))}
+          </View>
+        </Repliable>
 
         {error ? <Text style={[styles.error, { color: colors.candy.red }]}>{error}</Text> : null}
       </BottomSheet>
@@ -753,6 +767,8 @@ export default function AgendaScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.xl, paddingTop: spacing['2xl'], paddingBottom: 140 },
+  // Aide + cloche côte à côte, dans l'emplacement « right » du SectionTitle.
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   fab: { position: 'absolute', right: spacing.xl },
   calendarCard: { marginBottom: spacing.lg },
   monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },

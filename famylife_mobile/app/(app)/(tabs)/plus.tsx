@@ -39,7 +39,7 @@ import { useT } from '../../src/i18n';
 import { useNotifications } from '../../src/contexts/NotificationContext';
 import { useMaison } from '../../src/contexts/MaisonContext';
 import { MODULES_CLES } from '../../src/services/maisonService';
-import { CandyCard, NotificationBell, SectionTitle } from '../../components/ui';
+import { CandyCard, HelpButton, NotificationBell, SectionTitle } from '../../components/ui';
 import { typography, spacing, borderRadius } from '../../theme/designTokens';
 
 interface Entree {
@@ -119,13 +119,16 @@ export default function PlusScreen() {
         title={t('plus.titre')}
         subtitle={t('plus.sousTitre')}
         right={
-          <NotificationBell
-            count={unreadCount}
-            onPress={() => {
-              refreshNotifCount();
-              router.push('/(app)/notifications');
-            }}
-          />
+          <View style={styles.headerActions}>
+            <HelpButton />
+            <NotificationBell
+              count={unreadCount}
+              onPress={() => {
+                refreshNotifCount();
+                router.push('/(app)/notifications');
+              }}
+            />
+          </View>
         }
       />
 
@@ -151,6 +154,8 @@ export default function PlusScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.xl, paddingTop: spacing['2xl'], paddingBottom: 140 },
+  // Aide + cloche côte à côte, dans l'emplacement « right » du SectionTitle.
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bloc: { marginTop: spacing.lg },
   // Le padding vertical est porté par chaque ligne pour que les séparateurs
   // aillent d'un bord à l'autre de la carte.

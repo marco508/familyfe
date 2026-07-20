@@ -91,6 +91,9 @@ const fr = {
     chef: 'Chef',
     titre: 'Titre',
     actionIrreversible: 'Cette action est irréversible.',
+    aide: 'Aide',
+    // Divulgation progressive : le réglage fin des formulaires est replié.
+    plusOptions: "Plus d'options",
   },
   agenda: {
     lieuOptionnel: 'Lieu (optionnel)',
@@ -267,6 +270,10 @@ const fr = {
     titreMontantRequis: 'Titre et montant valides requis',
     participant: 'participant',
     participants2: 'participants',
+    // Résumé affiché quand la sélection des participants est repliée : le
+    // partage détermine qui doit combien, il ne doit jamais être invisible.
+    partageEntreTous: 'Partagé entre tous',
+    partageEntre: 'Partagé entre',
   },
   menu: {
     titre: 'Menu de la semaine',
