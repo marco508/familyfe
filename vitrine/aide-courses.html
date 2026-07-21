@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Courses &amp; repas — Aide FamiLyfe</title>
+<meta name="description" content="Ajouter un article à la liste partagée, cocher pendant les courses, envoyer la liste au drive et planifier les repas de la semaine." />
+<meta name="theme-color" content="#6B4460" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="aide.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="index.html"><span class="mark">🏠</span> FamiLyfe</a>
+    <div class="nav-links">
+      <a class="nav-ghost" href="aide.html">Aide</a>
+      <a class="nav-cta" href="index.html#telecharger">Télécharger</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Courses &amp; repas</span></div>
+    <h1>🛒 Courses &amp; repas</h1>
+    <p>Une seule liste pour tout le foyer, cochée en temps réel pendant que vous êtes dans le magasin. Et, juste à côté, le menu de la semaine.</p>
+  </section>
+
+  <!-- ═══ ACTION 1 : ajouter un article ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">1</span><h2>Ajouter un article</h2></div>
+    <p class="a-intro">Ici, pas de bouton <b>+</b> : la liste de courses a son formulaire d'<b>ajout rapide</b> en permanence en haut. Trois champs — <b>Article</b>, <b>Quantité</b>, <b>Catégorie</b> — et un bouton <b>Ajouter</b>. On tape, on valide, on recommence.</p>
+
+    <div class="etapes">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Plus</span></div>
+              <div class="ph-card" data-cible="1" style="padding:8px 12px;border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🛒</span>
+                <div style="flex:1"><div class="ph-t">Courses</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🍽️</span>
+                <div style="flex:1"><div class="ph-t">Repas</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">💶</span>
+                <div style="flex:1"><div class="ph-t">Dépenses</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🗳️</span>
+                <div style="flex:1"><div class="ph-t">Décisions</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">💬</span>
+                <div style="flex:1"><div class="ph-t">Chat</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">⚙️</span>
+                <div style="flex:1"><div class="ph-t">Réglages</div></div><span style="color:var(--app-muted)">›</span></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on" data-cible="2"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">1</span>
+          <h3>Ouvrir la liste</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>La ligne <b>🛒 Courses</b>, tout en haut du menu.</span></div>
+          <div class="leg"><b>2</b><span>L'onglet <b>Plus</b> : c'est là que vivent les courses, les repas, les dépenses et le chat.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Courses</span><span class="ph-pill" style="background:var(--app-surface)">6 articles</span></div>
+              <div class="ph-input filled" data-cible="1" style="margin-bottom:6px">Lait demi-écrémé</div>
+              <div class="ph-row" data-cible="2" style="gap:6px;margin-bottom:6px">
+                <div class="ph-input filled" style="flex:1;margin-bottom:0">1 L</div>
+                <div class="ph-input filled" style="flex:1;margin-bottom:0">Crèmerie</div>
+              </div>
+              <div class="ph-btn" data-cible="3" style="margin-bottom:12px">Ajouter</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <div style="flex:1"><div class="ph-t">Yaourts nature</div><div class="ph-m">Ajouté par Marc</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <div style="flex:1"><div class="ph-t">Beurre</div><div class="ph-m">Ajouté par Léa</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:200deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">2</span>
+          <h3>Remplir les trois champs</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span><b>Article</b> : écrivez simplement « lait », « PQ », « bananes ». C'est le seul champ vraiment utile.</span></div>
+          <div class="leg"><b>2</b><span><b>Quantité</b> et <b>Catégorie</b>, côte à côte. La catégorie est un <b>texte libre</b> : écrivez ce qui vous parle.</span></div>
+          <div class="leg"><b>3</b><span><b>Ajouter</b> valide. Les champs se vident aussitôt : enchaînez les articles sans lever les yeux.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Courses</span><span class="ph-pill" style="background:var(--app-surface)">7 articles</span></div>
+              <div class="ph-input" style="margin-bottom:6px">Article…</div>
+              <div class="ph-row" style="gap:6px;margin-bottom:6px">
+                <div class="ph-input" style="flex:1;margin-bottom:0">Quantité</div>
+                <div class="ph-input" style="flex:1;margin-bottom:0">Catégorie</div>
+              </div>
+              <div class="ph-btn" style="margin-bottom:12px">Ajouter</div>
+              <div class="ph-card" data-cible="1" style="padding:8px 12px;border:1.5px solid var(--app-coral)"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico">🥛</span>
+                <div style="flex:1"><div class="ph-t">Lait demi-écrémé · 1 L</div><div class="ph-m">Crèmerie · ajouté par vous</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico" data-cible="2">🥄</span>
+                <div style="flex:1"><div class="ph-t">Yaourts nature</div><div class="ph-m">Ajouté par Marc</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">3</span>
+          <h3>En haut de la liste</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'article rejoint la liste, avec le <b>nom de celui qui l'a ajouté</b>. Tout le foyer le voit dans la seconde.</span></div>
+          <div class="leg"><b>2</b><span>La liste est <b>simplement chronologique</b>, sans regroupement. La catégorie s'affiche en petit à côté de l'article et sert à choisir son <b>icône</b> automatiquement.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>Prenez l'habitude d'ajouter au moment où le paquet se vide, pas au moment de partir. C'est là que la liste partagée devient vraiment utile.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 2 : cocher ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">2</span><h2>Cocher pendant les courses</h2></div>
+    <p class="a-intro">Vous êtes dans le magasin, le téléphone d'une main. Un tap par article, et celui qui est resté à la maison suit la progression.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Courses</span><span class="ph-pill" style="background:var(--app-surface)">7 articles</span></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span data-cible="1" style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico">🥛</span>
+                <div style="flex:1"><div class="ph-t">Lait demi-écrémé · 1 L</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico">🥄</span>
+                <div style="flex:1"><div class="ph-t">Yaourts nature</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico">🍝</span>
+                <div style="flex:1"><div class="ph-t">Pâtes</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Cocher la case</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Touchez la <b>case à gauche</b> de l'article dès qu'il est dans le chariot.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Courses</span><span class="ph-pill" data-cible="3" style="background:#E8F3E7;color:var(--app-sage)">5 restants</span></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span class="ph-ico">🥄</span>
+                <div style="flex:1"><div class="ph-t">Yaourts nature</div></div></div></div>
+              <div class="ph-row" style="justify-content:space-between;margin:10px 0 6px">
+                <span class="ph-t">2 achetés</span>
+                <span class="ph-pill" data-cible="2" style="background:var(--app-surface)">Vider les achetés</span>
+              </div>
+              <div class="ph-card" data-cible="1" style="padding:8px 12px;opacity:.6"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;background:var(--app-sage);color:#fff;display:grid;place-items:center;font-size:12px;flex:none">✓</span>
+                <div style="flex:1"><div class="ph-t" style="text-decoration:line-through;color:var(--app-muted)">Lait demi-écrémé · 1 L</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px;opacity:.6"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;background:var(--app-sage);color:#fff;display:grid;place-items:center;font-size:12px;flex:none">✓</span>
+                <div style="flex:1"><div class="ph-t" style="text-decoration:line-through;color:var(--app-muted)">Pâtes</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:200deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:200deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Le foyer suit en direct</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'article coché bascule sous la ligne <b>« N achetés »</b>, barré et grisé. Fini les deux paquets de pâtes.</span></div>
+          <div class="leg"><b>2</b><span><b>Vider les achetés</b> retire d'un coup tout ce qui est coché, une fois les courses finies.</span></div>
+          <div class="leg"><b>3</b><span>Le compteur d'<b>articles restants</b> se met à jour pour tout le monde, en direct.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 3 : envoyer au drive ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">3</span><h2>Envoyer la liste au drive</h2></div>
+    <p class="a-intro">Vous commandez en ligne ? Le bouton <b>Commander</b> met votre liste au propre, puis vous la partagez ou vous filez directement sur le site de votre drive.</p>
+
+    <div class="etapes">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Courses</span><span class="ph-pill" style="background:var(--app-surface)">7 articles</span></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <div style="flex:1"><div class="ph-t">Lait demi-écrémé</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <div style="flex:1"><div class="ph-t">Yaourts nature</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span style="width:20px;height:20px;border-radius:6px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <div style="flex:1"><div class="ph-t">Pâtes</div></div></div></div>
+              <div class="ph-btn" data-cible="1">🛍️ Commander</div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">1</span>
+          <h3>Toucher « Commander »</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le bouton <b>🛍️ Commander</b>, sous la liste. Il ne commande rien tout seul : il prépare l'envoi.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Courses</span></div>
+              <div class="ph-card" style="height:44px"></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:6px">🛍️ Commander</div>
+              <div class="ph-m" style="margin-bottom:10px">7 articles, dans l'ordre de la liste.</div>
+              <div class="ph-card" data-cible="1" style="padding:9px 11px;background:var(--app-surface);box-shadow:none">
+                <div class="ph-m" style="line-height:1.5">Lait demi-écrémé · 1 L<br>Yaourts nature<br>Pâtes…</div>
+              </div>
+              <div class="ph-btn" data-cible="2">Partager la liste</div>
+              <div class="ph-label">Ouvrir un drive</div>
+              <div class="ph-row" data-cible="3" style="gap:5px;flex-wrap:wrap">
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 9px">Carrefour</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 9px">Leclerc Drive</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 9px">Chronodrive</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 9px">Auchan</span>
+              </div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:260deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">2</span>
+          <h3>Choisir comment l'envoyer</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'<b>aperçu</b> de la liste au propre, un article par ligne.</span></div>
+          <div class="leg"><b>2</b><span><b>Partager la liste</b> — le seul bouton de la feuille. Elle part vers l'appli de votre choix : un mail, un SMS, vos notes (et, si votre téléphone le propose, « Copier »).</span></div>
+          <div class="leg"><b>3</b><span>En dessous, des <b>raccourcis vers les drives</b> : Carrefour, Leclerc Drive, Chronodrive, Auchan. Ils ouvrent simplement le site.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Courses</span></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div class="ph-label" style="margin-top:0">Partager avec</div>
+              <div class="ph-row" data-cible="1" style="gap:10px;margin-bottom:12px">
+                <span style="flex:1;text-align:center"><span class="ph-ico" style="margin:0 auto">💬</span><div class="ph-m">Messages</div></span>
+                <span style="flex:1;text-align:center"><span class="ph-ico" style="margin:0 auto">📗</span><div class="ph-m">WhatsApp</div></span>
+                <span style="flex:1;text-align:center"><span class="ph-ico" style="margin:0 auto">✉️</span><div class="ph-m">Mail</div></span>
+                <span style="flex:1;text-align:center"><span class="ph-ico" style="margin:0 auto">📝</span><div class="ph-m">Notes</div></span>
+              </div>
+              <div class="ph-btn ghost">Annuler</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">3</span>
+          <h3>La liste part</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le <b>partage habituel de votre téléphone</b> s'ouvre. Choisissez l'application, et la liste est envoyée telle quelle.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">⚠️</span>
+      <p>Soyons honnêtes : <b>aucun drive français ne permet aujourd'hui de remplir un panier depuis une autre application</b>. FamiLyfe ne peut donc pas commander à votre place. Ce qu'elle fait, c'est vous éviter de recopier vingt articles à la main : la liste part au propre, et les raccourcis vous emmènent chez Carrefour, Leclerc Drive, Chronodrive ou Auchan.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 4 : planifier un repas ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">4</span><h2>Planifier un repas</h2></div>
+    <p class="a-intro">Le menu de la semaine, case par case. On ajoute par <b>créneau</b> : mardi midi, mercredi soir. Et les ingrédients peuvent filer directement dans la liste de courses.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Repas</span><span class="ph-pill" style="background:var(--app-surface)">Semaine</span></div>
+              <div class="ph-label">Mardi 9</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🥗</span>
+                <div style="flex:1"><div class="ph-t">Midi — Salade de riz</div><div class="ph-m">Léa cuisine</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span class="ph-ico" data-cible="1" style="background:var(--app-coral);color:#fff;font-size:17px">＋</span>
+                <div style="flex:1"><div class="ph-t" style="color:var(--app-muted)">Soir — à décider</div></div></div></div>
+              <div class="ph-label">Mercredi 10</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row">
+                <span class="ph-ico" style="color:var(--app-muted);font-size:17px">＋</span>
+                <div style="flex:1"><div class="ph-t" style="color:var(--app-muted)">Midi — à décider</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on" data-cible="2"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Choisir le créneau</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le <b>+</b> du créneau vide — ici « mardi soir ». Chaque repas a sa case.</span></div>
+          <div class="leg"><b>2</b><span>On arrive aux repas par <b>Plus → Repas</b>, juste sous les courses.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Repas</span></div>
+              <div class="ph-card" style="height:44px"></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">🍽️ Mardi soir</div>
+              <div class="ph-input filled" data-cible="1">Gratin de courgettes</div>
+              <div class="ph-label">Qui cuisine</div>
+              <div class="ph-row" data-cible="2" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">S Sophie</span>
+              </div>
+              <div class="ph-row" style="justify-content:space-between;margin-bottom:9px">
+                <span style="font-size:11px">Ajouter les ingrédients aux courses</span>
+                <span data-cible="3" style="width:34px;height:19px;border-radius:99px;background:var(--app-coral);position:relative;display:block;flex:none">
+                  <span style="position:absolute;right:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;display:block"></span>
+                </span>
+              </div>
+              <div class="ph-btn" data-cible="4">Enregistrer le repas</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:280deg"><i data-n="4"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Dire ce qu'on mange</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le <b>plat</b>. Une ligne suffit : « restes », « pizza », « chez maman ».</span></div>
+          <div class="leg"><b>2</b><span><b>Qui cuisine</b>. La personne est prévenue, comme pour une corvée.</span></div>
+          <div class="leg"><b>3</b><span>L'interrupteur <b>Ajouter les ingrédients aux courses</b> : ce qui manque bascule dans la liste partagée.</span></div>
+          <div class="leg"><b>4</b><span><b>Enregistrer le repas</b>. Le menu de la semaine est visible par tout le foyer.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>Remplir le menu le dimanche soir prend cinq minutes et supprime la question la plus pénible de la semaine : <b>« on mange quoi ce soir ? »</b></p>
+    </div>
+  </section>
+
+  <div class="suite">
+    <a href="aide.html">← Toutes les catégories</a>
+    <a href="aide-depenses.html">Dépenses →</a>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="brand" style="display:flex"><span class="mark">🏠</span> FamiLyfe</div>
+    <p>Une question sans réponse ici ? Écrivez-nous, on complètera ce guide.</p>
+  </div>
+</footer>
+
+<script src="aide.js"></script>
+</body>
+</html>

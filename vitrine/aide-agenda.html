@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agenda &amp; sorties — Aide FamiLyfe</title>
+<meta name="description" content="Ajouter un événement, dire si l'on vient, et voir ce qui arrive cette semaine. Chaque étape de l'agenda FamiLyfe en images." />
+<meta name="theme-color" content="#6B4460" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="aide.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="index.html"><span class="mark">🏠</span> FamiLyfe</a>
+    <div class="nav-links">
+      <a class="nav-ghost" href="aide.html">Aide</a>
+      <a class="nav-cta" href="index.html#telecharger">Télécharger</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Agenda &amp; sorties</span></div>
+    <h1>📅 Agenda &amp; sorties</h1>
+    <p>Tout ce qui a une date vit ici : un resto, un rendez-vous chez le médecin, un anniversaire. Chacun dit s'il vient, et plus personne ne dit « on m'avait pas prévenu ».</p>
+  </section>
+
+  <!-- ═══ ACTION 1 : ajouter un événement ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">1</span><h2>Ajouter un événement</h2></div>
+    <p class="a-intro">Un titre, une date, et les personnes concernées. Le reste attendra.</p>
+
+    <div class="etapes">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-label">Cette semaine</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
+                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Jeudi · 14:30</div></div></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🎂</span>
+                <div style="flex:1"><div class="ph-t">Anniversaire de Sophie</div><div class="ph-m">Samedi</div></div></div></div>
+            </div>
+            <div class="ph-fab" data-cible="1">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-cible="2"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:192deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">1</span>
+          <h3>Ouvrir l'onglet Agenda</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le bouton rond <b>+</b> en bas à droite, comme partout dans l'app.</span></div>
+          <div class="leg"><b>2</b><span>L'onglet <b>Agenda</b> dans la barre du bas, si vous n'y êtes pas encore.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Agenda</span></div>
+              <div class="ph-card" style="height:52px"></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">📅 Nouvel événement</div>
+              <div class="ph-input filled" data-cible="1">🍝 Resto chez Mario</div>
+              <div class="ph-label">Quand</div>
+              <div class="ph-input filled" data-cible="2">Vendredi 12 · 20:00</div>
+              <div class="ph-label">Qui est concerné</div>
+              <div class="ph-row" data-cible="3" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">M Marc</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">L Léa</span>
+              </div>
+              <div class="ph-row" style="gap:7px;color:var(--app-body);font-size:10.5px;margin-bottom:6px">
+                <span>▸</span><span>Plus d'options</span>
+              </div>
+              <div class="ph-btn" data-cible="4">Créer l'événement</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:260deg"><i data-n="4"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">2</span>
+          <h3>Remplir l'essentiel</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le <b>titre</b>. Seul champ obligatoire ; un emoji au début rend la liste plus lisible.</span></div>
+          <div class="leg"><b>2</b><span>La <b>date et l'heure</b>. Pour une journée entière, laissez l'heure de côté.</span></div>
+          <div class="leg"><b>3</b><span><b>Qui est concerné</b> : ces personnes seront prévenues et pourront répondre.</span></div>
+          <div class="leg"><b>4</b><span><b>Créer l'événement</b>. « Plus d'options » ouvre le lieu, la répétition et le rappel.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-label">Cette semaine</div>
+              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🍝</span>
+                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">Vendredi · 20:00</div></div>
+                <span class="avs"><b style="background:var(--app-coral)">T</b><b style="background:var(--app-plum)">M</b></span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
+                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Jeudi · 14:30</div></div></div></div>
+            </div>
+            <div class="ph-fab">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">3</span>
+          <h3>C'est dans l'agenda</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'événement se range à sa date, et les personnes concernées reçoivent une notification.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>L'agenda, c'est pour ce qui a une <b>date</b>. Pour « qui passe l'aspirateur cette semaine », c'est plutôt <a href="aide-corvees.html" style="color:var(--plum);font-weight:700">Corvées &amp; tâches</a>.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 2 : RSVP ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">2</span><h2>Dire si l'on vient</h2></div>
+    <p class="a-intro">Deux boutons sur la carte. En un tap, tout le foyer sait s'il faut réserver pour trois ou pour cinq.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Resto chez Mario</span></div>
+              <div class="ph-sub">Vendredi 12 · 20:00</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">📍</span>
+                <div style="flex:1"><div class="ph-t">Rue des Lilas</div><div class="ph-m">Todd a proposé</div></div></div></div>
+              <div class="ph-label">Vous venez ?</div>
+              <div class="ph-btn" data-cible="1">✅ Je viens</div>
+              <div class="ph-btn ghost" data-cible="2" style="margin-top:8px">❌ Sans moi</div>
+              <div class="ph-m" data-cible="3" style="text-align:center;margin-top:10px">2 réponses sur 4</div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Répondre</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span><b>Je viens</b> : vous êtes compté dans les présents.</span></div>
+          <div class="leg"><b>2</b><span><b>Sans moi</b> : personne ne vous attend, et personne n'a besoin de vous relancer.</span></div>
+          <div class="leg"><b>3</b><span>Le <b>compteur de réponses</b> vous dit qui manque encore à l'appel.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Resto chez Mario</span></div>
+              <div class="ph-sub">Vendredi 12 · 20:00</div>
+              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-sage)"><div class="ph-row"><span class="ph-ico" style="background:var(--app-sage);color:#fff">✓</span>
+                <div style="flex:1"><div class="ph-t">Vous venez</div><div class="ph-m">Touchez pour changer d'avis</div></div></div></div>
+              <div class="ph-label">Présents</div>
+              <div class="ph-card" data-cible="2"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b><b style="background:var(--app-plum)">M</b><b style="background:var(--app-teal)">L</b></span>
+                <div style="flex:1"><div class="ph-t">Todd, Marc, Léa</div><div class="ph-m">3 personnes</div></div></div></div>
+              <div class="ph-card" style="opacity:.6"><div class="ph-row"><span class="avs"><b style="background:var(--app-gold)">S</b></span>
+                <div style="flex:1"><div class="ph-t">Sophie</div><div class="ph-m">Ne vient pas</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Le compte se fait seul</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Votre réponse s'affiche en vert. Un tap dessus suffit pour la <b>changer</b>.</span></div>
+          <div class="leg"><b>2</b><span>La liste des <b>présents</b> se met à jour pour tout le monde en même temps.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 3 : voir ce qui arrive ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">3</span><h2>Voir ce qui arrive</h2></div>
+    <p class="a-intro">Deux façons de regarder devant soi : le résumé du jour, ou la vue du mois.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-label">Corvées du jour</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Vous</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+              <div class="ph-label" data-cible="1">À venir</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
+                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Demain · 14:30</div></div></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🍝</span>
+                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">Vendredi · 20:00</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab on" data-cible="2"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Le coup d'œil du matin</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>La section <b>À venir</b> montre les prochains rendez-vous du foyer, corvées comprises.</span></div>
+          <div class="leg"><b>2</b><span>L'onglet <b>Aujourd'hui</b> : l'écran par lequel commencer la journée.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" style="padding:10px 8px">
+                <div class="ph-row" style="justify-content:space-between;font-size:9px;font-weight:700;color:var(--app-muted);margin-bottom:6px">
+                  <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                </div>
+                <div class="ph-row" style="justify-content:space-between;font-size:11px;font-weight:700">
+                  <span>8</span><span>9</span><span>10</span><span>11</span>
+                  <span style="background:var(--app-coral);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center">12</span>
+                  <span>13</span><span>14</span>
+                </div>
+                <div class="ph-row" style="justify-content:space-between;margin-top:5px">
+                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--app-teal);display:block"></span>
+                  <span data-cible="1" style="width:5px;height:5px;border-radius:50%;background:var(--app-coral);display:block"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--app-gold);display:block"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
+                </div>
+              </div>
+              <div class="ph-label">Vendredi 12</div>
+              <div class="ph-card" data-cible="2"><div class="ph-row"><span class="ph-ico">🍝</span>
+                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">20:00 · 3 présents</div></div></div></div>
+            </div>
+            <div class="ph-fab">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>La vue calendrier</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Un <b>point de couleur</b> sous un jour signale qu'il s'y passe quelque chose. Touchez le jour pour l'ouvrir.</span></div>
+          <div class="leg"><b>2</b><span>Le <b>détail du jour</b> s'affiche juste en dessous, avec le nombre de présents.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>Pour un anniversaire ou un loyer, activez la <b>répétition</b> dans « Plus d'options » : l'événement revient tout seul chaque année ou chaque mois.</p>
+    </div>
+  </section>
+
+  <div class="suite">
+    <a href="aide.html">← Toutes les catégories</a>
+    <a href="aide-courses.html">Courses &amp; repas →</a>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="brand" style="display:flex"><span class="mark">🏠</span> FamiLyfe</div>
+    <p>Une question sans réponse ici ? Écrivez-nous, on complètera ce guide.</p>
+  </div>
+</footer>
+
+<script src="aide.js"></script>
+</body>
+</html>

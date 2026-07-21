@@ -1,0 +1,249 @@
+/* ═══════════════════════════════════════════════════════════════════
+   aide.css — styles partagés par l'index d'aide et toutes les pages
+   de catégorie. Une seule feuille : une correction se propage partout.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --coral:#6B4460;--coral-d:#4A2C42;--plum:#5E3A55;--teal:#3E9A9E;--sage:#6FA36A;
+  --gold:#DDA24C;--clay:#DB8A57;--rose:#EC5F4E;
+  --cream:#FFF8F0;--card:#fff;--ink:#3A2833;--body:#7A6470;--muted:#B4A2AC;--line:#F0E1D3;
+  --g-coral:linear-gradient(135deg,#7A5070,#4A2C42);
+  --g-warm:linear-gradient(170deg,#FFF8F0,#FDEFE2 60%,#FBE7D6);
+  --shadow:0 24px 50px -30px rgba(94,58,85,.55);
+  --sh-s:0 10px 26px -18px rgba(94,58,85,.5);
+
+  /* Palette de l'APPLICATION — pour que les maquettes soient fidèles
+     à app/theme/designTokens.ts. */
+  --app-coral:#EC5F4E;--app-coral-d:#CB4230;--app-cream:#FFF8F0;--app-surface:#FCF1E6;
+  --app-ink:#3A2833;--app-body:#7A6470;--app-muted:#B4A2AC;
+  --app-sage:#6FA36A;--app-teal:#3E9A9E;--app-gold:#DDA24C;--app-plum:#6B4460;
+  --app-line:#F0E1D3;
+}
+
+/* Dégradé de fond en calque fixe (background-attachment:fixed est cassé
+   sur iOS Safari : saccades et dégradé décalé). */
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--g-warm)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',-apple-system,'Segoe UI',sans-serif;color:var(--ink);
+  line-height:1.6;background:var(--cream);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:700;letter-spacing:-.2px;line-height:1.1}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%;height:auto}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+/* ── En-tête ──────────────────────────────────────────────────────── */
+header{position:sticky;top:0;z-index:30;background:rgba(255,248,240,.92);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);transition:box-shadow .25s}
+header.scrolled{box-shadow:0 10px 30px -24px rgba(94,58,85,.6)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:66px;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;font-size:20px;font-weight:700;font-family:'Fraunces',serif}
+.mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;
+  background:var(--g-coral);color:#fff}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-ghost{padding:9px 15px;border-radius:9px;font-size:14px;font-weight:500;color:var(--body)}
+.nav-ghost:hover{background:#fff;color:var(--ink)}
+.nav-cta{background:var(--g-coral);color:#fff;padding:9px 18px;border-radius:9px;font-weight:700;font-size:14px}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.hero{padding:52px 0 30px}
+.hero.center{text-align:center}
+.hero h1{font-size:clamp(32px,5vw,52px)}
+.hero p{max-width:640px;color:var(--body);font-size:clamp(16px,2vw,19px);margin-top:16px}
+.hero.center p{margin-left:auto;margin-right:auto}
+
+/* Fil d'Ariane : on sait toujours où l'on est et comment revenir. */
+.fil{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);margin-bottom:18px}
+.fil a{color:var(--plum);font-weight:500}
+.fil a:hover{text-decoration:underline}
+
+/* ── Index : grille des catégories ────────────────────────────────── */
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:56px}
+.cat{background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px;
+  box-shadow:var(--sh-s);transition:transform .22s,box-shadow .22s,border-color .22s;display:block}
+.cat:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--plum)}
+.cat .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;
+  background:var(--cream);margin-bottom:14px}
+.cat h2{font-size:20px;margin-bottom:7px}
+.cat p{color:var(--body);font-size:14.5px;margin-bottom:14px}
+.cat ul{list-style:none;display:grid;gap:5px;margin-bottom:16px}
+.cat li{font-size:13.5px;color:var(--body);display:flex;gap:8px;align-items:flex-start;line-height:1.4}
+.cat li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--sage);flex:none;margin-top:7px}
+.cat .go{font-size:14px;font-weight:700;color:var(--rose);display:flex;align-items:center;gap:6px}
+.cat:hover .go{gap:10px}
+.cat .go span{transition:.22s}
+
+/* ── Une action = un bloc d'étapes ────────────────────────────────── */
+.action{padding:44px 0;border-top:1px solid var(--line)}
+.a-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.a-num{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;
+  background:var(--g-coral);color:#fff;font-weight:700;font-family:'Fraunces',serif;font-size:17px}
+.a-head h2{font-size:clamp(23px,3.2vw,30px)}
+.a-intro{color:var(--body);max-width:660px;margin-bottom:26px;font-size:16.5px}
+
+.etapes{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start}
+.etapes.deux{grid-template-columns:repeat(2,1fr);max-width:760px}
+.etape{display:flex;flex-direction:column;align-items:center;text-align:center}
+/* Assez d'air sous la maquette pour loger un numéro qui pointe la barre
+   d'onglets par en dessous, sans qu'il chevauche le titre de l'étape. */
+.etape-cap{margin-top:34px}
+.etape-cap .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:999px;
+  background:var(--plum);color:#fff;font-size:13px;font-weight:700;margin-bottom:8px}
+.etape-cap h3{font-size:17px;margin-bottom:5px}
+.etape-cap p{color:var(--body);font-size:14.5px;max-width:290px;margin:0 auto}
+
+/* ── Maquette de téléphone ────────────────────────────────────────── */
+.phone{
+  width:250px;height:500px;border-radius:34px;border:9px solid #2B1F27;background:var(--app-cream);
+  box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;
+  font-size:11px;color:var(--app-ink);flex:none;
+  transition:transform .3s cubic-bezier(.22,.8,.3,1)
+}
+/* overflow visible pour laisser les flèches déborder du cadre. */
+.phone-wrap{position:relative;display:inline-block}
+.etape:hover .phone{transform:translateY(-5px)}
+.ph-in{position:absolute;inset:0;border-radius:26px;overflow:hidden;display:flex;flex-direction:column}
+.ph-status{display:flex;align-items:center;justify-content:space-between;padding:9px 15px 4px;
+  font-size:10.5px;font-weight:700;color:var(--app-ink)}
+.ph-dots{display:flex;gap:3px;align-items:center}
+.ph-dots i{width:4px;height:4px;border-radius:99px;background:var(--app-muted);display:block}
+.ph-body{flex:1;padding:6px 13px;overflow:hidden}
+.ph-h{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
+.ph-h .t{font-family:'Fraunces',serif;font-weight:700;font-size:16px}
+.ph-sub{color:var(--app-body);font-size:10.5px;margin-top:-8px;margin-bottom:12px}
+.ph-card{background:#fff;border-radius:15px;padding:11px 12px;margin-bottom:9px;
+  box-shadow:0 8px 18px -12px rgba(94,58,85,.4)}
+.ph-row{display:flex;align-items:center;gap:9px}
+.ph-ico{width:31px;height:31px;border-radius:9px;display:grid;place-items:center;font-size:15px;
+  background:var(--app-surface);flex:none}
+.ph-t{font-weight:700;font-size:12px;line-height:1.25}
+.ph-m{color:var(--app-body);font-size:10px;margin-top:1px}
+.ph-pill{padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:700;white-space:nowrap}
+.ph-btn{background:var(--app-coral);color:#fff;border-radius:11px;padding:10px;text-align:center;
+  font-weight:700;font-size:12px;margin-top:4px}
+.ph-btn.ghost{background:#fff;color:var(--app-coral);border:1.5px solid var(--app-coral)}
+.ph-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--app-muted);margin:10px 0 6px}
+.ph-input{background:#fff;border:1.5px solid var(--app-line);border-radius:10px;padding:8px 10px;
+  font-size:11px;color:var(--app-body);margin-bottom:8px}
+.ph-input.filled{color:var(--app-ink);font-weight:500}
+.ph-tabs{position:absolute;left:13px;right:13px;bottom:12px;background:#fff;border-radius:999px;
+  display:flex;padding:7px 4px;box-shadow:0 10px 24px -12px rgba(94,58,85,.55)}
+.ph-tab{flex:1;text-align:center;font-size:8.5px;font-weight:700;color:var(--app-muted)}
+.ph-tab i{display:block;font-size:14px;margin-bottom:1px;font-style:normal;filter:grayscale(1);opacity:.55}
+.ph-tab.on{color:var(--app-ink)}
+.ph-tab.on i{filter:none;opacity:1}
+.ph-fab{position:absolute;right:16px;bottom:70px;width:42px;height:42px;border-radius:999px;
+  background:var(--app-coral);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:300;
+  box-shadow:0 10px 22px -8px rgba(236,95,78,.9);line-height:1}
+.ph-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;
+  padding:9px 14px 16px;box-shadow:0 -14px 34px -18px rgba(94,58,85,.6)}
+.ph-grab{width:38px;height:4px;border-radius:9px;background:var(--app-line);margin:0 auto 10px}
+.ph-dim{position:absolute;inset:0;background:rgba(58,40,51,.35)}
+.ring{width:60px;height:60px;border-radius:999px;flex:none;background:#EFE3D8;
+  background:conic-gradient(var(--app-sage) 0 68%, #EFE3D8 68% 100%);display:grid;place-items:center}
+.ring span{width:45px;height:45px;border-radius:999px;background:#fff;display:grid;place-items:center;
+  font-size:13px;font-weight:700;font-family:'Fraunces',serif}
+.avs{display:flex}
+.avs b{width:22px;height:22px;border-radius:999px;display:grid;place-items:center;color:#fff;
+  font-size:9px;font-weight:700;border:2px solid #fff;margin-left:-7px}
+.avs b:first-child{margin-left:0}
+
+/* ══ ANNOTATIONS : une flèche fine + un numéro ══════════════════════
+   Pas d'anneau autour de la cible : sur une carte large il se posait au
+   milieu du texte et masquait ce qu'il désignait. La flèche s'arrête au
+   BORD de sa cible et pointe dessus depuis l'extérieur — le contenu de
+   la maquette reste entièrement lisible.
+
+   Tout est calculé par aide.js, qui mesure la position ET la taille
+   réelles de la cible (`data-cible`) :
+     --a  angle (0deg = le numéro est à droite, 90deg = en bas)
+     --r  rayon de la pointe : distance du centre de la cible à son bord
+     --x  rallonge appliquée quand deux numéros se chevauchent
+   Tant que ce calcul n'a pas eu lieu, la flèche est masquée : mal placée,
+   elle trompe plus qu'elle n'aide. Si le script ne s'exécute pas, il
+   reste les légendes numérotées, qui suffisent à comprendre.
+   ─────────────────────────────────────────────────────────────────── */
+.pt{position:absolute;z-index:6;width:0;height:0;visibility:hidden;
+  --l:42px;  /* longueur de la tige */
+  --r:22px;  /* recalculé par le script selon la taille de la cible */
+  --x:0px}
+.pt.place{visibility:visible}
+/* La tige, de la pointe (au bord de la cible) vers le numéro. */
+.pt::after{content:"";position:absolute;left:50%;top:50%;margin-top:-1px;
+  width:calc(var(--l) + var(--x));height:2px;background:var(--rose);border-radius:2px;
+  transform-origin:0 50%;transform:rotate(var(--a,0deg)) translateX(var(--r))}
+.pt i{position:absolute;left:50%;top:50%;width:0;height:0;font-style:normal;z-index:7;
+  transform-origin:0 50%;transform:rotate(var(--a,0deg)) translateX(var(--r))}
+/* Pointe, dirigée vers la cible. */
+.pt i::before{content:"";position:absolute;left:-9px;top:-5px;width:0;height:0;
+  border-right:10px solid var(--rose);border-top:5px solid transparent;border-bottom:5px solid transparent}
+/* Numéro, à l'extrémité libre de la tige. */
+.pt i::after{content:attr(data-n);position:absolute;left:calc(var(--l) + var(--x));top:-12px;
+  width:24px;height:24px;margin-left:-1px;
+  border-radius:50%;background:var(--rose);color:#fff;font-size:12.5px;font-weight:700;
+  font-family:'DM Sans',sans-serif;display:grid;place-items:center;
+  box-shadow:0 3px 9px -2px rgba(236,95,78,.6);transform:rotate(calc(-1 * var(--a,0deg)))}
+
+/* Légende sous la maquette : reprend les numéros des flèches. */
+.legende{margin-top:18px;display:grid;gap:9px;text-align:left;max-width:300px}
+.leg{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--body);line-height:1.45}
+/* Seul le PREMIER <b> est le numéro de la flèche. Les <b> du texte
+   (« le bouton <b>+</b> », « l'onglet <b>Tâches</b> ») sont de simples
+   mises en valeur : sans `>` ni `:first-child`, ils devenaient eux aussi
+   des pastilles rouges et la légende n'était plus lisible. */
+.leg>b:first-child{width:22px;height:22px;flex:none;border-radius:50%;background:var(--rose);color:#fff;
+  font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+.leg span b{color:var(--ink);font-weight:700}
+
+/* ── Astuce / avertissement ───────────────────────────────────────── */
+.note{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);
+  border-left:4px solid var(--gold);border-radius:0 14px 14px 0;padding:16px 18px;margin-top:26px;max-width:760px}
+.note .ni{font-size:19px;line-height:1.2}
+.note p{font-size:14.5px;color:var(--body)}
+.note b{color:var(--ink)}
+
+/* ── Navigation bas de page entre catégories ──────────────────────── */
+.suite{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;
+  padding:34px 0;border-top:1px solid var(--line);margin-top:20px}
+.suite a{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 18px;
+  font-weight:500;font-size:14.5px;transition:.18s;display:flex;align-items:center;gap:9px}
+.suite a:hover{border-color:var(--plum);transform:translateY(-2px)}
+
+footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;color:var(--muted);font-size:13.5px}
+footer .brand{justify-content:center;font-size:17px;margin-bottom:9px;color:var(--ink)}
+
+/* ══ ANIMATIONS — rien ne boucle, tout se coupe sur demande système ══ */
+.js .cat:not(.vu), .js .etape:not(.vu), .js .a-head:not(.vu),
+.js .a-intro:not(.vu), .js .note:not(.vu){opacity:0;transform:translateY(14px)}
+.js .cat,.js .etape,.js .a-head,.js .a-intro,.js .note{
+  transition:opacity .5s ease, transform .5s cubic-bezier(.22,.8,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.js .hero>*{animation:rise .6s cubic-bezier(.22,.8,.3,1) both}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media(max-width:1080px){
+  .cats{grid-template-columns:repeat(2,1fr)}
+  .phone{width:225px;height:450px}
+}
+@media(max-width:860px){
+  .wrap{padding:0 20px}
+  .cats{grid-template-columns:1fr}
+  .etapes,.etapes.deux{grid-template-columns:1fr;gap:34px}
+  .action{padding:34px 0}
+  .phone{width:230px;height:460px}
+  .legende{max-width:340px;margin-left:auto;margin-right:auto}
+}
+@media(max-width:480px){
+  .phone{width:205px;height:410px;border-width:7px;border-radius:30px}
+  .ph-fab{width:36px;height:36px;bottom:58px;right:12px;font-size:19px}
+  .ph-tabs{bottom:9px;padding:5px 3px}
+  /* Annotations réduites pour ne pas manger la maquette. */
+  .pt{--l:30px}
+  .pt i::after{width:21px;height:21px;top:-10.5px;font-size:11.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .cat,.js .etape,.js .a-head,.js .a-intro,.js .note{opacity:1!important;transform:none!important}
+}

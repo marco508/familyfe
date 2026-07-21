@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dépenses — Aide FamiLyfe</title>
+<meta name="description" content="Ajouter une dépense, choisir qui la partage et lire le bilan : qui doit combien à qui, calculé automatiquement." />
+<meta name="theme-color" content="#6B4460" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="aide.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="index.html"><span class="mark">🏠</span> FamiLyfe</a>
+    <div class="nav-links">
+      <a class="nav-ghost" href="aide.html">Aide</a>
+      <a class="nav-cta" href="index.html#telecharger">Télécharger</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Dépenses</span></div>
+    <h1>💶 Dépenses</h1>
+    <p>On note ce qu'on a payé, on dit avec qui c'est partagé, et l'app fait les comptes. Plus de carnet, plus de « je crois que tu me dois quelque chose ».</p>
+  </section>
+
+  <!-- ═══ ACTION 1 : ajouter une dépense ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">1</span><h2>Ajouter une dépense</h2></div>
+    <p class="a-intro">À faire en sortant du magasin, pendant que le ticket est encore en main. Trente secondes.</p>
+
+    <div class="etapes">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Plus</span></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🛒</span>
+                <div style="flex:1"><div class="ph-t">Courses</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🍽️</span>
+                <div style="flex:1"><div class="ph-t">Repas</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" data-cible="1" style="padding:8px 12px;border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">💶</span>
+                <div style="flex:1"><div class="ph-t">Dépenses</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🗳️</span>
+                <div style="flex:1"><div class="ph-t">Décisions</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">💬</span>
+                <div style="flex:1"><div class="ph-t">Chat</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">⚙️</span>
+                <div style="flex:1"><div class="ph-t">Réglages</div></div><span style="color:var(--app-muted)">›</span></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on" data-cible="2"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">1</span>
+          <h3>Ouvrir les dépenses</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>La ligne <b>💶 Dépenses</b> dans le menu.</span></div>
+          <div class="leg"><b>2</b><span>On y accède par l'onglet <b>Plus</b>, en bas à droite.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Dépenses</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🛒</span>
+                <div style="flex:1"><div class="ph-t">Courses Leclerc</div><div class="ph-m">Marc · lundi</div></div>
+                <span class="ph-t">62,40 €</span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">⚡</span>
+                <div style="flex:1"><div class="ph-t">Électricité</div><div class="ph-m">Todd · 1er du mois</div></div>
+                <span class="ph-t">88,00 €</span></div></div>
+            </div>
+            <div class="ph-fab" data-cible="1">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:192deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">2</span>
+          <h3>Toucher le +</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le bouton rond <b>+</b> en bas à droite, comme pour une corvée ou un événement.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Dépenses</span></div>
+              <div class="ph-card" style="height:52px"></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">💶 Nouvelle dépense</div>
+              <div class="ph-input filled" data-cible="1" style="text-align:center;font-size:20px;font-weight:700;color:var(--app-ink)">45,80 €</div>
+              <div class="ph-input filled" data-cible="2">🛒 Courses du samedi</div>
+              <div class="ph-label">Qui a payé</div>
+              <div class="ph-row" data-cible="3" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">M Marc</span>
+              </div>
+              <div class="ph-row" style="gap:7px;color:var(--app-body);font-size:10.5px;margin-bottom:6px">
+                <span>▸</span><span>Plus d'options</span>
+              </div>
+              <div class="ph-btn" data-cible="4">Enregistrer</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:280deg"><i data-n="4"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">3</span>
+          <h3>Le montant, et c'est tout</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Le <b>montant</b>. C'est le seul champ vraiment obligatoire.</span></div>
+          <div class="leg"><b>2</b><span>Un <b>libellé</b> court pour vous y retrouver plus tard.</span></div>
+          <div class="leg"><b>3</b><span><b>Qui a payé</b>. Par défaut, c'est vous.</span></div>
+          <div class="leg"><b>4</b><span><b>Enregistrer</b>. Le partage se fait automatiquement entre tous les membres — voir l'étape suivante pour le changer.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>Une dépense saisie une semaine plus tard, c'est une dépense oubliée. Prenez le réflexe de la noter <b>sur le parking</b>, avant de démarrer.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 2 : qui partage ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">2</span><h2>Choisir qui partage</h2></div>
+    <p class="a-intro">Par défaut, une dépense est partagée à parts égales entre tous. Mais le paquet de croquettes du chat de Léa, ce n'est pas pour tout le monde.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Dépenses</span></div>
+            </div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:8px">💶 Nouvelle dépense</div>
+              <div class="ph-row" data-cible="1" style="gap:7px;color:var(--app-ink);font-size:11px;font-weight:700;margin-bottom:9px">
+                <span>▾</span><span>Plus d'options</span>
+              </div>
+              <div class="ph-label">Partagé entre</div>
+              <div class="ph-row" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">M Marc</span>
+                <span class="ph-pill" data-cible="2" style="background:var(--app-surface);padding:6px 11px">L Léa</span>
+              </div>
+              <div class="ph-row" style="justify-content:space-between;font-size:10.5px;color:var(--app-body);margin-bottom:9px">
+                <span>Parts égales</span><span data-cible="3" style="font-weight:700;color:var(--app-ink)">22,90 € chacun</span>
+              </div>
+              <div class="ph-btn">Enregistrer</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:340deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:200deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Décocher qui n'est pas concerné</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Dépliez <b>Plus d'options</b> dans la feuille de dépense.</span></div>
+          <div class="leg"><b>2</b><span>Touchez un prénom pour le <b>retirer du partage</b> — ici Léa, qui n'est pas concernée.</span></div>
+          <div class="leg"><b>3</b><span>Le <b>montant par personne</b> se recalcule aussitôt sous vos yeux.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Dépenses</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🛒</span>
+                <div style="flex:1"><div class="ph-t">Courses du samedi</div><div class="ph-m">Todd a payé · partagé avec Marc</div></div>
+                <span class="ph-t">45,80 €</span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">⚡</span>
+                <div style="flex:1"><div class="ph-t">Électricité</div><div class="ph-m">Todd · partagé à 3</div></div>
+                <span class="ph-t">88,00 €</span></div></div>
+            </div>
+            <div class="ph-fab">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>C'est écrit noir sur blanc</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Chaque ligne rappelle <b>qui a payé</b> et <b>avec qui c'est partagé</b>. Plus rien à retenir de tête.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 3 : lire le bilan ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">3</span><h2>Lire le bilan</h2></div>
+    <p class="a-intro">La seule question qui compte à la fin du mois : <b>qui doit combien à qui</b>. FamiLyfe la réduit à une phrase par personne.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Dépenses</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-row" style="gap:6px;margin-bottom:10px">
+                <span class="ph-pill" style="background:var(--app-surface);padding:6px 12px">Dépenses</span>
+                <span class="ph-pill" data-cible="1" style="background:var(--app-coral);color:#fff;padding:6px 12px">Bilan</span>
+              </div>
+              <div class="ph-card" data-cible="2" style="text-align:center">
+                <div class="ph-label" style="margin-top:0">Votre solde</div>
+                <div style="font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--app-sage)">+ 34,10 €</div>
+                <div class="ph-m">On vous doit de l'argent</div>
+              </div>
+              <div class="ph-card" data-cible="3" style="padding:8px 12px"><div class="ph-row"><span class="avs"><b style="background:var(--app-plum)">M</b></span>
+                <div style="flex:1"><div class="ph-t">Marc vous doit</div></div>
+                <span class="ph-t" style="color:var(--app-sage)">22,90 €</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="avs"><b style="background:var(--app-teal)">L</b></span>
+                <div style="flex:1"><div class="ph-t">Léa vous doit</div></div>
+                <span class="ph-t" style="color:var(--app-sage)">11,20 €</span></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Basculer sur « Bilan »</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'écran Dépenses a <b>deux onglets</b> en haut : <b>Dépenses</b> et <b>Bilan</b>. Touchez <b>Bilan</b>.</span></div>
+          <div class="leg"><b>2</b><span>Votre <b>solde</b> : en vert on vous doit, en rouge vous devez.</span></div>
+          <div class="leg"><b>3</b><span>Le <b>détail personne par personne</b>. L'app simplifie les dettes croisées : une seule ligne par membre.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t">Marc</span></div>
+              <div class="ph-sub" data-cible="1">Vous doit 22,90 €</div>
+              <div class="ph-card" data-cible="2" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🛒</span>
+                <div style="flex:1"><div class="ph-t">Courses du samedi</div><div class="ph-m">sa part</div></div>
+                <span class="ph-t">22,90 €</span></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">⚡</span>
+                <div style="flex:1"><div class="ph-t">Électricité</div><div class="ph-m">sa part</div></div>
+                <span class="ph-t">29,30 €</span></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
+              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Voir le détail d'une personne</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>La <b>somme due</b>, rappelée en haut de l'écran.</span></div>
+          <div class="leg"><b>2</b><span>Le <b>détail ligne par ligne</b> de ce qui la compose. Vous savez exactement d'où vient le chiffre.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">⚠️</span>
+      <p>Le Bilan est un <b>miroir, pas un porte-monnaie</b>. Il affiche qui doit combien à qui, et rien d'autre : <b>aucun bouton ne permet de solder une dette dans l'app</b>. Aucun argent n'y transite. Vous vous arrangez dans la vraie vie — virement, espèces, comme vous voulez — et le bilan continue simplement de refléter les dépenses saisies.</p>
+    </div>
+  </section>
+
+  <div class="suite">
+    <a href="aide.html">← Toutes les catégories</a>
+    <a href="aide-reglages.html">Réglages &amp; compte →</a>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="brand" style="display:flex"><span class="mark">🏠</span> FamiLyfe</div>
+    <p>Une question sans réponse ici ? Écrivez-nous, on complètera ce guide.</p>
+  </div>
+</footer>
+
+<script src="aide.js"></script>
+</body>
+</html>
