@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FamiLyfe — Le quotidien partagé, sans se disputer</title>
-<meta name="description" content="L'app anti-disputes du foyer : des corvées justes qui tournent toutes seules, les comptes partagés réglés automatiquement, les décisions votées. Pour les familles comme pour les colocs." />
-<meta property="og:title" content="FamiLyfe — Le quotidien partagé, sans se disputer" />
-<meta property="og:description" content="Corvées justes, comptes partagés réglés tout seuls, décisions votées. L'app qui met d'accord tout le foyer — familles et colocs." />
+<title>FamiLyfe — Le foyer, enfin organisé</title>
+<meta name="description" content="Corvées réparties équitablement, agenda partagé, dépenses, votes et récompenses. Toute la vie du foyer dans une seule app." />
+<meta property="og:title" content="FamiLyfe — Le foyer, enfin organisé" />
+<meta property="og:description" content="Corvées avec gage, agenda partagé, dépenses, équité et récompenses." />
 <meta property="og:type" content="website" />
 <meta name="theme-color" content="#6B4460" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <style>
   :root{
     --coral:#6B4460;--coral-d:#4A2C42;--plum:#5E3A55;--teal:#3E9A9E;--sage:#6FA36A;
-    --gold:#DDA24C;--clay:#DB8A57;--rose:#5E3A55;
+    --gold:#DDA24C;--clay:#DB8A57;--rose:#EC5F4E;
     --cream:#FFF8F0;--card:#fff;--ink:#3A2833;--body:#7A6470;--muted:#B4A2AC;--line:#F0E1D3;
     --g-coral:linear-gradient(135deg,#7A5070,#4A2C42);
     --g-warm:linear-gradient(170deg,#FFF8F0,#FDEFE2 60%,#FBE7D6);
@@ -80,7 +80,7 @@
   /* Halo : largeur ET hauteur explicites plutôt qu'aspect-ratio, absent
      de Safari < 15 — le halo y devenait plat ou invisible. */
   .shot::before{content:"";position:absolute;width:min(330px,78%);height:min(330px,78%);border-radius:50%;
-    background:radial-gradient(circle,rgba(94,58,85,.22),rgba(107,68,96,.14) 45%,transparent 70%);filter:blur(8px)}
+    background:radial-gradient(circle,rgba(236,95,78,.20),rgba(107,68,96,.14) 45%,transparent 70%);filter:blur(8px)}
   .shot img{position:relative;width:min(268px,80%);height:auto;border-radius:28px;box-shadow:var(--sh-m);transform:rotate(-2.5deg);transition:.4s}
   .shot img:hover{transform:rotate(0) translateY(-6px)}
 
@@ -221,11 +221,11 @@
   <!-- ── HERO ─────────────────────────────────────────── -->
   <section class="hero" id="telecharger">
     <div>
-      <span class="kicker"><b></b> Pour les familles &amp; les colocs</span>
-      <h1>Le quotidien partagé,<br><em>sans se disputer.</em></h1>
-      <p class="lead">Qui fait quoi, qui doit combien, qui décide : FamiLyfe met tout le foyer d'accord. Des corvées justes qui tournent toutes seules, les comptes partagés réglés automatiquement, les décisions votées — au même endroit.</p>
+      <span class="kicker"><b></b> Corvées · Agenda · Dépenses · Votes</span>
+      <h1>Le foyer,<br><em>enfin organisé.</em></h1>
+      <p class="lead">Répartissez les corvées équitablement, partagez l'agenda, votez les décisions et suivez les dépenses. Toute la vie commune, au même endroit.</p>
       <div class="dl">
-        <a class="btn btn-a" href="https://expo.dev/artifacts/eas/636BuB7ZSawfkhsBh_ww9cJ5KJJyIN0FhH0Wuw5byeE.apk">
+        <a class="btn btn-a" href="https://expo.dev/artifacts/eas/TOCXSVeykZypV5rcoLsk_V5X-0x-ieA7pdwmfkWHidQ.apk">
           <span style="font-size:21px">🤖</span>
           <span><small>Télécharger pour</small><span class="b">Android (APK)</span></span>
         </a>
@@ -237,8 +237,8 @@
       <p class="hint">Android 8+ · Installation en 30 s (autoriser « sources inconnues »)</p>
       <div class="trust">
         <span>🕊️ 100 % gratuit</span>
-        <span>🏠 Familles &amp; colocs</span>
-        <span>🔒 Données jamais revendues</span>
+        <span>👨‍👩‍👧‍👦 Toute la famille</span>
+        <span>🔒 Données cloisonnées par foyer</span>
       </div>
     </div>
     <div class="shot"><img src="img/accueil.png" alt="Écran d'accueil FamiLyfe" width="600" height="1280" loading="eager"></div>
@@ -247,38 +247,24 @@
   <!-- ── 3 ÉTAPES ─────────────────────────────────────── -->
   <section class="steps">
     <div class="step"><span class="n">1</span><div><h3>Installez l'app</h3><p>Téléchargez FamiLyfe et créez votre compte en un instant.</p></div></div>
-    <div class="step"><span class="n">2</span><div><h3>Créez le logement</h3><p>Maison, appart ou coloc : ajoutez l'adresse et les pièces.</p></div></div>
-    <div class="step"><span class="n">3</span><div><h3>Invitez le foyer</h3><p>Partagez le code d'invitation ; chacun rejoint en un tap.</p></div></div>
-  </section>
-
-  <!-- ── LE VRAI PROBLÈME : les 3 tensions ─────────────── -->
-  <section class="sec" style="padding-top:0">
-    <div class="sec-head">
-      <span class="eyebrow">Le vrai problème</span>
-      <h2>Vivre ensemble, c'est 3 sources de tension</h2>
-      <p class="sub">FamiLyfe s'attaque à chacune — pas une liste de plus, mais des règles claires que tout le monde accepte.</p>
-    </div>
-    <div class="steps" style="padding:0">
-      <div class="step"><span class="n">🧹</span><div><h3>Toujours les mêmes qui s'y collent</h3><p>Les corvées tournent automatiquement, avec un gage si c'est zappé et une récompense si c'est fait. L'app dit même qui devrait prendre la suivante.</p></div></div>
-      <div class="step"><span class="n">💸</span><div><h3>« Tu me dois combien, déjà ? »</h3><p>Chaque dépense partagée est notée, et l'app calcule seule qui rembourse qui. Plus de comptes d'apothicaire, plus de malaise.</p></div></div>
-      <div class="step"><span class="n">🗳️</span><div><h3>Les décisions qui traînent</h3><p>On propose, on vote, la règle est adoptée. Les choix du foyer se tranchent en clair, pas dans un fil sans fin.</p></div></div>
-    </div>
+    <div class="step"><span class="n">2</span><div><h3>Créez le logement</h3><p>Maison ou appartement : ajoutez l'adresse et les pièces.</p></div></div>
+    <div class="step"><span class="n">3</span><div><h3>Invitez la famille</h3><p>Partagez le code d'invitation ; chacun rejoint en un tap.</p></div></div>
   </section>
 
   <!-- ── BENTO : les 4 piliers ────────────────────────── -->
   <section class="sec">
     <div class="sec-head">
-      <span class="eyebrow">Concrètement</span>
-      <h2>Voilà ce que ça change, en images</h2>
-      <p class="sub">Des corvées aux comptes partagés, chaque écran va droit au but — on comprend d'un coup d'œil.</p>
+      <span class="eyebrow">Ce que vous ferez avec</span>
+      <h2>Tout le quotidien du foyer, en images</h2>
+      <p class="sub">Des corvées aux dépenses, chaque écran est pensé pour qu'on comprenne d'un coup d'œil.</p>
     </div>
 
     <div class="bento">
       <article class="tile t-wide">
         <div>
-          <span class="tag" style="color:var(--rose)">Corvées justes</span>
-          <h3>Fini « c'est toujours moi qui fais tout »</h3>
-          <p>Assignez les tâches en fixe ou en rotation, avec un gage si ce n'est pas fait et une récompense si ça l'est. L'app tranche même qui prend la suivante.</p>
+          <span class="tag" style="color:var(--rose)">Corvées &amp; tâches</span>
+          <h3>Des corvées justes, enfin</h3>
+          <p>Assignez les tâches en fixe ou en rotation, avec un gage si ce n'est pas fait et une récompense si ça l'est.</p>
           <ul>
             <li>Rotation automatique entre les membres</li>
             <li>Gage (points, amende) et récompense</li>
@@ -290,8 +276,8 @@
 
       <article class="tile t-tall">
         <div>
-          <span class="tag" style="color:var(--teal)">Agenda commun</span>
-          <h3>Tout le monde sur la même page</h3>
+          <span class="tag" style="color:var(--teal)">Agenda</span>
+          <h3>Un calendrier qui parle</h3>
           <p>Chaque jour affiche ce qu'il contient — 🎂 anniversaire, 🎈 événement, 👥 sortie, 🧹 corvée.</p>
           <ul>
             <li>Marqueurs par type + légende</li>
@@ -304,13 +290,13 @@
 
       <article class="tile t-tall">
         <div>
-          <span class="tag" style="color:var(--sage)">Comptes partagés</span>
-          <h3>« Tu me dois combien ? » — réglé</h3>
-          <p>Ajoutez une dépense, choisissez qui partage, et le bilan « qui rembourse qui » se calcule tout seul.</p>
+          <span class="tag" style="color:var(--sage)">Dépenses partagées</span>
+          <h3>Qui doit combien à qui</h3>
+          <p>Ajoutez les dépenses, choisissez qui partage, et le bilan se calcule tout seul.</p>
           <ul>
-            <li>Bilan « qui rembourse qui » automatique</li>
+            <li>Bilan « qui doit combien à qui » automatique</li>
             <li>Qui a payé quoi, en un coup d'œil</li>
-            <li>Parfait pour les familles comme pour les colocs</li>
+            <li>Catégories et historique</li>
           </ul>
         </div>
         <div class="shot-s"><img src="img/depenses.png" alt="Écran dépenses" width="600" height="1280" loading="lazy"></div>
@@ -318,8 +304,8 @@
 
       <article class="tile t-wide">
         <div>
-          <span class="tag" style="color:var(--gold)">Motivation</span>
-          <h3>Le quotidien, en mode jeu</h3>
+          <span class="tag" style="color:var(--gold)">Points &amp; récompenses</span>
+          <h3>La maison, en mode jeu</h3>
           <p>Gagnez des points en validant vos tâches, grimpez au classement et échangez-les en boutique.</p>
           <ul>
             <li>Classement semaine / mois / total</li>
@@ -345,7 +331,7 @@
       <div class="mini"><span class="i">🍽️</span><h3>Menu de la semaine</h3><p>Planifiez les repas et générez la liste de courses d'un tap.</p></div>
       <div class="mini"><span class="i">🔔</span><h3>Notifications</h3><p>Tâches, votes, événements, anniversaires : personne n'oublie rien.</p></div>
       <div class="mini"><span class="i">🎂</span><h3>Anniversaires</h3><p>Les dates des membres sont fêtées automatiquement.</p></div>
-      <div class="mini"><span class="i">🏠</span><h3>Familles &amp; colocs</h3><p>Couple, famille ou coloc : gérez plusieurs foyers, chacun parfaitement cloisonné.</p></div>
+      <div class="mini"><span class="i">🏘️</span><h3>Multi-logements</h3><p>Gérez plusieurs foyers ; chacun est parfaitement cloisonné.</p></div>
       <div class="mini"><span class="i">👨‍👩‍👧‍👦</span><h3>Rôles &amp; enfants</h3><p>Chef, co-chef, profils enfants aux droits limités, visiteurs.</p></div>
       <div class="mini"><span class="i">🌙</span><h3>Mode sombre &amp; FR/EN</h3><p>Thème clair ou sombre, français ou anglais, au choix.</p></div>
     </div>
@@ -355,10 +341,10 @@
   <section class="sec" style="padding-top:0">
     <div class="cta">
       <div>
-        <h2>Prêt à apaiser le quotidien ?</h2>
-        <p>Rejoignez les foyers qui ont arrêté de se disputer pour les corvées et les comptes. Gratuit, installé en 30 secondes.</p>
+        <h2>Prêt à faire tourner le foyer, sereinement ?</h2>
+        <p>Téléchargez FamiLyfe et transformez les corvées en un effort d'équipe.</p>
       </div>
-      <a class="btn btn-a" href="https://expo.dev/artifacts/eas/636BuB7ZSawfkhsBh_ww9cJ5KJJyIN0FhH0Wuw5byeE.apk">
+      <a class="btn btn-a" href="https://expo.dev/artifacts/eas/TOCXSVeykZypV5rcoLsk_V5X-0x-ieA7pdwmfkWHidQ.apk">
         <span style="font-size:21px">🤖</span>
         <span><small>Télécharger pour</small><span class="b">Android (APK)</span></span>
       </a>
@@ -371,7 +357,7 @@
   <div class="wrap">
     <div class="brand" style="display:flex"><span class="mark">🏠</span> FamiLyfe</div>
     <p>Organisez le quotidien de votre foyer. © <span id="year"></span> FamiLyfe.</p>
-    <p style="margin-top:5px">Fait avec ❤️ pour les foyers qui veulent la paix. · <a href="aide.html" style="color:var(--plum);font-weight:500">Aide</a></p>
+    <p style="margin-top:5px">Fait avec ❤️ pour les familles bien organisées. · <a href="aide.html" style="color:var(--plum);font-weight:500">Aide</a></p>
   </div>
 </footer>
 
