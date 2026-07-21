@@ -23,9 +23,13 @@
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS",
         "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#2F6E5B",
@@ -82,16 +86,16 @@
       "router": {},
       "apiUrlLocal": "http://localhost:8005",
       "apiUrlRemote": "https://familyfe.dkpsolution.tech/api",
-      "helpUrl": "https://familyfe.dkpsolution.tech/aide.html",
       "eas": {
-        "projectId": "8c1b84cf-8afe-4a38-95f4-f7a0d97e515a"
+        "projectId": "9a74bea4-1ad6-49ca-ad3c-26514e37c004"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
+    "owner": "kpedeade1997",
     "updates": {
-      "url": "https://u.expo.dev/8c1b84cf-8afe-4a38-95f4-f7a0d97e515a"
+      "url": "https://u.expo.dev/9a74bea4-1ad6-49ca-ad3c-26514e37c004"
     }
   }
 }
