@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Démarrer — Aide FamiLyfe</title>
-<meta name="description" content="Créer votre logement, rejoindre celui d'un proche avec un code, et inviter tout le monde. Les premiers pas de FamiLyfe, écran par écran." />
+<meta name="description" content="Créer votre compte, créer votre logement ou le rejoindre avec un code, et inviter les vôtres. Les premiers pas de FamiLyfe, écran par écran." />
 <meta name="theme-color" content="#6B4460" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,28 +29,35 @@
   <section class="hero">
     <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Démarrer</span></div>
     <h1>🚀 Démarrer</h1>
-    <p>Tout part d'un <b>logement</b> : c'est l'espace commun de votre foyer. Une seule personne le crée, les autres le rejoignent avec un code. Comptez deux minutes.</p>
+    <p>Deux temps, dans cet ordre : on crée d'abord son <b>compte personnel</b>, puis on crée le <b>logement</b> — l'espace commun du foyer — ou on rejoint celui d'un proche avec son code. Comptez deux minutes.</p>
   </section>
 
-  <!-- ═══ ACTION 1 : créer un logement ═══ -->
+  <!-- ═══ ACTION 1 : créer son compte ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">1</span><h2>Créer un logement</h2></div>
-    <p class="a-intro">À faire une seule fois, par une seule personne du foyer. Un nom, un type de foyer, et c'est ouvert.</p>
+    <div class="a-head"><span class="a-num">1</span><h2>Créer votre compte</h2></div>
+    <p class="a-intro">L'app s'ouvre sur l'écran de connexion. Chaque personne du foyer a son propre compte : c'est lui qui porte votre nom et vos corvées.</p>
 
-    <div class="etapes">
+    <div class="etapes deux">
 
       <div class="etape">
         <div class="phone-wrap"><div class="phone">
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div style="text-align:center;padding:34px 4px 18px">
+              <div style="text-align:center;padding:28px 4px 16px">
                 <div style="font-size:34px">🏠</div>
-                <div style="font-family:'Fraunces',serif;font-weight:700;font-size:15px;margin-top:7px">Bienvenue sur FamiLyfe</div>
-                <div class="ph-m">Le foyer, au même endroit.</div>
+                <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:15px;margin-top:7px">FamiLyfe</div>
+                <div class="ph-m" data-ui>Organisez le quotidien de votre logement ✨</div>
               </div>
-              <div class="ph-btn" data-cible="1">Créer un logement</div>
-              <div class="ph-btn ghost" data-cible="2" style="margin-top:9px">J'ai un code d'invitation</div>
+              <div class="ph-label" data-ui>Email, nom ou téléphone</div>
+              <div class="ph-input filled">alex@famille.fr</div>
+              <div class="ph-label" data-ui>Mot de passe</div>
+              <div class="ph-input filled">••••••••</div>
+              <div class="ph-btn" data-cible="1" data-ui>Se connecter</div>
+              <div class="ph-row" style="justify-content:center;gap:5px;margin-top:10px;font-size:10.5px">
+                <span data-ui>Pas encore de compte ?</span>
+                <span data-cible="2" data-ui style="font-weight:700;color:var(--app-coral)">Créer un compte</span>
+              </div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
@@ -61,48 +68,8 @@
           <h3>Le tout premier écran</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span><b>Créer un logement</b> : c'est ce bouton, si personne du foyer n'utilise encore FamiLyfe.</span></div>
-          <div class="leg"><b>2</b><span>Si un proche vous a déjà envoyé un code, prenez plutôt <b>J'ai un code d'invitation</b>.</span></div>
-        </div>
-      </div>
-
-      <div class="etape">
-        <div class="phone-wrap"><div class="phone">
-          <div class="ph-in">
-            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
-              <div style="text-align:center;padding:34px 4px 18px"><div style="font-size:34px">🏠</div></div>
-            </div>
-            <div class="ph-dim"></div>
-            <div class="ph-sheet">
-              <div class="ph-grab"></div>
-              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">🏠 Nouveau logement</div>
-              <div class="ph-label">Nom du logement</div>
-              <div class="ph-input filled" data-cible="1">Chez Todd &amp; Marc</div>
-              <div class="ph-label">Type de foyer</div>
-              <div class="ph-row" data-cible="2" style="gap:6px;margin-bottom:9px">
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">Famille</span>
-                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">Colocation</span>
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">Couple</span>
-              </div>
-              <div class="ph-row" style="gap:7px;color:var(--app-body);font-size:10.5px;margin-bottom:6px">
-                <span>▸</span><span>Plus d'options</span>
-              </div>
-              <div class="ph-btn" data-cible="3">Créer le logement</div>
-            </div>
-          </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
-          <span class="pt" data-pour="3" style="--a:260deg"><i data-n="3"></i></span>
-        </div></div>
-        <div class="etape-cap">
-          <span class="n">2</span>
-          <h3>Nommer le foyer</h3>
-        </div>
-        <div class="legende">
-          <div class="leg"><b>1</b><span>Le <b>nom</b> que tout le monde verra. « Chez nous » fait très bien l'affaire.</span></div>
-          <div class="leg"><b>2</b><span>Le <b>type de foyer</b>. Il ajuste juste le vocabulaire de l'app ; rien n'est verrouillé.</span></div>
-          <div class="leg"><b>3</b><span><b>Créer le logement</b>. « Plus d'options » au-dessus sert à la devise et au fuseau horaire — plus tard.</span></div>
+          <div class="leg"><b>1</b><span>Si vous avez déjà un compte, entrez vos identifiants et touchez <b>Se connecter</b>.</span></div>
+          <div class="leg"><b>2</b><span>Sinon, touchez <b>Créer un compte</b> en bas de l'écran.</span></div>
         </div>
       </div>
 
@@ -111,27 +78,119 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-sage)"><div class="ph-row"><span class="ph-ico">🔑</span>
-                <div style="flex:1"><div class="ph-t">Code du logement</div><div class="ph-m">4KJ9-2P · à donner aux vôtres</div></div></div></div>
-              <div class="ph-label">Votre foyer</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🏠</span>
-                <div style="flex:1"><div class="ph-t">Chez Todd &amp; Marc</div><div class="ph-m">1 membre · vous</div></div></div></div>
-            </div>
-            <div class="ph-fab">＋</div>
-            <div class="ph-tabs">
-              <div class="ph-tab on"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div style="text-align:center;padding:14px 4px 12px">
+                <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:15px">Créer un compte 🍭</div>
+                <div class="ph-m" data-ui>Rejoignez votre famille sur FamiLyfe</div>
+              </div>
+              <div class="ph-label" data-ui>Nom</div>
+              <div class="ph-input filled" data-cible="1">Todd</div>
+              <div class="ph-label" data-ui>Email</div>
+              <div class="ph-input filled">todd@famille.fr</div>
+              <div class="ph-label" data-ui>Téléphone (optionnel)</div>
+              <div class="ph-input"></div>
+              <div class="ph-label" data-ui>Mot de passe</div>
+              <div class="ph-input filled">••••••••</div>
+              <div class="ph-btn" data-cible="2" data-ui>Créer mon compte</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:200deg"><i data-n="2"></i></span>
         </div></div>
         <div class="etape-cap">
-          <span class="n">3</span>
-          <h3>Le logement est ouvert</h3>
+          <span class="n">2</span>
+          <h3>Vos informations</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Votre <b>code de logement</b> s'affiche dès l'accueil. C'est lui qu'on donne aux autres membres.</span></div>
+          <div class="leg"><b>1</b><span>Le <b>nom</b> que les autres membres verront sur les corvées et l'agenda.</span></div>
+          <div class="leg"><b>2</b><span><b>Créer mon compte</b>. Le téléphone et la date de naissance sont facultatifs, le mot de passe fait six caractères au minimum.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 2 : créer le logement ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">2</span><h2>Créer votre logement</h2></div>
+    <p class="a-intro">Juste après le compte, l'app demande de créer un logement ou d'en rejoindre un. Deux onglets, un seul écran. La création se fait une seule fois, par une seule personne du foyer.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-m"><span data-ui>Bienvenue</span> Todd ✨</div>
+              <div class="ph-row" data-cible="1" style="gap:6px;margin:8px 0 10px">
+                <span class="ph-pill" data-ui style="background:var(--app-coral);color:#fff;padding:6px 14px">Créer</span>
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:6px 14px">Rejoindre</span>
+              </div>
+              <div class="ph-label" data-ui>Nom du logement</div>
+              <div class="ph-input filled" data-cible="2">Chez Todd &amp; Marc</div>
+              <div class="ph-label" data-ui>Emoji</div>
+              <div class="ph-row" style="gap:5px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:4px 8px">🏠</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:4px 8px">🏡</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:4px 8px">🌈</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:4px 8px">🧸</span>
+              </div>
+              <div class="ph-label" data-ui>Type de logement</div>
+              <div class="ph-row" data-cible="3" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" data-ui style="background:var(--app-coral);color:#fff;padding:6px 12px">Maison</span>
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:6px 12px">Appartement</span>
+              </div>
+              <div class="ph-label" data-ui>Adresse du logement</div>
+              <div class="ph-input"></div>
+              <div class="ph-btn" data-cible="4" data-ui>Créer mon logement</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:200deg"><i data-n="4"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">1</span>
+          <h3>L'onglet « Créer »</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Deux onglets en haut : <b>Créer</b> et <b>Rejoindre</b>. Restez sur Créer.</span></div>
+          <div class="leg"><b>2</b><span>Le <b>nom du logement</b>, que tout le monde verra. Seul champ vraiment obligatoire.</span></div>
+          <div class="leg"><b>3</b><span>Le <b>type de logement</b> : Maison ou Appartement. En appartement, l'app propose en plus l'étage, le digicode et l'interphone.</span></div>
+          <div class="leg"><b>4</b><span><b>Créer mon logement</b>. L'emoji, la couleur, l'adresse et les pièces sont facultatifs et se modifient plus tard.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t"><span data-ui>Salut</span> Todd</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="ph-ico">🏠</span>
+                <div style="flex:1"><div class="ph-t">Chez Todd &amp; Marc</div><div class="ph-m" data-ui>Maison</div></div>
+                <span class="ph-pill" data-ui style="background:var(--app-gold);color:#fff">Chef</span></div></div>
+              <div class="ph-label" data-ui>Corvées du jour</div>
+              <div class="ph-m" data-ui>Le ménage, réparti entre nous</div>
+              <div class="ph-card"><div class="ph-row">
+                <div style="flex:1"><div class="ph-m" data-ui>Aucune corvée aujourd’hui — c’est mérité 🎉</div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab on" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-cible="2" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap">
+          <span class="n">2</span>
+          <h3>Vous êtes dans l'app</h3>
+        </div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>L'écran <b>Aujourd'hui</b> s'ouvre directement. La personne qui a créé le logement porte le badge <b>Chef</b>.</span></div>
+          <div class="leg"><b>2</b><span>La barre du bas ne change plus : <b>Aujourd'hui</b>, <b>Tâches</b>, <b>Agenda</b>, <b>Plus</b>. Le code d'invitation se trouve dans Plus.</span></div>
         </div>
       </div>
 
@@ -143,10 +202,10 @@
     </div>
   </section>
 
-  <!-- ═══ ACTION 2 : rejoindre avec un code ═══ -->
+  <!-- ═══ ACTION 3 : rejoindre avec un code ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">2</span><h2>Rejoindre avec un code</h2></div>
-    <p class="a-intro">Quelqu'un a déjà créé le logement et vous a envoyé un code. Sur le premier écran, touchez <b>J'ai un code d'invitation</b>, puis&nbsp;:</p>
+    <div class="a-head"><span class="a-num">3</span><h2>Rejoindre avec un code</h2></div>
+    <p class="a-intro">Quelqu'un a déjà créé le logement et vous a envoyé un code. Créez votre compte, puis prenez l'onglet <b>Rejoindre</b> au lieu de <b>Créer</b>.</p>
 
     <div class="etapes deux">
 
@@ -155,64 +214,36 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Rejoindre</span></div>
-              <div class="ph-sub">Entrez le code que l'on vous a donné.</div>
-              <div class="ph-label">Code du logement</div>
-              <div class="ph-input filled" data-cible="1" style="text-align:center;letter-spacing:3px;font-size:15px">4KJ9-2P</div>
-              <div class="ph-card" data-cible="2"><div class="ph-row"><span class="ph-ico">🏠</span>
-                <div style="flex:1"><div class="ph-t">Chez Todd &amp; Marc</div><div class="ph-m">3 membres</div></div>
-                <span class="ph-pill" style="background:#E8F3E7;color:var(--app-sage)">trouvé</span></div></div>
-              <div class="ph-btn" data-cible="3">Rejoindre ce logement</div>
+              <div class="ph-m"><span data-ui>Bienvenue</span> Léa ✨</div>
+              <div class="ph-row" style="gap:6px;margin:8px 0 10px">
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:6px 14px">Créer</span>
+                <span class="ph-pill" data-cible="1" data-ui style="background:var(--app-coral);color:#fff;padding:6px 14px">Rejoindre</span>
+              </div>
+              <div class="ph-label" data-ui>Code d'invitation</div>
+              <div class="ph-input filled" data-cible="2" style="text-align:center;letter-spacing:3px;font-size:15px">K7RQ4M2P</div>
+              <div class="ph-m" data-ui>ex: A1B2C3</div>
+              <div class="ph-btn" data-cible="3" data-ui>Rejoindre le logement</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
           <span class="pt" data-pour="3" style="--a:200deg"><i data-n="3"></i></span>
         </div></div>
         <div class="etape-cap"><span class="n">1</span><h3>Saisir le code</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Tapez le <b>code</b> reçu. Majuscules, minuscules, tiret : l'app s'en arrange.</span></div>
-          <div class="leg"><b>2</b><span>Le <b>nom du foyer</b> apparaît aussitôt. Vérifiez que c'est bien le vôtre avant de continuer.</span></div>
-          <div class="leg"><b>3</b><span><b>Rejoindre ce logement</b>. Rien à valider côté chef de foyer.</span></div>
-        </div>
-      </div>
-
-      <div class="etape">
-        <div class="phone-wrap"><div class="phone">
-          <div class="ph-in">
-            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body">
-              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
-              <div style="text-align:center;padding:8px 6px 12px">
-                <div style="font-size:26px">🎉</div>
-                <div style="font-family:'Fraunces',serif;font-weight:700;font-size:13px;margin-top:4px">Bienvenue Léa&nbsp;!</div>
-                <div class="ph-m">Vous êtes dans « Chez Todd &amp; Marc »</div>
-              </div>
-              <div class="ph-card"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b><b style="background:var(--app-plum)">M</b><b style="background:var(--app-teal)">L</b></span>
-                <div style="flex:1"><div class="ph-t">Todd, Marc, Léa</div><div class="ph-m">3 membres</div></div></div></div>
-              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd · avant 19:00</div></div></div></div>
-            </div>
-            <div class="ph-tabs">
-              <div class="ph-tab on"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
-            </div>
-          </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-        </div></div>
-        <div class="etape-cap"><span class="n">2</span><h3>Vous y êtes</h3></div>
-        <div class="legende">
-          <div class="leg"><b>1</b><span>Vous voyez immédiatement <b>tout ce qui existe déjà</b> : les corvées, l'agenda, la liste de courses. Rien à recopier.</span></div>
+          <div class="leg"><b>1</b><span>L'onglet <b>Rejoindre</b>, en haut à droite.</span></div>
+          <div class="leg"><b>2</b><span>Le <b>code d'invitation</b> : 8 caractères, lettres et chiffres, sans tiret ni espace. Les minuscules sont acceptées, l'app les met en majuscules.</span></div>
+          <div class="leg"><b>3</b><span><b>Rejoindre le logement</b>. L'entrée est immédiate : personne n'a à valider votre arrivée, et l'app s'ouvre aussitôt sur Aujourd'hui.</span></div>
         </div>
       </div>
 
     </div>
   </section>
 
-  <!-- ═══ ACTION 3 : inviter les membres ═══ -->
+  <!-- ═══ ACTION 4 : inviter les membres ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">3</span><h2>Inviter les membres</h2></div>
-    <p class="a-intro">FamiLyfe ne sert à rien tout seul. Faites entrer les autres : le code se partage par SMS, WhatsApp ou de vive voix.</p>
+    <div class="a-head"><span class="a-num">4</span><h2>Inviter les membres</h2></div>
+    <p class="a-intro">FamiLyfe ne sert à rien tout seul. Le code de votre logement se trouve dans <b>Plus ▸ Logement</b>, et se partage par SMS, WhatsApp ou de vive voix.</p>
 
     <div class="etapes">
 
@@ -221,35 +252,33 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Plus</span></div>
-              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🛒</span>
-                <div style="flex:1"><div class="ph-t">Courses</div></div><span style="color:var(--app-muted)">›</span></div></div>
-              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">💶</span>
-                <div style="flex:1"><div class="ph-t">Dépenses</div></div><span style="color:var(--app-muted)">›</span></div></div>
-              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🗳️</span>
-                <div style="flex:1"><div class="ph-t">Décisions</div></div><span style="color:var(--app-muted)">›</span></div></div>
-              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">💬</span>
-                <div style="flex:1"><div class="ph-t">Chat</div></div><span style="color:var(--app-muted)">›</span></div></div>
-              <div class="ph-card" data-cible="1" style="padding:8px 12px;border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">👥</span>
-                <div style="flex:1"><div class="ph-t">Membres</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-h"><span class="t" data-ui>Plus</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-m" data-ui>Tous les outils du logement</div>
+              <div class="ph-card" data-cible="1" style="padding:8px 12px;border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🏠</span>
+                <div style="flex:1"><div class="ph-t" data-ui>Logement</div></div><span style="color:var(--app-muted)">›</span></div></div>
               <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">⚙️</span>
-                <div style="flex:1"><div class="ph-t">Réglages</div></div><span style="color:var(--app-muted)">›</span></div></div>
+                <div style="flex:1"><div class="ph-t" data-ui>Réglages</div></div><span style="color:var(--app-muted)">›</span></div></div>
+              <div class="ph-row" data-cible="2" style="justify-content:center;gap:5px;margin-top:12px;color:var(--app-muted);font-size:10.5px">
+                <span>＋</span><span data-ui>Activer d’autres fonctions</span>
+              </div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on" data-cible="2"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab on" data-cible="3" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">1</span>
-          <h3>Ouvrir « Membres »</h3>
+          <h3>Ouvrir « Logement »</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>La ligne <b>👥 Membres</b> : c'est là que vivent les invitations et la liste du foyer.</span></div>
-          <div class="leg"><b>2</b><span>L'onglet <b>Plus</b>, en bas à droite. Il regroupe tout ce qui n'a pas son propre onglet.</span></div>
+          <div class="leg"><b>1</b><span>La ligne <b>Logement</b> : elle mène au code d'invitation et à la liste des membres.</span></div>
+          <div class="leg"><b>2</b><span>Un logement neuf n'a que ces deux lignes. Le reste — courses, dépenses, décisions, chat — s'ajoute par <b>Activer d'autres fonctions</b>.</span></div>
+          <div class="leg"><b>3</b><span>L'onglet <b>Plus</b>, en bas à droite.</span></div>
         </div>
       </div>
 
@@ -258,18 +287,24 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Membres</span></div>
-              <div class="ph-card" style="text-align:center;border:1.5px solid var(--app-coral)">
-                <div class="ph-label" style="margin-top:0">Code d'invitation</div>
-                <div data-cible="1" style="font-family:'Fraunces',serif;font-weight:700;font-size:22px;letter-spacing:2px">4KJ9-2P</div>
-                <div class="ph-m">Valable pour tout le foyer</div>
+              <div class="ph-h"><span class="t" data-ui>Mon logement</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🏠</span>
+                <div style="flex:1"><div class="ph-t">Chez Todd &amp; Marc</div><div class="ph-m">3 membres</div></div></div>
+                <div class="ph-row" data-cible="1" style="margin-top:8px;background:var(--app-surface);border-radius:9px;padding:7px 9px">
+                  <div style="flex:1"><div class="ph-label" style="margin:0" data-ui>Code d'invitation</div>
+                  <div style="font-family:'Fraunces',serif;font-weight:700;font-size:15px;letter-spacing:2px">K7RQ4M2P</div></div>
+                  <span class="ph-pill" data-cible="2" data-ui style="background:var(--app-coral);color:#fff">Inviter</span></div>
               </div>
-              <div class="ph-btn" data-cible="2">Partager l'invitation</div>
-              <div class="ph-btn ghost" data-cible="3" style="margin-top:8px">Copier le code</div>
+              <div class="ph-label" data-ui>Membres</div>
+              <div class="ph-card" data-cible="3"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b></span>
+                <div style="flex:1"><div class="ph-t">Todd <span data-ui>(vous)</span></div></div>
+                <span class="ph-pill" data-ui style="background:var(--app-gold);color:#fff">Chef</span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="avs"><b style="background:var(--app-plum)">M</b></span>
+                <div style="flex:1"><div class="ph-t">Marc</div></div></div></div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab on" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
@@ -278,12 +313,12 @@
         </div></div>
         <div class="etape-cap">
           <span class="n">2</span>
-          <h3>Envoyer le code</h3>
+          <h3>Le code du logement</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Le <b>code du logement</b>, en grand. Le même pour tout le monde, réutilisable.</span></div>
-          <div class="leg"><b>2</b><span><b>Partager l'invitation</b> ouvre vos applis habituelles : SMS, WhatsApp, mail.</span></div>
-          <div class="leg"><b>3</b><span><b>Copier le code</b> si vous préférez le coller vous-même quelque part.</span></div>
+          <div class="leg"><b>1</b><span>Le <b>code d'invitation</b>, le même pour tout le foyer et réutilisable autant de fois qu'il le faut.</span></div>
+          <div class="leg"><b>2</b><span><b>Inviter</b> ouvre l'écran dédié au partage.</span></div>
+          <div class="leg"><b>3</b><span>Plus bas, la liste des <b>membres</b> : votre ligne porte la mention <b>(vous)</b>, celle qui dirige le logement porte <b>Chef</b>.</span></div>
         </div>
       </div>
 
@@ -292,29 +327,32 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Membres</span></div>
-              <div class="ph-card"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b></span>
-                <div style="flex:1"><div class="ph-t">Todd</div><div class="ph-m">Vous · chef de foyer</div></div></div></div>
-              <div class="ph-card"><div class="ph-row"><span class="avs"><b style="background:var(--app-plum)">M</b></span>
-                <div style="flex:1"><div class="ph-t">Marc</div><div class="ph-m">A rejoint hier</div></div></div></div>
-              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="avs"><b style="background:var(--app-teal)">L</b></span>
-                <div style="flex:1"><div class="ph-t">Léa</div><div class="ph-m">A rejoint à l'instant</div></div></div></div>
-              <div class="ph-card" style="opacity:.6"><div class="ph-row"><span class="avs"><b style="background:var(--app-gold)">S</b></span>
-                <div style="flex:1"><div class="ph-t">Sophie</div><div class="ph-m">Invitée · pas encore arrivée</div></div></div></div>
-            </div>
-            <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab on"><i>▦</i>Plus</div>
+              <div class="ph-h"><span class="t" data-ui>Inviter</span></div>
+              <div class="ph-m" data-ui>Faites rejoindre un proche en un instant.</div>
+              <div class="ph-card" style="text-align:center;border:1.5px solid var(--app-plum)">
+                <div class="ph-label" style="margin-top:0" data-ui>Code d'invitation</div>
+                <div data-cible="1" style="font-family:'Fraunces',serif;font-weight:700;font-size:20px;letter-spacing:3px">K7RQ4M2P</div>
+              </div>
+              <div class="ph-btn" data-cible="2" data-ui>Partager l'invitation</div>
+              <div class="ph-label" data-ui>Pour le nouvel arrivant</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">📱</span>
+                <div style="flex:1"><div class="ph-t" data-ui>Installer et ouvrir l'app FamiLyfe</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">👤</span>
+                <div style="flex:1"><div class="ph-t" data-ui>Créer un compte</div></div></div></div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🔑</span>
+                <div style="flex:1"><div class="ph-t" data-ui>Entrer le code</div></div></div></div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">3</span>
-          <h3>Le foyer se remplit</h3>
+          <h3>Envoyer l'invitation</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Chaque arrivée apparaît ici. Vous pouvez alors <b>assigner des corvées</b> et partager les dépenses avec ces personnes.</span></div>
+          <div class="leg"><b>1</b><span>Le <b>code</b>, en grand et espacé pour être dicté sans erreur.</span></div>
+          <div class="leg"><b>2</b><span><b>Partager l'invitation</b> ouvre le partage de votre téléphone — SMS, WhatsApp, mail — avec un message déjà écrit qui contient le code.</span></div>
         </div>
       </div>
 
@@ -322,7 +360,7 @@
 
     <div class="note">
       <span class="ni">⚠️</span>
-      <p>Ne donnez le code qu'aux personnes qui vivent chez vous : quiconque l'utilise voit <b>l'agenda, les courses et les dépenses</b> du foyer.</p>
+      <p>Ne donnez le code qu'aux personnes qui vivent chez vous : quiconque l'utilise entre <b>immédiatement</b> dans le logement, sans validation de votre part, et voit tout ce qui s'y trouve.</p>
     </div>
   </section>
 

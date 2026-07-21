@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Agenda &amp; sorties — Aide FamiLyfe</title>
-<meta name="description" content="Ajouter un événement, dire si l'on vient, et voir ce qui arrive cette semaine. Chaque étape de l'agenda FamiLyfe en images." />
+<meta name="description" content="Choisir un jour dans le calendrier, ajouter un événement, dire si l'on vient. Chaque étape de l'agenda FamiLyfe en images." />
 <meta name="theme-color" content="#6B4460" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,13 +29,13 @@
   <section class="hero">
     <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Agenda &amp; sorties</span></div>
     <h1>📅 Agenda &amp; sorties</h1>
-    <p>Tout ce qui a une date vit ici : un resto, un rendez-vous chez le médecin, un anniversaire. Chacun dit s'il vient, et plus personne ne dit « on m'avait pas prévenu ».</p>
+    <p>Tout ce qui a une date vit ici : un resto, un rendez-vous chez le médecin, un anniversaire. L'agenda s'ouvre sur un calendrier du mois : on touche un jour, et la liste de ce jour s'affiche juste en dessous.</p>
   </section>
 
   <!-- ═══ ACTION 1 : ajouter un événement ═══ -->
   <section class="action">
     <div class="a-head"><span class="a-num">1</span><h2>Ajouter un événement</h2></div>
-    <p class="a-intro">Un titre, une date, et les personnes concernées. Le reste attendra.</p>
+    <p class="a-intro">On choisit d'abord le <b>jour</b> dans le calendrier, puis on ouvre le formulaire. Il n'y a pas de champ « date » à remplir : le jour sélectionné est déjà celui de l'événement.</p>
 
     <div class="etapes">
 
@@ -44,29 +44,58 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-label">Cette semaine</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
-                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Jeudi · 14:30</div></div></div></div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🎂</span>
-                <div style="flex:1"><div class="ph-t">Anniversaire de Sophie</div><div class="ph-m">Samedi</div></div></div></div>
+              <div class="ph-h"><span class="t" data-ui>Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" style="padding:10px 8px">
+                <div class="ph-row" style="justify-content:space-between;margin-bottom:7px">
+                  <span style="color:var(--app-muted)">‹</span>
+                  <span style="font-family:'Fraunces',serif;font-weight:700;font-size:12px">Juillet 2026</span>
+                  <span style="color:var(--app-muted)">›</span>
+                </div>
+                <div class="ph-row" style="justify-content:space-between;font-size:9px;font-weight:700;color:var(--app-muted);margin-bottom:4px">
+                  <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                </div>
+                <div class="ph-row" style="justify-content:space-between;font-size:11px;font-weight:700;align-items:flex-start">
+                  <span style="text-align:center">20<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">21<span style="display:block;font-size:8px;line-height:11px">🧹</span></span>
+                  <span style="text-align:center">22<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">23<span style="display:block;font-size:8px;line-height:11px">🎂</span></span>
+                  <span data-cible="1" style="text-align:center"><span style="background:var(--app-coral);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;margin:0 auto">24</span><span style="display:block;font-size:8px;line-height:11px">🎈🧹</span></span>
+                  <span style="text-align:center">25<span style="display:block;font-size:8px;line-height:11px">👥</span></span>
+                  <span style="text-align:center">26<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                </div>
+              </div>
+              <div class="ph-row" data-cible="2" style="gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">
+<!-- « Tout » n'est pas dans fr.ts (libellé de repli écrit dans agenda.tsx) : non marqué. -->
+                <span class="ph-pill" style="background:var(--app-plum);color:#fff">Tout</span>
+                <span class="ph-pill" style="background:var(--app-surface)">🧹</span>
+                <span class="ph-pill" style="background:var(--app-surface)">🎈</span>
+                <span class="ph-pill" style="background:var(--app-surface)">👥</span>
+                <span class="ph-pill" style="background:var(--app-surface)">🎂</span>
+              </div>
+              <div class="ph-label">vendredi 24 juillet</div>
+              <div class="ph-card" style="border-left:4px solid var(--app-teal)"><div class="ph-row">
+                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">14:30</div></div></div></div>
             </div>
-            <div class="ph-fab" data-cible="1">＋</div>
+            <div class="ph-fab" data-cible="3">＋</div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab on" data-cible="2"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-cible="4" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:192deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:270deg"><i data-n="4"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">1</span>
-          <h3>Ouvrir l'onglet Agenda</h3>
+          <h3>Choisir le jour</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Le bouton rond <b>+</b> en bas à droite, comme partout dans l'app.</span></div>
-          <div class="leg"><b>2</b><span>L'onglet <b>Agenda</b> dans la barre du bas, si vous n'y êtes pas encore.</span></div>
+          <div class="leg"><b>1</b><span>Touchez le <b>jour</b> dans le calendrier. Les petits emojis en dessous disent ce qui s'y passe : 🎂 anniversaire, 🎈 événement, 👥 activité, 🧹 corvée. Trois au maximum.</span></div>
+          <div class="leg"><b>2</b><span>La rangée de <b>filtres</b> : tout, ou un seul type à la fois. Elle agit sur les emojis du calendrier <i>et</i> sur la liste du jour.</span></div>
+          <div class="leg"><b>3</b><span>Le bouton rond <b>+</b>, en bas à droite comme partout dans l'app.</span></div>
+          <div class="leg"><b>4</b><span>L'onglet <b>Agenda</b> dans la barre du bas, si vous n'y êtes pas encore.</span></div>
         </div>
       </div>
 
@@ -81,36 +110,37 @@
             <div class="ph-dim"></div>
             <div class="ph-sheet">
               <div class="ph-grab"></div>
-              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">📅 Nouvel événement</div>
-              <div class="ph-input filled" data-cible="1">🍝 Resto chez Mario</div>
-              <div class="ph-label">Quand</div>
-              <div class="ph-input filled" data-cible="2">Vendredi 12 · 20:00</div>
-              <div class="ph-label">Qui est concerné</div>
-              <div class="ph-row" data-cible="3" style="gap:6px;margin-bottom:9px">
-                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
-                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">M Marc</span>
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">L Léa</span>
+              <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:6px"><i style="font-style:normal">🎈</i> Nouvel événement</div>
+              <div class="ph-m" style="margin-bottom:2px">vendredi 24 juillet</div>
+              <div class="ph-m" data-ui style="margin-bottom:9px">Un moment à partager : un anniversaire, une sortie, un rendez-vous…</div>
+              <div class="ph-label" data-ui>Titre</div>
+              <div class="ph-input filled" data-cible="1">Resto chez Mario</div>
+              <div class="ph-row" data-cible="2" style="gap:8px;margin-bottom:9px">
+                <span style="width:16px;height:16px;border-radius:5px;border:2px solid var(--app-line);display:block;flex:none"></span>
+                <span data-ui style="font-size:11px;font-weight:700">Toute la journée</span>
               </div>
+              <div class="ph-label" data-ui>Heure (HH:MM)</div>
+              <div class="ph-input filled" data-cible="3">20:00</div>
               <div class="ph-row" style="gap:7px;color:var(--app-body);font-size:10.5px;margin-bottom:6px">
-                <span>▸</span><span>Plus d'options</span>
+                <span>▸</span><span data-ui>Plus d'options</span>
               </div>
-              <div class="ph-btn" data-cible="4">Créer l'événement</div>
+              <div class="ph-btn" data-cible="4" data-ui>Ajouter à l'agenda</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
-          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
-          <span class="pt" data-pour="4" style="--a:260deg"><i data-n="4"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:0deg"><i data-n="4"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">2</span>
           <h3>Remplir l'essentiel</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Le <b>titre</b>. Seul champ obligatoire ; un emoji au début rend la liste plus lisible.</span></div>
-          <div class="leg"><b>2</b><span>La <b>date et l'heure</b>. Pour une journée entière, laissez l'heure de côté.</span></div>
-          <div class="leg"><b>3</b><span><b>Qui est concerné</b> : ces personnes seront prévenues et pourront répondre.</span></div>
-          <div class="leg"><b>4</b><span><b>Créer l'événement</b>. « Plus d'options » ouvre le lieu, la répétition et le rappel.</span></div>
+          <div class="leg"><b>1</b><span>Le <b>Titre</b>. C'est le seul champ obligatoire.</span></div>
+          <div class="leg"><b>2</b><span>Pour une journée entière, cochez <b>Toute la journée</b>.</span></div>
+          <div class="leg"><b>3</b><span>Sinon, l'<b>heure</b> au format HH:MM. Le champ disparaît si la case ci-dessus est cochée.</span></div>
+          <div class="leg"><b>4</b><span><b>Ajouter à l'agenda</b>. Tout le foyer reçoit une notification.</span></div>
         </div>
       </div>
 
@@ -118,75 +148,43 @@
         <div class="phone-wrap"><div class="phone">
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body">
-              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-label">Cette semaine</div>
-              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🍝</span>
-                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">Vendredi · 20:00</div></div>
-                <span class="avs"><b style="background:var(--app-coral)">T</b><b style="background:var(--app-plum)">M</b></span></div></div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
-                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Jeudi · 14:30</div></div></div></div>
+            <div class="ph-body" style="filter:blur(1.5px);opacity:.45">
+              <div class="ph-h"><span class="t">Agenda</span></div>
             </div>
-            <div class="ph-fab">＋</div>
-            <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
-            </div>
-          </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-        </div></div>
-        <div class="etape-cap">
-          <span class="n">3</span>
-          <h3>C'est dans l'agenda</h3>
-        </div>
-        <div class="legende">
-          <div class="leg"><b>1</b><span>L'événement se range à sa date, et les personnes concernées reçoivent une notification.</span></div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="note">
-      <span class="ni">💡</span>
-      <p>L'agenda, c'est pour ce qui a une <b>date</b>. Pour « qui passe l'aspirateur cette semaine », c'est plutôt <a href="aide-corvees.html" style="color:var(--plum);font-weight:700">Corvées &amp; tâches</a>.</p>
-    </div>
-  </section>
-
-  <!-- ═══ ACTION 2 : RSVP ═══ -->
-  <section class="action">
-    <div class="a-head"><span class="a-num">2</span><h2>Dire si l'on vient</h2></div>
-    <p class="a-intro">Deux boutons sur la carte. En un tap, tout le foyer sait s'il faut réserver pour trois ou pour cinq.</p>
-
-    <div class="etapes deux">
-
-      <div class="etape">
-        <div class="phone-wrap"><div class="phone">
-          <div class="ph-in">
-            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body">
-              <div class="ph-h"><span class="t">Resto chez Mario</span></div>
-              <div class="ph-sub">Vendredi 12 · 20:00</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">📍</span>
-                <div style="flex:1"><div class="ph-t">Rue des Lilas</div><div class="ph-m">Todd a proposé</div></div></div></div>
-              <div class="ph-label">Vous venez ?</div>
-              <div class="ph-btn" data-cible="1">✅ Je viens</div>
-              <div class="ph-btn ghost" data-cible="2" style="margin-top:8px">❌ Sans moi</div>
-              <div class="ph-m" data-cible="3" style="text-align:center;margin-top:10px">2 réponses sur 4</div>
-            </div>
-            <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+            <div class="ph-dim"></div>
+            <div class="ph-sheet">
+              <div class="ph-grab"></div>
+              <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:8px"><i style="font-style:normal">🎈</i> Nouvel événement</div>
+              <div class="ph-row" data-cible="1" style="gap:7px;color:var(--app-ink);font-size:11px;font-weight:700;margin-bottom:6px">
+                <span>▾</span><span data-ui>Plus d'options</span>
+              </div>
+              <div class="ph-label" data-ui>Lieu (optionnel)</div>
+              <div class="ph-input filled" data-cible="2">Rue des Lilas</div>
+              <div class="ph-label" data-ui>Description (optionnel)</div>
+              <div class="ph-input">Détails...</div>
+              <div class="ph-label" data-ui>Couleur</div>
+              <div class="ph-row" data-cible="3" style="gap:6px;margin-bottom:9px">
+                <span style="width:17px;height:17px;border-radius:50%;background:var(--app-plum);display:block"></span>
+                <span style="width:17px;height:17px;border-radius:50%;background:var(--app-coral);display:block"></span>
+                <span style="width:17px;height:17px;border-radius:50%;background:var(--app-teal);display:block"></span>
+                <span style="width:17px;height:17px;border-radius:50%;background:var(--app-sage);display:block"></span>
+                <span style="width:17px;height:17px;border-radius:50%;background:var(--app-gold);display:block"></span>
+              </div>
+              <div class="ph-btn" data-ui>Ajouter à l'agenda</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="1" style="--a:340deg"><i data-n="1"></i></span>
           <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
           <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
         </div></div>
-        <div class="etape-cap"><span class="n">1</span><h3>Répondre</h3></div>
+        <div class="etape-cap">
+          <span class="n">3</span>
+          <h3>Ce que cache « Plus d'options »</h3>
+        </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span><b>Je viens</b> : vous êtes compté dans les présents.</span></div>
-          <div class="leg"><b>2</b><span><b>Sans moi</b> : personne ne vous attend, et personne n'a besoin de vous relancer.</span></div>
-          <div class="leg"><b>3</b><span>Le <b>compteur de réponses</b> vous dit qui manque encore à l'appel.</span></div>
+          <div class="leg"><b>1</b><span>Dépliez <b>Plus d'options</b>. Trois réglages, pas un de plus.</span></div>
+          <div class="leg"><b>2</b><span>Le <b>lieu</b> et la <b>description</b>, tous deux facultatifs.</span></div>
+          <div class="leg"><b>3</b><span>La <b>couleur</b> : c'est la barre verticale qui marquera la carte dans la liste.</span></div>
         </div>
       </div>
 
@@ -195,114 +193,39 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Resto chez Mario</span></div>
-              <div class="ph-sub">Vendredi 12 · 20:00</div>
-              <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-sage)"><div class="ph-row"><span class="ph-ico" style="background:var(--app-sage);color:#fff">✓</span>
-                <div style="flex:1"><div class="ph-t">Vous venez</div><div class="ph-m">Touchez pour changer d'avis</div></div></div></div>
-              <div class="ph-label">Présents</div>
-              <div class="ph-card" data-cible="2"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b><b style="background:var(--app-plum)">M</b><b style="background:var(--app-teal)">L</b></span>
-                <div style="flex:1"><div class="ph-t">Todd, Marc, Léa</div><div class="ph-m">3 personnes</div></div></div></div>
-              <div class="ph-card" style="opacity:.6"><div class="ph-row"><span class="avs"><b style="background:var(--app-gold)">S</b></span>
-                <div style="flex:1"><div class="ph-t">Sophie</div><div class="ph-m">Ne vient pas</div></div></div></div>
-            </div>
-            <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
-            </div>
-          </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
-        </div></div>
-        <div class="etape-cap"><span class="n">2</span><h3>Le compte se fait seul</h3></div>
-        <div class="legende">
-          <div class="leg"><b>1</b><span>Votre réponse s'affiche en vert. Un tap dessus suffit pour la <b>changer</b>.</span></div>
-          <div class="leg"><b>2</b><span>La liste des <b>présents</b> se met à jour pour tout le monde en même temps.</span></div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ═══ ACTION 3 : voir ce qui arrive ═══ -->
-  <section class="action">
-    <div class="a-head"><span class="a-num">3</span><h2>Voir ce qui arrive</h2></div>
-    <p class="a-intro">Deux façons de regarder devant soi : le résumé du jour, ou la vue du mois.</p>
-
-    <div class="etapes deux">
-
-      <div class="etape">
-        <div class="phone-wrap"><div class="phone">
-          <div class="ph-in">
-            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body">
-              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-label">Corvées du jour</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Vous</div></div>
-                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
-              <div class="ph-label" data-cible="1">À venir</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🩺</span>
-                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">Demain · 14:30</div></div></div></div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🍝</span>
-                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">Vendredi · 20:00</div></div></div></div>
-            </div>
-            <div class="ph-tabs">
-              <div class="ph-tab on" data-cible="2"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
-            </div>
-          </div>
-          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
-        </div></div>
-        <div class="etape-cap"><span class="n">1</span><h3>Le coup d'œil du matin</h3></div>
-        <div class="legende">
-          <div class="leg"><b>1</b><span>La section <b>À venir</b> montre les prochains rendez-vous du foyer, corvées comprises.</span></div>
-          <div class="leg"><b>2</b><span>L'onglet <b>Aujourd'hui</b> : l'écran par lequel commencer la journée.</span></div>
-        </div>
-      </div>
-
-      <div class="etape">
-        <div class="phone-wrap"><div class="phone">
-          <div class="ph-in">
-            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
-            <div class="ph-body">
-              <div class="ph-h"><span class="t">Agenda</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-card" style="padding:10px 8px">
-                <div class="ph-row" style="justify-content:space-between;font-size:9px;font-weight:700;color:var(--app-muted);margin-bottom:6px">
-                  <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
-                </div>
-                <div class="ph-row" style="justify-content:space-between;font-size:11px;font-weight:700">
-                  <span>8</span><span>9</span><span>10</span><span>11</span>
-                  <span style="background:var(--app-coral);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center">12</span>
-                  <span>13</span><span>14</span>
-                </div>
-                <div class="ph-row" style="justify-content:space-between;margin-top:5px">
-                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
-                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
-                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
-                  <span style="width:5px;height:5px;border-radius:50%;background:var(--app-teal);display:block"></span>
-                  <span data-cible="1" style="width:5px;height:5px;border-radius:50%;background:var(--app-coral);display:block"></span>
-                  <span style="width:5px;height:5px;border-radius:50%;background:var(--app-gold);display:block"></span>
-                  <span style="width:5px;height:5px;border-radius:50%;background:transparent;display:block"></span>
+              <div class="ph-h"><span class="t" data-ui>Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" style="padding:8px">
+                <div class="ph-row" style="justify-content:space-between;font-size:11px;font-weight:700;align-items:flex-start">
+                  <span style="text-align:center">22<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">23<span style="display:block;font-size:8px;line-height:11px">🎂</span></span>
+                  <span data-cible="1" style="text-align:center"><span style="background:var(--app-coral);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;margin:0 auto">24</span><span style="display:block;font-size:8px;line-height:11px">🎈🧹</span></span>
+                  <span style="text-align:center">25<span style="display:block;font-size:8px;line-height:11px">👥</span></span>
+                  <span style="text-align:center">26<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
                 </div>
               </div>
-              <div class="ph-label">Vendredi 12</div>
-              <div class="ph-card" data-cible="2"><div class="ph-row"><span class="ph-ico">🍝</span>
-                <div style="flex:1"><div class="ph-t">Resto chez Mario</div><div class="ph-m">20:00 · 3 présents</div></div></div></div>
+              <div class="ph-label">vendredi 24 juillet</div>
+              <div class="ph-card" data-cible="2" style="border-left:4px solid var(--app-plum)"><div class="ph-row">
+                <div style="flex:1"><div class="ph-t">Resto chez Mario</div>
+                <div class="ph-m">🕐 20:00</div><div class="ph-m">📍 Rue des Lilas</div></div></div></div>
+              <div class="ph-card" style="border-left:4px solid var(--app-teal)"><div class="ph-row">
+                <div style="flex:1"><div class="ph-t">Dentiste — Léa</div><div class="ph-m">🕐 14:30</div></div></div></div>
             </div>
             <div class="ph-fab">＋</div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab on"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
           <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
         </div></div>
-        <div class="etape-cap"><span class="n">2</span><h3>La vue calendrier</h3></div>
+        <div class="etape-cap">
+          <span class="n">4</span>
+          <h3>C'est dans l'agenda</h3>
+        </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Un <b>point de couleur</b> sous un jour signale qu'il s'y passe quelque chose. Touchez le jour pour l'ouvrir.</span></div>
-          <div class="leg"><b>2</b><span>Le <b>détail du jour</b> s'affiche juste en dessous, avec le nombre de présents.</span></div>
+          <div class="leg"><b>1</b><span>Un <b>🎈</b> apparaît sous le jour concerné.</span></div>
+          <div class="leg"><b>2</b><span>La carte affiche le <b>titre</b>, l'<b>heure</b> et le <b>lieu</b>, avec la barre de couleur choisie. Touchez-la pour ouvrir le détail.</span></div>
         </div>
       </div>
 
@@ -310,7 +233,255 @@
 
     <div class="note">
       <span class="ni">💡</span>
-      <p>Pour un anniversaire ou un loyer, activez la <b>répétition</b> dans « Plus d'options » : l'événement revient tout seul chaque année ou chaque mois.</p>
+      <p>L'agenda, c'est pour ce qui a une <b>date</b>. Pour « qui passe l'aspirateur cette semaine », c'est plutôt <a href="aide-corvees.html" style="color:var(--plum);font-weight:700">Corvées &amp; tâches</a>. Et il n'y a plus à choisir entre « activité » et « événement » : les deux ont fusionné, on ne crée que des événements.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 2 : dire si l'on vient ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">2</span><h2>Dire si l'on vient</h2></div>
+    <p class="a-intro">On ne choisit personne au moment de créer l'événement : tout le foyer est prévenu, et chacun répond ensuite depuis l'écran de l'événement.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t" data-ui>📅 Événement</span><span style="font-size:14px">🗑️</span></div>
+              <div class="ph-card" data-cible="1"><div style="flex:1">
+                <div class="ph-t" style="font-size:14px">Resto chez Mario</div>
+                <div class="ph-m" style="margin-top:5px">🕐 vendredi 24 juillet, 20:00</div>
+                <div class="ph-m">📍 Rue des Lilas</div>
+                <div class="ph-m"><span data-ui>Créé par</span> Todd</div>
+              </div></div>
+              <div class="ph-card">
+                <div class="ph-t" data-ui style="margin-bottom:8px">Ma réponse</div>
+                <div class="ph-row" data-cible="2" style="gap:6px">
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface);border:1.5px solid var(--app-sage);color:var(--app-sage)">Oui</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface)">Non</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface)">Peut-être</span>
+                </div>
+              </div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Répondre</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Touchez l'événement dans la liste : son <b>écran de détail</b> s'ouvre.</span></div>
+          <div class="leg"><b>2</b><span><b>Ma réponse</b> : trois boutons, <b>Oui</b>, <b>Non</b> ou <b>Peut-être</b>. Touchez-en un autre à tout moment pour changer d'avis.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t" data-ui>📅 Événement</span></div>
+              <div class="ph-card">
+                <div class="ph-t" data-ui style="margin-bottom:8px">Ma réponse</div>
+                <div class="ph-row" style="gap:6px">
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface);border:1.5px solid var(--app-plum);color:var(--app-plum)">Oui</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface)">Non</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:8px 0;background:var(--app-surface)">Peut-être</span>
+                </div>
+                <div class="ph-label" data-cible="1" data-ui>Réponses</div>
+                <div class="ph-row" style="margin-bottom:6px"><span class="avs"><b style="background:var(--app-coral)">T</b></span>
+                  <span class="ph-t" style="flex:1">Todd</span><span class="ph-pill" data-ui style="background:#E8F3E7;color:var(--app-sage)">Oui</span></div>
+                <div class="ph-row" style="margin-bottom:6px"><span class="avs"><b style="background:var(--app-plum)">M</b></span>
+                  <span class="ph-t" style="flex:1">Marc</span><span class="ph-pill" data-ui style="background:var(--app-surface)">Non</span></div>
+                <div class="ph-row"><span class="avs"><b style="background:var(--app-teal)">L</b></span>
+                  <span class="ph-t" style="flex:1">Léa</span><span class="ph-pill" data-ui style="background:#FBF0DA;color:var(--app-gold)">Peut-être</span></div>
+              </div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Voir qui a répondu</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Sous les boutons, la section <b>Réponses</b> liste les membres qui ont répondu, chacun avec son choix. Elle n'apparaît qu'à partir de la première réponse.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 3 : faire revenir un événement ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">3</span><h2>Faire revenir un événement</h2></div>
+    <p class="a-intro">La répétition ne se règle pas à la création : elle se choisit après coup, sur l'écran de l'événement.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t" data-ui>📅 Événement</span></div>
+              <div class="ph-card" style="opacity:.55"><div style="flex:1">
+                <div class="ph-t">Ménage de fond du garage</div>
+                <div class="ph-m" style="margin-top:4px">🕐 samedi 25 juillet, 10:00</div>
+              </div></div>
+              <div class="ph-card">
+                <div class="ph-t" data-ui style="margin-bottom:8px">Récurrence</div>
+                <div class="ph-row" data-cible="1" style="gap:4px;background:var(--app-surface);border-radius:999px;padding:3px">
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:6px 0">Aucune</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:6px 0;background:#fff;color:var(--app-ink)">Hebdomadaire</span>
+                  <span class="ph-pill" data-ui style="flex:1;text-align:center;padding:6px 0">Mensuel</span>
+                </div>
+                <div class="ph-m" data-cible="2" data-ui style="margin-top:8px">Réservé au chef ou créateur</div>
+              </div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Choisir la récurrence</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Trois choix, et trois seulement : <b>Aucune</b>, <b>Hebdomadaire</b>, <b>Mensuel</b>. Le changement est enregistré aussitôt.</span></div>
+          <div class="leg"><b>2</b><span>Si vous n'avez ni créé l'événement ni le rôle de chef, le réglage reste visible mais grisé.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t" data-ui>📅 Événement</span></div>
+              <div class="ph-card" style="opacity:.55"><div style="flex:1">
+                <div class="ph-t">Resto chez Mario</div>
+                <div class="ph-m" style="margin-top:4px">🕐 vendredi 24 juillet, 20:00</div>
+              </div></div>
+              <div class="ph-card" style="opacity:.55;height:44px"></div>
+              <div class="ph-btn" data-cible="1" data-ui style="background:var(--app-teal)">Exporter (iCal)</div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Emporter l'agenda ailleurs</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span><b>Exporter (iCal)</b>, tout en bas de l'écran de détail, partage l'adresse de l'agenda du foyer. Collez-la dans votre appli de calendrier habituelle.</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ ACTION 4 : voir ce qui arrive ═══ -->
+  <section class="action">
+    <div class="a-head"><span class="a-num">4</span><h2>Voir ce qui arrive</h2></div>
+    <p class="a-intro">Deux façons de regarder devant soi : le résumé du jour, ou le calendrier filtré par type.</p>
+
+    <div class="etapes deux">
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t"><span data-ui>Salut</span> Todd</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-t" data-ui>Corvées du jour</div>
+              <div class="ph-m" data-ui style="margin-bottom:6px">Le ménage, réparti entre nous</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">🧹</span>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div></div></div>
+              <div class="ph-t" data-cible="1" data-ui>Ce qu'on fait ensemble</div>
+              <div class="ph-m" data-ui style="margin-bottom:6px">Un resto, un pique-nique, un barbecue…</div>
+              <div class="ph-card" style="padding:8px 12px"><div class="ph-row"><span class="ph-ico">👥</span>
+                <div style="flex:1"><div class="ph-t">Café chez Sophie</div></div><span class="ph-m">17:00</span></div></div>
+              <div class="ph-t" data-cible="2" data-ui style="margin-top:8px">À venir</div>
+              <div class="ph-card" style="padding:8px 12px">
+                <div class="ph-row" style="margin-bottom:6px"><span>📅</span><span class="ph-t" style="flex:1">Resto chez Mario</span><span class="ph-m">24 juil., 20:00</span></div>
+                <div class="ph-row"><span>🎂</span><span class="ph-t" style="flex:1">Sophie</span><span class="ph-m">Dans 3 jours</span></div>
+              </div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab on" data-cible="3" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:270deg"><i data-n="3"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Le coup d'œil du matin</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span><b>Ce qu'on fait ensemble</b> : les événements <i>d'aujourd'hui</i>. Vide, la section vous invite à proposer quelque chose.</span></div>
+          <div class="leg"><b>2</b><span><b>À venir</b> : les prochains événements, les votes ouverts et les anniversaires. Les corvées n'y sont pas — elles ont leur propre section juste au-dessus.</span></div>
+          <div class="leg"><b>3</b><span>L'onglet <b>Aujourd'hui</b> : l'écran par lequel commencer la journée.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t" data-ui>Agenda</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" style="padding:8px">
+                <div class="ph-row" style="justify-content:space-between;font-size:11px;font-weight:700;align-items:flex-start">
+                  <span style="text-align:center">20<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">21<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">22<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span data-cible="2" style="text-align:center"><span style="background:var(--app-coral);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;margin:0 auto">23</span><span style="display:block;font-size:8px;line-height:11px">🎂</span></span>
+                  <span style="text-align:center">24<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">25<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                  <span style="text-align:center">26<span style="display:block;font-size:8px;line-height:11px">&nbsp;</span></span>
+                </div>
+              </div>
+              <div class="ph-row" data-cible="1" style="gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">
+                <span class="ph-pill" style="background:var(--app-surface)">Tout</span>
+                <span class="ph-pill" style="background:var(--app-surface)">🧹</span>
+                <span class="ph-pill" style="background:var(--app-surface)">🎈</span>
+                <span class="ph-pill" style="background:var(--app-surface)">👥</span>
+                <span class="ph-pill" style="background:var(--app-plum);color:#fff">🎂</span>
+              </div>
+              <div class="ph-label">jeudi 23 juillet</div>
+              <div class="ph-card" style="border-left:4px solid var(--app-coral)"><div class="ph-row">
+                <div style="flex:1"><div class="ph-t">🎂 Sophie</div><div class="ph-m">32 ans</div></div></div></div>
+            </div>
+            <div class="ph-fab">＋</div>
+            <div class="ph-tabs">
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab on" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>N'afficher qu'un type</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>Touchez un <b>filtre</b> — ici les anniversaires. Tout le reste disparaît du calendrier.</span></div>
+          <div class="leg"><b>2</b><span>Les emojis restants et la <b>liste du jour</b> suivent le filtre. Touchez le premier filtre pour tout réafficher.</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <span class="ni">💡</span>
+      <p>Le calendrier ne charge qu'un mois à la fois. Si un événement semble manquant, vérifiez d'abord le <b>mois affiché</b> en haut de la grille, puis le <b>filtre</b> actif juste en dessous.</p>
     </div>
   </section>
 

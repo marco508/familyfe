@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Corvées &amp; tâches — Aide FamiLyfe</title>
-<meta name="description" content="Créer une corvée, la faire tourner entre les membres, la valider, et comprendre le gage. Chaque étape en images." />
+<meta name="description" content="Créer une tâche, la faire tourner entre les membres, la valider, et comprendre le gage. Chaque étape en images." />
 <meta name="theme-color" content="#6B4460" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,13 +29,13 @@
   <section class="hero">
     <div class="fil"><a href="aide.html">Aide</a> <span>›</span> <span>Corvées &amp; tâches</span></div>
     <h1>🧹 Corvées &amp; tâches</h1>
-    <p>Le cœur de FamiLyfe : répartir le ménage sans se disputer. On crée une corvée, on dit qui s'en occupe, et chacun la valide d'un tap quand c'est fait.</p>
+    <p>Le cœur de FamiLyfe : répartir le ménage sans se disputer. On crée une tâche, on dit qui s'en occupe, et la personne concernée la coche depuis l'onglet <b>Tâches</b> quand c'est fait.</p>
   </section>
 
-  <!-- ═══ ACTION 1 : créer une corvée ═══ -->
+  <!-- ═══ ACTION 1 : créer une tâche ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">1</span><h2>Créer une corvée</h2></div>
-    <p class="a-intro">Trois champs suffisent : ce qu'il faut faire, qui s'en occupe, et à quel rythme. Tout le reste est facultatif.</p>
+    <div class="a-head"><span class="a-num">1</span><h2>Créer une tâche</h2></div>
+    <p class="a-intro">Deux choses sont exigées : un titre, et quelqu'un à qui la confier. Le reste est facultatif.</p>
 
     <div class="etapes">
 
@@ -44,28 +44,34 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Tâches</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-h"><span>‹</span><span class="t" data-ui>Tâches</span><span class="ph-pill" data-cible="3" style="background:var(--app-gold);color:#fff">🔥 5 j</span><span style="font-size:13px">？</span></div>
+              <div class="ph-label" data-ui>Tâches du jour</div>
               <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd · avant 19:00</div></div></div></div>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+              <div class="ph-label" data-ui>Toutes les tâches</div>
               <div class="ph-card"><div class="ph-row"><span class="ph-ico">🍽️</span>
-                <div style="flex:1"><div class="ph-t">Vaisselle du soir</div><div class="ph-m">Sophie · 21:00</div></div></div></div>
+                <div style="flex:1"><div class="ph-t">Vaisselle du soir</div><div class="ph-m">Sophie</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
             </div>
             <div class="ph-fab" data-cible="1">＋</div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-cible="2"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-cible="2" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:192deg"><i data-n="1"></i></span>
           <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:0deg"><i data-n="3"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">1</span>
           <h3>Ouvrir l'onglet Tâches</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Le bouton rond <b>+</b> en bas à droite. Il est au même endroit sur tous les écrans de l'app.</span></div>
+          <div class="leg"><b>1</b><span>Le bouton rond <b>+</b>, en bas à droite de cet écran. Il n'apparaît que pour le chef et les co-chefs : eux seuls créent des tâches.</span></div>
           <div class="leg"><b>2</b><span>L'onglet <b>Tâches</b> dans la barre du bas, si vous n'y êtes pas encore.</span></div>
+          <div class="leg"><b>3</b><span>La pastille 🔥 compte vos jours d'affilée avec au moins une tâche validée.</span></div>
         </div>
       </div>
 
@@ -80,36 +86,44 @@
             <div class="ph-dim"></div>
             <div class="ph-sheet">
               <div class="ph-grab"></div>
-              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">🧹 Nouvelle tâche</div>
+              <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">Nouvelle tâche 🧹</div>
+              <div class="ph-label" data-ui>Titre</div>
               <div class="ph-input filled" data-cible="1">Étendre le linge</div>
-              <div class="ph-label">Qui s'en occupe</div>
+              <div class="ph-label" data-ui>Assignation</div>
               <div class="ph-row" style="gap:6px;margin-bottom:9px">
-                <span class="ph-pill" data-cible="2" style="background:var(--app-coral);color:#fff;padding:6px 11px">T Todd</span>
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">M Marc</span>
+                <span class="ph-pill" data-ui style="background:var(--app-coral);color:#fff;padding:6px 12px">Fixe</span>
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:6px 12px">Rotation</span>
               </div>
-              <div class="ph-label">Fréquence</div>
-              <div class="ph-row" style="gap:6px;margin-bottom:9px">
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">Une fois</span>
-                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:6px 11px">Chaque semaine</span>
+              <div class="ph-row" data-cible="2" style="gap:6px;margin-bottom:9px">
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:5px 10px">T Todd</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 10px">M Marc</span>
+              </div>
+              <div class="ph-label" data-ui>Fréquence</div>
+              <div class="ph-row" data-cible="3" style="gap:5px;margin-bottom:9px">
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:5px 8px">Ponctuel</span>
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:5px 8px">Quotidien</span>
+                <span class="ph-pill" data-ui style="background:var(--app-coral);color:#fff;padding:5px 8px">Hebdomadaire</span>
               </div>
               <div class="ph-row" style="gap:7px;color:var(--app-body);font-size:10.5px;margin-bottom:6px">
-                <span>▸</span><span>Plus d'options</span>
+                <span>▸</span><span data-ui>Plus d'options</span>
               </div>
-              <div class="ph-btn" data-cible="3">Créer la tâche</div>
+              <div class="ph-btn" data-cible="4" data-ui>Créer la tâche</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
           <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
-          <span class="pt" data-pour="3" style="--a:260deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
+          <span class="pt" data-pour="4" style="--a:0deg"><i data-n="4"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">2</span>
-          <h3>Remplir l'essentiel</h3>
+          <h3>Remplir la feuille</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Le <b>nom</b> de la corvée. C'est le seul champ obligatoire.</span></div>
-          <div class="leg"><b>2</b><span><b>Qui s'en occupe</b> : touchez un membre du foyer.</span></div>
-          <div class="leg"><b>3</b><span><b>Créer la tâche</b>. « Plus d'options » juste au-dessus ouvre les réglages fins (pièce, échéance, gage) — inutile pour commencer.</span></div>
+          <div class="leg"><b>1</b><span>Le <b>titre</b> de la tâche, par exemple « Sortir les poubelles ». Obligatoire.</span></div>
+          <div class="leg"><b>2</b><span>L'<b>assignation</b>. En <b>Fixe</b>, touchez le membre qui s'en occupe : sans lui, l'app refuse de créer la tâche.</span></div>
+          <div class="leg"><b>3</b><span>La <b>fréquence</b> : Ponctuel, Quotidien, Hebdomadaire ou Mensuel.</span></div>
+          <div class="leg"><b>4</b><span><b>Créer la tâche</b>. « Plus d'options » au-dessus déplie la description, la pièce, l'échéance et le gage — inutile pour commencer.</span></div>
         </div>
       </div>
 
@@ -118,28 +132,33 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Tâches</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-h"><span>‹</span><span class="t" data-ui>Tâches</span><span style="font-size:13px">？</span></div>
+              <div class="ph-label" data-ui>Tâches du jour</div>
               <div class="ph-card" data-cible="1" style="border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">👕</span>
-                <div style="flex:1"><div class="ph-t">Étendre le linge</div><div class="ph-m">Todd · chaque semaine</div></div></div></div>
+                <div style="flex:1"><div class="ph-t">Étendre le linge</div><div class="ph-m">Todd</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div>
+                <div class="ph-row" data-cible="2" style="gap:12px;margin-top:6px;font-size:10px">
+                  <span style="color:var(--app-coral)" data-ui>Modifier</span><span style="color:var(--app-coral-d)" data-ui>Supprimer</span></div></div>
               <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd · avant 19:00</div></div></div></div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🍽️</span>
-                <div style="flex:1"><div class="ph-t">Vaisselle du soir</div><div class="ph-m">Sophie · 21:00</div></div></div></div>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
             </div>
             <div class="ph-fab">＋</div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab on"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
         </div></div>
         <div class="etape-cap">
           <span class="n">3</span>
           <h3>C'est fait</h3>
         </div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>La corvée apparaît dans la liste, et la personne concernée reçoit une notification.</span></div>
+          <div class="leg"><b>1</b><span>La tâche rejoint la liste, avec l'avatar et le nom de la personne à qui elle revient.</span></div>
+          <div class="leg"><b>2</b><span><b>Modifier</b> et <b>Supprimer</b> apparaissent sous chaque carte, pour le chef et les co-chefs uniquement.</span></div>
         </div>
       </div>
 
@@ -153,8 +172,8 @@
 
   <!-- ═══ ACTION 2 : rotation ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">2</span><h2>Faire tourner une corvée</h2></div>
-    <p class="a-intro">Plutôt que d'assigner toujours la même personne, la corvée passe automatiquement au suivant à chaque échéance.</p>
+    <div class="a-head"><span class="a-num">2</span><h2>Faire tourner une tâche</h2></div>
+    <p class="a-intro">Plutôt que d'assigner toujours la même personne, la tâche passe au suivant à chaque période. Il faut au moins deux membres dans l'ordre.</p>
 
     <div class="etapes deux">
 
@@ -166,20 +185,21 @@
             <div class="ph-dim"></div>
             <div class="ph-sheet">
               <div class="ph-grab"></div>
-              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">🧹 Nouvelle tâche</div>
+              <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:10px">Nouvelle tâche 🧹</div>
+              <div class="ph-label" data-ui>Titre</div>
               <div class="ph-input filled">Sortir les poubelles</div>
-              <div class="ph-label">Qui s'en occupe</div>
+              <div class="ph-label" data-ui>Assignation</div>
               <div class="ph-row" style="gap:6px;margin-bottom:9px">
-                <span class="ph-pill" style="background:var(--app-surface);padding:6px 11px">Fixe</span>
-                <span class="ph-pill" data-cible="1" style="background:var(--app-coral);color:#fff;padding:6px 11px">🔁 Rotation</span>
+                <span class="ph-pill" data-ui style="background:var(--app-surface);padding:6px 12px">Fixe</span>
+                <span class="ph-pill" data-cible="1" data-ui style="background:var(--app-coral);color:#fff;padding:6px 12px">Rotation</span>
               </div>
-              <div class="ph-label">Ordre du tour</div>
-              <div class="ph-row" data-cible="2" style="gap:5px;margin-bottom:9px">
+              <div class="ph-m" data-ui>Ordre de rotation (touchez les membres dans l'ordre)</div>
+              <div class="ph-row" data-cible="2" style="gap:5px;margin:6px 0 9px">
                 <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:5px 9px">1 Todd</span>
-                <span class="ph-pill" style="background:var(--app-plum);color:#fff;padding:5px 9px">2 Marc</span>
-                <span class="ph-pill" style="background:var(--app-teal);color:#fff;padding:5px 9px">3 Léa</span>
+                <span class="ph-pill" style="background:var(--app-coral);color:#fff;padding:5px 9px">2 Marc</span>
+                <span class="ph-pill" style="background:var(--app-surface);padding:5px 9px">Léa</span>
               </div>
-              <div class="ph-btn">Créer la tâche</div>
+              <div class="ph-btn" data-ui>Créer la tâche</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
@@ -187,8 +207,8 @@
         </div></div>
         <div class="etape-cap"><span class="n">1</span><h3>Choisir « Rotation »</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Basculez de <b>Fixe</b> à <b>🔁 Rotation</b>.</span></div>
-          <div class="leg"><b>2</b><span>Touchez les membres dans l'<b>ordre du tour</b> souhaité. Le numéro indique le rang.</span></div>
+          <div class="leg"><b>1</b><span>Dans <b>Assignation</b>, basculez de <b>Fixe</b> à <b>Rotation</b>.</span></div>
+          <div class="leg"><b>2</b><span>Touchez les membres dans l'ordre du tour : le chiffre affiché sur chacun indique son rang. En dessous de deux membres, l'app refuse de créer la tâche.</span></div>
         </div>
       </div>
 
@@ -197,23 +217,26 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Tâches</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="ph-ico">🗑️</span>
-                <div style="flex:1"><div class="ph-t">Sortir les poubelles</div><div class="ph-m">🔁 Todd → Marc</div></div>
-                <span class="ph-pill" style="background:var(--app-surface)">mardi</span></div></div>
-              <div class="ph-card" style="opacity:.6"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div></div></div>
+              <div class="ph-h"><span>‹</span><span class="t" data-ui>Tâches</span><span style="font-size:13px">？</span></div>
+              <div class="ph-label" data-ui>Toutes les tâches</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🗑️</span>
+                <div style="flex:1"><div class="ph-t">Sortir les poubelles</div>
+                <div class="ph-row" style="gap:5px"><span class="ph-m">Todd</span><span data-cible="1">🔄</span></div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab on"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
         </div></div>
         <div class="etape-cap"><span class="n">2</span><h3>Le tour s'affiche</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>La carte indique qui a la main et <b>qui prendra la suite</b>. Le passage au suivant est automatique.</span></div>
+          <div class="leg"><b>1</b><span>La carte montre la personne qui a la main, suivie d'une pastille <b>🔄</b> : c'est le signe qu'elle tourne. Le passage au suivant se fait tout seul à chaque période.</span></div>
         </div>
       </div>
 
@@ -222,35 +245,36 @@
 
   <!-- ═══ ACTION 3 : valider ═══ -->
   <section class="action">
-    <div class="a-head"><span class="a-num">3</span><h2>Valider une corvée faite</h2></div>
-    <p class="a-intro">Le geste le plus fréquent de l'app, et le plus court : un tap.</p>
+    <div class="a-head"><span class="a-num">3</span><h2>Valider une tâche faite</h2></div>
+    <p class="a-intro">La case à cocher vit dans l'onglet <b>Tâches</b>, et nulle part ailleurs. Seuls la personne concernée, le chef et les co-chefs peuvent valider.</p>
 
-    <div class="etapes deux">
+    <div class="etapes">
 
       <div class="etape">
         <div class="phone-wrap"><div class="phone">
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-label">Corvées du jour</div>
-              <div class="ph-card"><div class="ph-row"><span class="ph-ico">👕</span>
-                <div style="flex:1"><div class="ph-t">Étendre le linge</div><div class="ph-m">Vous · avant 20:00</div></div>
-                <span data-cible="1" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+              <div class="ph-h"><span class="t"><span data-ui>Salut</span> Todd</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-label" data-ui>Corvées du jour</div>
+              <div class="ph-m" data-ui>Le ménage, réparti entre nous</div>
+              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="ph-ico">👕</span>
+                <div style="flex:1"><div class="ph-t">Étendre le linge</div><div class="ph-m">Todd</div></div></div></div>
               <div class="ph-card"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Vous</div></div>
-                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd</div></div></div></div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab on"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab on" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-cible="2" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:200deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:270deg"><i data-n="2"></i></span>
         </div></div>
-        <div class="etape-cap"><span class="n">1</span><h3>Cocher la corvée</h3></div>
+        <div class="etape-cap"><span class="n">1</span><h3>Depuis Aujourd'hui</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Touchez le <b>cercle à droite</b> de la corvée. Depuis « Aujourd'hui » ou depuis l'onglet Tâches, au choix.</span></div>
+          <div class="leg"><b>1</b><span>« Aujourd'hui » <b>liste</b> les corvées du jour, mais ne les coche pas : les cartes n'ont pas de case.</span></div>
+          <div class="leg"><b>2</b><span>Toucher une carte vous emmène dans l'onglet <b>Tâches</b>. C'est là que ça se valide.</span></div>
         </div>
       </div>
 
@@ -259,28 +283,55 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Aujourd'hui</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-card" style="border:1.5px solid var(--app-sage)"><div class="ph-row"><span class="ph-ico" style="background:var(--app-sage);color:#fff">✓</span>
-                <div style="flex:1"><div class="ph-t" style="text-decoration:line-through;color:var(--app-muted)">Étendre le linge</div>
-                <div class="ph-m" style="color:var(--app-sage);font-weight:700">Validée · +10 points</div></div></div></div>
-              <div style="text-align:center;padding:12px 6px">
-                <div style="font-size:26px">🎉</div>
-                <div style="font-family:'Fraunces',serif;font-weight:700;font-size:13px;margin-top:4px">Bravo Todd&nbsp;!</div>
-                <div class="ph-m">5 jours d'affilée</div>
-              </div>
-              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="ring" style="width:44px;height:44px"><span style="width:32px;height:32px;font-size:10px">68%</span></span>
-                <div style="flex:1"><div class="ph-t">Votre part</div><div class="ph-m">de la charge cette semaine</div></div></div></div>
+              <div class="ph-h"><span>‹</span><span class="t" data-ui>Tâches</span><span style="font-size:13px">？</span></div>
+              <div class="ph-label" data-ui>Tâches du jour</div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">👕</span>
+                <div style="flex:1"><div class="ph-t">Étendre le linge</div><div class="ph-m">Todd</div></div>
+                <span data-cible="1" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
+              <div class="ph-card"><div class="ph-row"><span class="ph-ico">🍽️</span>
+                <div style="flex:1"><div class="ph-t">Vaisselle du soir</div><div class="ph-m">Sophie</div></div>
+                <span data-cible="2" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);opacity:.4;display:block"></span></div></div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab on"><i>☀️</i>Aujourd'hui</div><div class="ph-tab"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
+            </div>
+          </div>
+          <span class="pt" data-pour="1" style="--a:0deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+        </div></div>
+        <div class="etape-cap"><span class="n">2</span><h3>Cocher la case</h3></div>
+        <div class="legende">
+          <div class="leg"><b>1</b><span>La <b>case</b> à droite de la carte. Un tap, et la tâche est validée.</span></div>
+          <div class="leg"><b>2</b><span>Sur la tâche d'un autre membre, la case est <b>grisée</b> : elle ne réagit pas, sauf si vous êtes chef ou co-chef.</span></div>
+        </div>
+      </div>
+
+      <div class="etape">
+        <div class="phone-wrap"><div class="phone">
+          <div class="ph-in">
+            <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
+            <div class="ph-body">
+              <div class="ph-h"><span class="t"><span data-ui>Salut</span> Todd</span><span style="font-size:14px">🔔</span></div>
+              <div class="ph-card" data-cible="1" style="opacity:.6"><div class="ph-row"><span class="ph-ico" style="background:var(--app-sage);color:#fff">✓</span>
+                <div style="flex:1"><div class="ph-t" style="text-decoration:line-through;color:var(--app-muted)">Étendre le linge</div>
+                <div class="ph-m">Todd</div></div></div></div>
+              <div class="ph-card" data-cible="2" style="border:1.5px solid var(--app-gold)"><div class="ph-row"><span class="ring" style="width:44px;height:44px"><span style="width:32px;height:32px;font-size:9px">40%</span></span>
+                <div style="flex:1"><div class="ph-t" data-ui>Bilan de la semaine</div>
+                <div class="ph-row" style="gap:9px;margin-top:2px"><span class="ph-m" data-ui>ma part</span><span class="ph-m">5 <span data-ui>tâches</span></span><span class="ph-m">12 <span data-ui>points</span></span></div></div></div></div>
+            </div>
+            <div class="ph-tabs">
+              <div class="ph-tab on" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
         </div></div>
-        <div class="etape-cap"><span class="n">2</span><h3>Points et équité</h3></div>
+        <div class="etape-cap"><span class="n">3</span><h3>Après la validation</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>Vous gagnez des points, et <b>votre part de la charge</b> se met à jour pour tout le foyer.</span></div>
+          <div class="leg"><b>1</b><span>La carte est <b>barrée et grisée</b>. Aucun point n'est compté, sauf si un gage a été réglé sur cette tâche.</span></div>
+          <div class="leg"><b>2</b><span>La carte <b>Bilan de la semaine</b>, sur Aujourd'hui, montre votre <b>part</b> de la charge dans son anneau.</span></div>
         </div>
       </div>
 
@@ -290,7 +341,7 @@
   <!-- ═══ ACTION 4 : le gage ═══ -->
   <section class="action">
     <div class="a-head"><span class="a-num">4</span><h2>Comprendre le gage</h2></div>
-    <p class="a-intro">Le gage est <b>facultatif</b>. Il sert aux corvées qu'on a tendance à « oublier » : si elle n'est pas faite à temps, elle reste au retardataire, qui doit en plus quelques semaines de corvée.</p>
+    <p class="a-intro">Le gage est <b>facultatif</b>. Il sert aux tâches qu'on a tendance à « oublier » : elle reste au retardataire, qui doit en plus quelques semaines de corvée.</p>
 
     <div class="etapes deux">
 
@@ -302,28 +353,33 @@
             <div class="ph-dim"></div>
             <div class="ph-sheet">
               <div class="ph-grab"></div>
-              <div style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:8px">🧹 Nouvelle tâche</div>
+              <div data-ui style="font-family:'Fraunces',serif;font-weight:700;font-size:14px;margin-bottom:8px">Nouvelle tâche 🧹</div>
               <div class="ph-row" data-cible="1" style="gap:7px;color:var(--app-ink);font-size:11px;font-weight:700;margin-bottom:9px">
-                <span>▾</span><span>Plus d'options</span>
+                <span>▾</span><span data-ui>Plus d'options</span>
               </div>
-              <div class="ph-label">Gage</div>
               <div class="ph-row" style="justify-content:space-between;margin-bottom:9px">
-                <span style="font-size:11px">Activer le gage</span>
+                <span style="font-size:11px;font-weight:700" data-ui>Gage</span>
                 <span data-cible="2" style="width:34px;height:19px;border-radius:99px;background:var(--app-coral);position:relative;display:block">
                   <span style="position:absolute;right:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;display:block"></span>
                 </span>
               </div>
-              <div class="ph-input filled">2 semaines de corvée au 1er oubli</div>
-              <div class="ph-btn">Créer la tâche</div>
+              <div class="ph-label" data-ui>Récompense si réussi (optionnel)</div>
+              <div class="ph-input filled">Choisir le film du soir</div>
+              <div class="ph-row" data-cible="3" style="justify-content:space-between;background:var(--app-surface);border-radius:9px;padding:7px 9px">
+                <span style="font-size:10.5px" data-ui>Semaines de corvée au 1er oubli</span>
+                <span class="ph-row" style="gap:7px"><span>−</span><b>2</b><span>＋</span></span>
+              </div>
             </div>
           </div>
           <span class="pt" data-pour="1" style="--a:340deg"><i data-n="1"></i></span>
-          <span class="pt" data-pour="2" style="--a:180deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="2" style="--a:0deg"><i data-n="2"></i></span>
+          <span class="pt" data-pour="3" style="--a:180deg"><i data-n="3"></i></span>
         </div></div>
         <div class="etape-cap"><span class="n">1</span><h3>Activer le gage</h3></div>
         <div class="legende">
           <div class="leg"><b>1</b><span>Dépliez <b>Plus d'options</b> dans la feuille de création.</span></div>
-          <div class="leg"><b>2</b><span>Activez <b>le gage</b> et choisissez le nombre de semaines.</span></div>
+          <div class="leg"><b>2</b><span>La bascule <b>Gage</b>. Une fois allumée, elle ouvre la récompense, la pénalité et leurs points.</span></div>
+          <div class="leg"><b>3</b><span>Le compteur <b>Semaines de corvée au 1er oubli</b> n'apparaît qu'en assignation <b>Rotation</b> : c'est la rotation qu'il bloque.</span></div>
         </div>
       </div>
 
@@ -332,23 +388,26 @@
           <div class="ph-in">
             <div class="ph-status"><span>9:41</span><span class="ph-dots"><i></i><i></i><i></i></span></div>
             <div class="ph-body">
-              <div class="ph-h"><span class="t">Tâches</span><span style="font-size:14px">🔔</span></div>
-              <div class="ph-card" style="border:1.5px solid var(--app-coral)"><div class="ph-row"><span class="ph-ico">🧹</span>
-                <div style="flex:1"><div class="ph-t">Aspirateur salon</div><div class="ph-m">Todd · en retard</div></div>
-                <span class="ph-pill" data-cible="1" style="background:#FDECEA;color:var(--app-coral-d)">2 sem.</span></div></div>
+              <div class="ph-h"><span>‹</span><span class="t" data-ui>Tâches</span><span style="font-size:13px">？</span></div>
+              <div class="ph-label"><span data-ui>Corvées en cours</span> (2 sem.)</div>
+              <div class="ph-card" data-cible="1"><div class="ph-row"><span class="avs"><b style="background:var(--app-coral)">T</b></span>
+                <div style="flex:1"><div class="ph-t">Todd</div><div class="ph-m">Aspirateur salon</div></div>
+                <span class="ph-pill" style="background:#FDECEA;color:var(--app-coral-d)">2 sem.</span></div></div>
+              <div class="ph-label" data-ui>Tâches du jour</div>
               <div class="ph-card"><div class="ph-row"><span class="ph-ico">🗑️</span>
-                <div style="flex:1"><div class="ph-t">Poubelles</div><div class="ph-m">Marc · mardi</div></div></div></div>
+                <div style="flex:1"><div class="ph-t">Sortir les poubelles</div><div class="ph-m">Marc</div></div>
+                <span style="width:22px;height:22px;border-radius:50%;border:2px solid var(--app-line);display:block"></span></div></div>
             </div>
             <div class="ph-tabs">
-              <div class="ph-tab"><i>☀️</i>Aujourd'hui</div><div class="ph-tab on"><i>✔️</i>Tâches</div>
-              <div class="ph-tab"><i>📅</i>Agenda</div><div class="ph-tab"><i>▦</i>Plus</div>
+              <div class="ph-tab" data-ui><i>☀️</i>Aujourd'hui</div><div class="ph-tab on" data-ui><i>✔️</i>Tâches</div>
+              <div class="ph-tab" data-ui><i>📅</i>Agenda</div><div class="ph-tab" data-ui><i>▦</i>Plus</div>
             </div>
           </div>
-          <span class="pt" data-pour="1" style="--a:200deg"><i data-n="1"></i></span>
+          <span class="pt" data-pour="1" style="--a:180deg"><i data-n="1"></i></span>
         </div></div>
         <div class="etape-cap"><span class="n">2</span><h3>En cas d'oubli</h3></div>
         <div class="legende">
-          <div class="leg"><b>1</b><span>La corvée reste au retardataire, avec le nombre de <b>semaines dues</b>. La rotation ne repart qu'une fois le gage purgé.</span></div>
+          <div class="leg"><b>1</b><span>Une section <b>Corvées en cours</b> s'ouvre en haut de l'onglet Tâches, avec le retardataire et le nombre de semaines dues. La rotation ne repart qu'une fois le gage purgé.</span></div>
         </div>
       </div>
 
@@ -356,7 +415,7 @@
 
     <div class="note">
       <span class="ni">⚠️</span>
-      <p>Le gage doit rester un <b>jeu de famille</b>, pas une punition. Commencez sans, et ne l'activez que sur les corvées qui posent réellement problème.</p>
+      <p>Le gage doit rester un <b>jeu de famille</b>, pas une punition. Commencez sans, et ne l'activez que sur les tâches qui posent réellement problème.</p>
     </div>
   </section>
 
