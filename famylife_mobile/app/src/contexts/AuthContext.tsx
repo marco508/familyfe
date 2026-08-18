@@ -40,6 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const response = await authService.getProfile();
         if (response.data) {
           setUser(response.data);
+          // Enregistre le jeton push pour cet appareil (best-effort).
+          authService.registerForPush().catch(() => {});
         } else {
           await authService.logout();
           setUser(null);
@@ -63,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profileResponse = await authService.getProfile();
       if (profileResponse.data) {
         setUser(profileResponse.data);
+        // Enregistre le jeton push après connexion (best-effort).
+        authService.registerForPush().catch(() => {});
         return { success: true };
       }
 

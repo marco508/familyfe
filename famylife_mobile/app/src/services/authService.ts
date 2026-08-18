@@ -1,4 +1,7 @@
 // services/authService.ts
+import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import apiClient, { ApiResponse } from './apiClient';
 
 export interface LoginCredentials {
@@ -145,6 +148,44 @@ class AuthService {
   // ANNEXE V3 — enregistre le jeton Expo push (best-effort, dev build uniquement).
   async setPushToken(token: string): Promise<ApiResponse<{ message: string }>> {
     return apiClient.post('/me/push-token', { token });
+  }
+
+  // Demande la permission, récupère le jeton Expo Push et l'enregistre côté
+  // serveur. Appelé après connexion / restauration de session. Best-effort :
+  // ne bloque jamais et n'échoue jamais bruyamment (Expo Go n'a pas de push).
+  async registerForPush(): Promise<string | null> {
+    try {
+      const existing = await Notifications.getPermissionsAsync();
+      let status = existing.status;
+      if (status !== 'granted') {
+        const req = await Notifications.requestPermissionsAsync();
+        status = req.status;
+      }
+      if (status !== 'granted') return null;
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Général',
+          importance: Notifications.AndroidImportance.DEFAULT,
+        }).catch(() => {});
+      }
+
+      const projectId =
+        (Constants.expoConfig as any)?.extra?.eas?.projectId ??
+        (Constants as any)?.easConfig?.projectId;
+
+      const tokenResp = await Notifications.getExpoPushTokenAsync(
+        projectId ? { projectId } : (undefined as any),
+      );
+      const token = tokenResp?.data;
+      if (!token) return null;
+
+      await this.setPushToken(token);
+      return token;
+    } catch (e) {
+      console.warn('registerForPush:', e);
+      return null;
+    }
   }
 }
 
